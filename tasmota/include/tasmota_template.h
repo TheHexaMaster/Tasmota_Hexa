@@ -3253,7 +3253,7 @@ const uint8_t kModuleNiceList[] PROGMEM = {
 
 // !!! Update this list in the same order as kModuleNiceList !!!
 const char kModuleNames[] PROGMEM =
-  "ESP32P4|"
+  "HexaOS_P4G2|"
   ;
 
 // !!! Update this list in the same order as SupportedModulesESP32P4 !!!
@@ -3264,10 +3264,10 @@ const mytmplt kModules[] PROGMEM = {
     AGPIO(GPIO_USER),            // 2       IO                  GPIO2, TOUCH0, LP_GPIO2
     AGPIO(GPIO_USER),            // 3       IO                  GPIO3, TOUCH1, LP_GPIO3
     AGPIO(GPIO_USER),            // 4       IO                  GPIO4, TOUCH2, LP_GPIO4
-    AGPIO(GPIO_USER),            // 5       IO                  GPIO5, TOUCH3, LP_GPIO5
+    AGPIO(GPIO_OPTION_A) + 2,    // 5       IO                  GPIO5, TOUCH3, LP_GPIO5
     AGPIO(GPIO_USER),            // 6       IO                  GPIO6, TOUCH4, LP_GPIO6
-    AGPIO(GPIO_USER),            // 7       IO                  GPIO7, TOUCH5, LP_GPIO7
-    AGPIO(GPIO_USER),            // 8       IO                  GPIO8, TOUCH6, LP_GPIO8
+    AGPIO(GPIO_I2C_SDA),         // 7       IO                  GPIO7, TOUCH5, LP_GPIO7
+    AGPIO(GPIO_I2C_SCL),         // 8       IO                  GPIO8, TOUCH6, LP_GPIO8
     AGPIO(GPIO_USER),            // 9       IO                  GPIO9, TOUCH7, LP_GPIO9
     AGPIO(GPIO_USER),            // 10      IO                  GPIO10, TOUCH8, LP_GPIO10
     AGPIO(GPIO_USER),            // 11      IO                  GPIO11, TOUCH9, LP_GPIO11
@@ -3290,28 +3290,28 @@ const mytmplt kModules[] PROGMEM = {
     AGPIO(GPIO_USER),            // 28      IO                  GPIO28
     AGPIO(GPIO_USER),            // 29      IO                  GPIO29
     AGPIO(GPIO_USER),            // 30      IO                  GPIO30
-    AGPIO(GPIO_USER),            // 31      IO                  GPIO31
-    AGPIO(GPIO_USER),            // 32      IO                  GPIO32
-    AGPIO(GPIO_USER),            // 33      IO                  GPIO33
+    AGPIO(GPIO_ETH_PHY_MDC),     // 31      IO                  GPIO31
+    AGPIO(GPIO_I2C_SDA) + 1,     // 32      IO                  GPIO32
+    AGPIO(GPIO_I2C_SCL) + 1,     // 33      IO                  GPIO33
     AGPIO(GPIO_USER),            // 34      IO                  GPIO34, Strapping pin
     AGPIO(GPIO_USER),            // 35      IO                  GPIO35, Strapping pin
     AGPIO(GPIO_USER),            // 36      IO                  GPIO36, Strapping pin
     AGPIO(GPIO_USER),            // 37      IO                  GPIO37, Strapping pin
     AGPIO(GPIO_USER),            // 38      IO                  GPIO38, Strapping pin
-    AGPIO(GPIO_USER),            // 39      IO                  GPIO39
-    AGPIO(GPIO_USER),            // 40      IO                  GPIO40
-    AGPIO(GPIO_USER),            // 41      IO                  GPIO41
-    AGPIO(GPIO_USER),            // 42      IO                  GPIO42
-    AGPIO(GPIO_USER),            // 43      IO                  GPIO43
-    AGPIO(GPIO_USER),            // 44      IO                  GPIO44
-    AGPIO(GPIO_USER),            // 45      IO                  GPIO45
+    AGPIO(GPIO_SDIO_D0),         // 39      IO                  GPIO39
+    AGPIO(GPIO_SDIO_D1),         // 40      IO                  GPIO40
+    AGPIO(GPIO_SDIO_D2),         // 41      IO                  GPIO41
+    AGPIO(GPIO_SDIO_D3),         // 42      IO                  GPIO42
+    AGPIO(GPIO_SDIO_CLK),        // 43      IO                  GPIO43
+    AGPIO(GPIO_SDIO_CMD),        // 44      IO                  GPIO44
+    AGPIO(GPIO_SDCARD_CS),       // 45      IO                  GPIO45
     AGPIO(GPIO_USER),            // 46      IO                  GPIO46
     AGPIO(GPIO_USER),            // 47      IO                  GPIO47
     AGPIO(GPIO_USER),            // 48      IO                  GPIO48
     AGPIO(GPIO_USER),            // 49      IO                  GPIO49, ADC1_CH8
     AGPIO(GPIO_USER),            // 50      IO                  GPIO50, ADC1_CH9
-    AGPIO(GPIO_USER),            // 51      IO                  GPIO51, ADC1_CH10, ANA_CMPR_CH0 reference voltage
-    AGPIO(GPIO_USER),            // 52      IO                  GPIO52, ADC1_CH11, ANA_CMPR_CH0 input (non-inverting)
+    AGPIO(GPIO_ETH_PHY_POWER),   // 51      IO                  GPIO51, ADC1_CH10, ANA_CMPR_CH0 reference voltage
+    AGPIO(GPIO_ETH_PHY_MDIO),    // 52      IO                  GPIO52, ADC1_CH11, ANA_CMPR_CH0 input (non-inverting)
     AGPIO(GPIO_USER),            // 53      IO                  GPIO53, ADC1_CH12, ANA_CMPR_CH1 reference voltage
     AGPIO(GPIO_USER),            // 54      IO                  GPIO54, ADC1_CH13, ANA_CMPR_CH1 input (non-inverting)
     0                            // Flag

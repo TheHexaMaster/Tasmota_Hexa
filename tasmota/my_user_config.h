@@ -42,12 +42,12 @@
 \*********************************************************************************************/
 
 // -- Master parameter control --------------------
-#define CFG_HOLDER             4617              // [Reset 1] Change this value (max 32000) to load SECTION1 configuration parameters to flash
+#define CFG_HOLDER             7777              // [Reset 1] Change this value (max 32000) to load SECTION1 configuration parameters to flash
                                                  // If following define is disabled it increases configuration corruption detection BUT
                                                  //  it only allows firmware upgrades starting from version 6.6.0.11
 
 // -- Project -------------------------------------
-#define PROJECT                "tasmota"         // PROJECT is used as the default topic delimiter
+#define PROJECT                "HexaOS"         // PROJECT is used as the default topic delimiter
 
 // If not selected the default will be SONOFF_BASIC
 //#define MODULE                 SONOFF_BASIC      // [Module] Select default module from tasmota_template.h
@@ -60,8 +60,8 @@
 //#define USER_TEMPLATE "{\"NAME\":\"ESP32-DevKit\",\"GPIO\":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,0,1,1,1,0,0,0,0,1,1,1,1,1,0,0,1],\"FLAG\":0,\"BASE\":1}"  // [Template] Set JSON template
 #endif  // ESP32
 
-#define SAVE_DATA              1                 // [SaveData] Save changed parameters to Flash (0 = disable, 1 - 3600 seconds)
-#define SAVE_STATE             true              // [SetOption0] Save changed power state to Flash (false = disable, true = enable)
+#define SAVE_DATA              30                 // [SaveData] Save changed parameters to Flash (0 = disable, 1 - 3600 seconds)
+#define SAVE_STATE             false              // [SetOption0] Save changed power state to Flash (false = disable, true = enable)
 #define BOOT_LOOP_OFFSET       1                 // [SetOption36] Number of boot loops before starting restoring defaults (0 = disable, 1..200 = boot loops offset)
 
 // -- Wi-Fi ---------------------------------------
