@@ -33,11 +33,11 @@
 #define WIFI_RESCAN_MINUTES     44         // Number of minutes between wifi network rescan
 #endif
 #ifndef WIFI_RETRY_SECONDS
-#define WIFI_RETRY_SECONDS      20         // Number of seconds connection to wifi network will retry
+#define WIFI_RETRY_SECONDS      60         // Number of seconds connection to wifi network will retry
 #endif
 
 const uint8_t WIFI_CONFIG_SEC = 180;       // seconds before restart
-const uint8_t WIFI_CHECK_SEC = 20;         // seconds
+const uint8_t WIFI_CHECK_SEC = 60;         // seconds
 const uint8_t WIFI_RETRY_OFFSET_SEC = WIFI_RETRY_SECONDS;  // seconds
 
 #include <ESP8266WiFi.h>                   // Wifi, MQTT, Ota, WifiManager
@@ -161,7 +161,9 @@ void WifiConfig(uint8_t type)
     Wifi.counter = Wifi.config_counter +5;
     TasmotaGlobal.blinks = 255;
     if (WIFI_RESTART == Wifi.config_type) {
-      TasmotaGlobal.restart_flag = 2;
+#ifndef WIFI_MSBMODE
+            TasmotaGlobal.restart_flag = 2;
+#endif
     }
     else if (WIFI_SERIAL == Wifi.config_type) {
       AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_WIFI D_WCFG_6_SERIAL " " D_ACTIVE_FOR_3_MINUTES));
@@ -1163,7 +1165,9 @@ void WifiCheckIp(void) {
         } else {
           if (!strlen(SettingsText(SET_STASSID1)) && !strlen(SettingsText(SET_STASSID2))) {
             Settings->wifi_channel = 0;  // Disable stored AP
+#ifndef WIFI_MSBMODE
             wifi_config_tool = WIFI_MANAGER;  // Skip empty SSIDs and start Wifi config tool
+#endif
             Wifi.retry = 0;
           } else {
             AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_WIFI D_ATTEMPTING_CONNECTION));
@@ -1188,7 +1192,12 @@ void WifiCheckIp(void) {
       WifiConfig(wifi_config_tool);
       Wifi.retry = Wifi.retry_init;
     }
-    Wifi.counter = 1;             // Re-check in 1 second
+#ifdef WIFI_MSBMODE
+            Wifi.counter = 30; 
+#else
+            Wifi.counter = 1; 
+#endif
+                // Re-check in 1 second
   }
 }
 
