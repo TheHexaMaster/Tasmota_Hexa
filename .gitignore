@@ -19,6 +19,7 @@ managed_components
 .cache
 .dummy
 import/*
+import
 sdkconfig.*
 sdkconfig.defaults
 CMakeLists.txt
