@@ -1,6 +1,9 @@
 #- start LVGL and init environment -#
 lv.start()
 
+import display
+display.dimmer(60)
+
 hres = lv.get_hor_res()       # should be 320
 vres = lv.get_ver_res()       # should be 240
 

@@ -61,7 +61,7 @@
 #endif  // ESP32
 
 #define SAVE_DATA              30                 // [SaveData] Save changed parameters to Flash (0 = disable, 1 - 3600 seconds)
-#define SAVE_STATE             false              // [SetOption0] Save changed power state to Flash (false = disable, true = enable)
+#define SAVE_STATE             true              // [SetOption0] Save changed power state to Flash (false = disable, true = enable)
 #define BOOT_LOOP_OFFSET       1                 // [SetOption36] Number of boot loops before starting restoring defaults (0 = disable, 1..200 = boot loops offset)
 
 // -- Wi-Fi ---------------------------------------
@@ -92,7 +92,7 @@
 #define DNS_TIMEOUT            2000              // [DnsTimeout] Number of ms before DNS timeout
 #define WIFI_ARP_INTERVAL      60                // [SetOption41] Send gratuitous ARP interval
 #define WIFI_SCAN_AT_RESTART   false             // [SetOption56] Scan Wi-Fi network at restart for configured AP's
-#define WIFI_SCAN_REGULARLY    true              // [SetOption57] Scan Wi-Fi network every 44 minutes for configured AP's
+#define WIFI_SCAN_REGULARLY    false             // [SetOption57] Scan Wi-Fi network every 44 minutes for configured AP's
 #define WIFI_NO_SLEEP          true             // [SetOption127] Sets Wifi in no-sleep mode which improves responsiveness on some routers
 #define WIFI_DEFAULT_HOSTNAME  "%s-%04d"         // [Hostname] Expands to <MQTT_TOPIC>-<last 4 decimal chars of MAC address>
 
@@ -339,7 +339,7 @@
 #define LIGHT_VIRTUAL_CT       false             // [SetOption106] Virtual CT - Creates a virtual White ColorTemp for RGBW lights
 #define LIGHT_VIRTUAL_CT_CW    false             // [SetOption107] Virtual CT Channel - signals whether the hardware white is cold CW (true) or warm WW (false)
 #define LIGHT_VIRTUAL_CT_POINTS 3                // Number of reference points for Virtual CT (min 2, default 3)
-#define USE_AC_ZERO_CROSS_DIMMER                 // Requires USE_COUNTER and USE_LIGHT
+//#define USE_AC_ZERO_CROSS_DIMMER                 // Requires USE_COUNTER and USE_LIGHT
 
 // -- Energy --------------------------------------
 #define ENERGY_VOLTAGE_ALWAYS  false             // [SetOption21] Enable show voltage even if powered off
@@ -457,7 +457,7 @@
 //  #define HOME_ASSISTANT_LWT_SUBSCRIBE    true               // Subscribe to Home Assistant Birth and Last Will Topic (default = true)
 
 // -- MQTT - Tasmota Discovery ---------------------
-#define USE_TASMOTA_DISCOVERY                      // Enable Tasmota Discovery support (+2k code)
+//#define USE_TASMOTA_DISCOVERY                      // Enable Tasmota Discovery support (+2k code)
 
 // -- MQTT - TLS - AWS IoT ------------------------
 // Using TLS starting with version v6.5.0.16 compilation will only work using Core 2.4.2 and 2.5.2. No longer supported: 2.3.0
@@ -1234,11 +1234,11 @@
   //#define USE_IBEACON_ESP32                      // Add support for Bluetooth LE passive scan of iBeacon devices using the internal ESP32 Bluetooth module
 //#define USE_WEBCAM                               // Add support for webcam
 
-#define USE_AUTOCONF                             // Enable Esp32(x) autoconf feature, requires USE_BERRY and USE_WEBCLIENT_HTTPS (12KB Flash)
-#define USE_EXTENSION_MANAGER                    // Enable Esp32(x) extensions manager, requires USE_BERRY and USE_WEBCLIENT_HTTPS (11KB Flash)
+// #define USE_AUTOCONF                             // Enable Esp32(x) autoconf feature, requires USE_BERRY and USE_WEBCLIENT_HTTPS (12KB Flash)
+// #define USE_EXTENSION_MANAGER                    // Enable Esp32(x) extensions manager, requires USE_BERRY and USE_WEBCLIENT_HTTPS (11KB Flash)
 #define USE_BERRY                                // Enable Berry scripting language
   #define USE_BERRY_PYTHON_COMPAT                // Enable by default `import python_compat`
-  #define USE_BERRY_TIMEOUT             6000     // Timeout in ms, will raise an exception if running time exceeds this timeout
+  #define USE_BERRY_TIMEOUT             8000     // Timeout in ms, will raise an exception if running time exceeds this timeout
   #define USE_BERRY_PSRAM                        // Allocate Berry memory in PSRAM if PSRAM is connected - this might be slightly slower but leaves main memory intact
   #define USE_BERRY_IRAM                         // Allocate some data structures in IRAM (which is usually unused) when possible and if no PSRAM is available
   #define USE_BERRY_FAST_LOOP_SLEEP_MS  5        // Minimum time in milliseconds to before calling again `tasmota.fast_loop()`, a smaller value will consume more CPU (min 1ms)
@@ -1247,7 +1247,7 @@
   #define USE_BERRY_INT64                        // Add 64 bits integer support (+1.7KB Flash)
   #define USE_WEBCLIENT_HTTPS                    // Enable HTTPS outgoing requests based on BearSSL (much ligher then mbedTLS, 42KB vs 150KB) in insecure mode (no verification of server's certificate)
                                                  // Note that only two ciphers are enabled: ECDHE_RSA_WITH_AES_128_GCM_SHA256, ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
-    #define USE_BERRY_WEBCLIENT_USERAGENT  "TasmotaClient" // default user-agent used, can be changed with `wc.set_useragent()`
+    #define USE_BERRY_WEBCLIENT_USERAGENT  "HexaOSClient" // default user-agent used, can be changed with `wc.set_useragent()`
     #define USE_BERRY_WEBCLIENT_TIMEOUT  5000    // Default timeout in milliseconds
     // #define USE_BERRY_LEDS_PANEL                 // Add button to dynamically load the Leds Panel from a bec file online
     #define USE_BERRY_LEDS_PANEL_URL             "http://ota.tasmota.com/tapp/leds_panel.bec"
@@ -1277,7 +1277,7 @@
 #define USE_LVGL                                 // LVGL Engine, requires Berry (+382KB)
   #define USE_LVGL_PSRAM                         // Allocate LVGL memory in PSRAM if PSRAM is connected - this might be slightly slower but leaves main memory intact
   //#define USE_LVGL_HASPMOTA                      // Enable OpenHASP compatiblity and Robotocondensed fonts (+90KB flash)
-  #define USE_LVGL_MAX_SLEEP  10                 // max sleep in ms when LVGL is enabled, more than 10ms will make display less responsive
+  #define USE_LVGL_MAX_SLEEP  5                 // max sleep in ms when LVGL is enabled, more than 10ms will make display less responsive
   #define USE_LVGL_PNG_DECODER                   // include a PNG image decoder from file system (+16KB)
   #define USE_LVGL_FREETYPE                      // Use the FreeType renderer to display fonts using native TTF files in file system (+77KB flash)
     #define USE_LVGL_FREETYPE_MAX_FACES 64       // max number of FreeType faces in cache
