@@ -405,9 +405,9 @@ extern "C" {
     { "montserrat", lv_montserrat_fonts },
     { "seg7", lv_seg7_fonts },
     // { "typicons", lv_typicons_fonts },
-#ifdef USE_LVGL_HASPMOTA
+// #ifdef USE_LVGL_HASPMOTA
     { "robotocondensed", lv_robotocondensed_fonts },
-#endif
+// #endif
     { "unscii", lv_unscii_fonts},
     { nullptr, nullptr}
   };
