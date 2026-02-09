@@ -714,7 +714,7 @@
 #define ROBOTOCONDENSED_REGULAR_24_LATIN1  1
 #define ROBOTOCONDENSED_REGULAR_36_LATIN1  1
 #define ROBOTOCONDENSED_REGULAR_48_LATIN1  1
-
+ 
 
 /** Always set a default font */
 #define LV_FONT_DEFAULT &lv_font_montserrat_tasmota_14  // TASMOTA
