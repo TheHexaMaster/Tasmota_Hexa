@@ -89,11 +89,11 @@
 #define WIFI_CONFIG_TOOL       WIFI_RETRY        // [WifiConfig] Default tool if Wi-Fi fails to connect (default option: 4 - WIFI_RETRY)
                                                  // (WIFI_RESTART, WIFI_MANAGER, WIFI_RETRY, WIFI_WAIT, WIFI_SERIAL, WIFI_MANAGER_RESET_ONLY)
                                                  // The configuration can be changed after first setup using WifiConfig 0, 2, 4, 5, 6 and 7.
-#define DNS_TIMEOUT            1000              // [DnsTimeout] Number of ms before DNS timeout
+#define DNS_TIMEOUT            2000              // [DnsTimeout] Number of ms before DNS timeout
 #define WIFI_ARP_INTERVAL      60                // [SetOption41] Send gratuitous ARP interval
 #define WIFI_SCAN_AT_RESTART   false             // [SetOption56] Scan Wi-Fi network at restart for configured AP's
 #define WIFI_SCAN_REGULARLY    true              // [SetOption57] Scan Wi-Fi network every 44 minutes for configured AP's
-#define WIFI_NO_SLEEP          false             // [SetOption127] Sets Wifi in no-sleep mode which improves responsiveness on some routers
+#define WIFI_NO_SLEEP          true             // [SetOption127] Sets Wifi in no-sleep mode which improves responsiveness on some routers
 #define WIFI_DEFAULT_HOSTNAME  "%s-%04d"         // [Hostname] Expands to <MQTT_TOPIC>-<last 4 decimal chars of MAC address>
 
 // -- Syslog --------------------------------------
@@ -446,7 +446,7 @@
 #define MQTT_DISABLE_MODBUSRECEIVED  0           // [SetOption158] 1 = Disable ModbusReceived mqtt messages, 0 = Enable ModbusReceived mqtt messages (default)
 
 // -- MQTT - Domoticz -----------------------------
-#define USE_DOMOTICZ                             // Enable Domoticz (+6k code, +0.3k mem)
+// #define USE_DOMOTICZ                             // Enable Domoticz (+6k code, +0.3k mem)
   #define DOMOTICZ_IN_TOPIC    "domoticz/in"     // Domoticz Input Topic
   #define DOMOTICZ_OUT_TOPIC   "domoticz/out"    // Domoticz Output Topic
 
@@ -461,7 +461,7 @@
 
 // -- MQTT - TLS - AWS IoT ------------------------
 // Using TLS starting with version v6.5.0.16 compilation will only work using Core 2.4.2 and 2.5.2. No longer supported: 2.3.0
-//#define USE_MQTT_TLS                             // Use TLS for MQTT connection (+34.5k code, +7.0k mem and +4.8k additional during connection handshake)
+#define USE_MQTT_TLS                             // Use TLS for MQTT connection (+34.5k code, +7.0k mem and +4.8k additional during connection handshake)
  #define USE_MQTT_TLS_ECDSA                     // (ESP8266 only, always on for ESP32) enable ECDSA in addition to RSA (+11.5k code)
 //  #define USE_MQTT_TLS_CA_CERT                   // [DEPRECATED] Now TLS supports dual mode using SetOption132 - this flag is now ignored
 //  #define USE_MQTT_AWS_IOT_LIGHT                 // Enable MQTT for AWS IoT in light mode, with user/password instead of private certificate
@@ -510,8 +510,8 @@
 //  #define DISABLE_REFERER_CHK                     // [SetOption128] Disable HTTP API
   #define USE_ENHANCED_GUI_WIFI_SCAN             // Enable Wi-Fi scan output with BSSID (+0k5 code)
   #define USE_WEB_STATUS_LINE                      // Enable upper status line in web UI (+0k5 code)
-//    #define USE_WEB_STATUS_LINE_WIFI               // Enable upper left wifi indicator in main page (+0k5 code)
-//    #define USE_WEB_STATUS_LINE_HEAP               // Enable upper left display of free heap memory (+0k1 code)
+     #define USE_WEB_STATUS_LINE_WIFI               // Enable upper left wifi indicator in main page (+0k5 code)
+     #define USE_WEB_STATUS_LINE_HEAP               // Enable upper left display of free heap memory (+0k1 code)
 //  #define USE_ALPINEJS                           // Enable AlpineJS v2.8.2 (+8k8 code)
 //  #define USE_WEBSEND_RESPONSE                   // Enable command WebSend response message (+1k code)
 //  #define USE_WEBGETCONFIG                       // Enable restoring config from external webserver (+0k6)
@@ -519,8 +519,8 @@
 //  #define USE_GPIO_VIEWER                        // Enable GPIO Viewer to see realtime GPIO states (+6k code)
     #define GV_USE_ESPINFO                       // Add ESP8266 info (+2k1 code)
 //    #define GV_SAMPLING_INTERVAL  100            // [GvSampling] milliseconds - Use Tasmota Scheduler (100) or Ticker (20..99,101..1000)
-  #define USE_EMULATION_HUE                      // Enable Hue Bridge emulation for Alexa (+14k code, +2k mem common)
-  #define USE_EMULATION_WEMO                     // Enable Belkin WeMo emulation for Alexa (+6k code, +2k mem common)
+//  #define USE_EMULATION_HUE                      // Enable Hue Bridge emulation for Alexa (+14k code, +2k mem common)
+//  #define USE_EMULATION_WEMO                     // Enable Belkin WeMo emulation for Alexa (+6k code, +2k mem common)
   // #define USE_CCLOADER                           // Enable CCLoader FW upgrade tool (for CC25xx devices)
 
 // -- mDNS ----------------------------------------
@@ -557,59 +557,59 @@
 //#define USER_BACKLOG "<Any command separated by a semicolon (;)>"  // Add commands executed at firmware load or when command reset is executed
 
 // -- Optional modules ----------------------------
-#define ROTARY_V1                                // Add support for Rotary Encoder as used in MI Desk Lamp (+0k8 code)
+//#define ROTARY_V1                                // Add support for Rotary Encoder as used in MI Desk Lamp (+0k8 code)
   #define ROTARY_MAX_STEPS     10                // Rotary step boundary
-#define USE_SONOFF_RF                            // Add support for Sonoff Rf Bridge (+3k2 code)
+// #define USE_SONOFF_RF                            // Add support for Sonoff Rf Bridge (+3k2 code)
 //  #define FIX_JSON_HEXADECIMAL                   // Add "0x" as prefix to hexadecimal value (disabled for legacy)
   #define USE_RF_FLASH                           // Add support for flashing the EFM8BB1 chip on the Sonoff RF Bridge. C2CK must be connected to GPIO4, C2D to GPIO5 on the PCB (+2k7 code)
-#define USE_SONOFF_SC                            // Add support for Sonoff Sc (+1k1 code)
-#define USE_TUYA_MCU                             // Add support for Tuya Serial MCU
+// #define USE_SONOFF_SC                            // Add support for Sonoff Sc (+1k1 code)
+// #define USE_TUYA_MCU                             // Add support for Tuya Serial MCU
   #define TUYA_DIMMER_ID       0                 // Default dimmer Id
   #define USE_TUYA_TIME                          // Add support for Set Time in Tuya MCU
 //#define USE_TUYAMCUBR                            // Add support for TuyaMCU Bridge
-#define USE_ARMTRONIX_DIMMERS                    // Add support for Armtronix Dimmers (+1k4 code)
-#define USE_PS_16_DZ                             // Add support for PS-16-DZ Dimmer (+2k code)
-#define USE_SONOFF_IFAN                          // Add support for Sonoff iFan02 and iFan03 (+2k code)
+// #define USE_ARMTRONIX_DIMMERS                    // Add support for Armtronix Dimmers (+1k4 code)
+// #define USE_PS_16_DZ                             // Add support for PS-16-DZ Dimmer (+2k code)
+// #define USE_SONOFF_IFAN                          // Add support for Sonoff iFan02 and iFan03 (+2k code)
 #define USE_BUZZER                               // Add support for a buzzer (+0k6 code)
-#define USE_ARILUX_RF                            // Add support for Arilux RF remote controller (+0k8 code, 252 iram (non 2.3.0))
-#define USE_SHUTTER                              // Add Shutter support for up to 4 shutter with different motortypes (+11k code)
-#define USE_DEEPSLEEP                            // Add support for deepsleep (+1k code)
-#define USE_EXS_DIMMER                           // Add support for ES-Store Wi-Fi Dimmer (+1k5 code)
+// #define USE_ARILUX_RF                            // Add support for Arilux RF remote controller (+0k8 code, 252 iram (non 2.3.0))
+// #define USE_SHUTTER                              // Add Shutter support for up to 4 shutter with different motortypes (+11k code)
+// #define USE_DEEPSLEEP                            // Add support for deepsleep (+1k code)
+// #define USE_EXS_DIMMER                           // Add support for ES-Store Wi-Fi Dimmer (+1k5 code)
 //  #define EXS_MCU_CMNDS                          // Add command to send MCU commands (+0k8 code)
 //#define USE_HOTPLUG                              // Add support for sensor HotPlug
-#define USE_DEVICE_GROUPS                        // Add support for device groups (+5k5 code)
+// #define USE_DEVICE_GROUPS                        // Add support for device groups (+5k5 code)
   #define DEVICE_GROUPS_ADDRESS 239,255,250,250  // Device groups multicast address
   #define DEVICE_GROUPS_PORT 4447                // Device groups multicast port
   #define USE_DEVICE_GROUPS_SEND                 // Add support for the DevGroupSend command (+0k6 code)
 #define USE_PWM_DIMMER                           // Add support for MJ-SD01/acenx/NTONPOWER PWM dimmers (+2k3 code, DGR=0k7)
   #define USE_PWM_DIMMER_REMOTE                  // Add support for remote switches to PWM Dimmer (requires USE_DEVICE_GROUPS) (+0k6 code)
 //#define USE_KEELOQ                               // Add support for Jarolift rollers by Keeloq algorithm (+4k5 code)
-#define USE_SONOFF_D1                            // Add support for Sonoff D1 Dimmer (+0k7 code)
-#define USE_SHELLY_DIMMER                        // Add support for Shelly Dimmer (+3k code)
-  #define SHELLY_CMDS                            // Add command to send co-processor commands (+0k3 code)
-  #define SHELLY_FW_UPGRADE                      // Add firmware upgrade option for co-processor (+3k4 code)
+// #define USE_SONOFF_D1                            // Add support for Sonoff D1 Dimmer (+0k7 code)
+// #define USE_SHELLY_DIMMER                        // Add support for Shelly Dimmer (+3k code)
+  // #define SHELLY_CMDS                            // Add command to send co-processor commands (+0k3 code)
+  // #define SHELLY_FW_UPGRADE                      // Add firmware upgrade option for co-processor (+3k4 code)
 //  #define SHELLY_VOLTAGE_MON                     // Add support for reading voltage and current measurment (-0k0 code)
 //#define USE_MAGIC_SWITCH                         // Add Sonoff MagicSwitch support as implemented in Sonoff Basic R4 (+612B flash, +64B IRAM for intr)
 //  #define MAGICSWITCH_MIN_PULSE  4000            // Overridable minimum pulse, also overridable by command MagicSwitchPulse (not saved to flash)
 //  #define MAGICSWITCH_MASKING_WINDOW_LEN  5      // Overridable masking window (in number of 50ms loops)
 
 // -- Optional light modules ----------------------
-#define USE_LIGHT                                // Add support for light control
-#define USE_MY92X1                               // Add support for MY92X1 RGBCW led controller as used in Sonoff B1, Ailight and Lohas
-#define USE_SM16716                              // Add support for SM16716 RGB LED controller (+0k7 code)
-#define USE_SM2135                               // Add support for SM2135 RGBCW led control as used in Action LSC (+0k6 code)
-#define USE_SM2335                               // Add support for SM2335 RGBCW led control as used in SwitchBot Color Bulb (+0k7 code)
-#define USE_BP1658CJ                             // Add support for BP1658CJ RGBCW led control as used in Orein OS0100411267 Bulb
-#define USE_BP5758D                              // Add support for BP5758D RGBCW led control as used in some Tuya lightbulbs (+0k8 code)
-#define USE_SONOFF_L1                            // Add support for Sonoff L1 led control
-#define USE_ELECTRIQ_MOODL                       // Add support for ElectriQ iQ-wifiMOODL RGBW LED controller (+0k3 code)
-#define USE_LIGHT_PALETTE                        // Add support for color palette (+0k7 code)
-#define USE_LIGHT_VIRTUAL_CT                     // Add support for Virtual White Color Temperature (+1.1k code)
-#define USE_DGR_LIGHT_SEQUENCE                   // Add support for device group light sequencing (requires USE_DEVICE_GROUPS) (+0k2 code)
+// #define USE_LIGHT                                // Add support for light control
+// #define USE_MY92X1                               // Add support for MY92X1 RGBCW led controller as used in Sonoff B1, Ailight and Lohas
+// #define USE_SM16716                              // Add support for SM16716 RGB LED controller (+0k7 code)
+// #define USE_SM2135                               // Add support for SM2135 RGBCW led control as used in Action LSC (+0k6 code)
+// #define USE_SM2335                               // Add support for SM2335 RGBCW led control as used in SwitchBot Color Bulb (+0k7 code)
+// #define USE_BP1658CJ                             // Add support for BP1658CJ RGBCW led control as used in Orein OS0100411267 Bulb
+// #define USE_BP5758D                              // Add support for BP5758D RGBCW led control as used in some Tuya lightbulbs (+0k8 code)
+// #define USE_SONOFF_L1                            // Add support for Sonoff L1 led control
+// #define USE_ELECTRIQ_MOODL                       // Add support for ElectriQ iQ-wifiMOODL RGBW LED controller (+0k3 code)
+// #define USE_LIGHT_PALETTE                        // Add support for color palette (+0k7 code)
+// #define USE_LIGHT_VIRTUAL_CT                     // Add support for Virtual White Color Temperature (+1.1k code)
+// #define USE_DGR_LIGHT_SEQUENCE                   // Add support for device group light sequencing (requires USE_DEVICE_GROUPS) (+0k2 code)
 //#define USE_LSC_MCSL                             // Add support for GPE Multi color smart light as sold by Action in the Netherlands (+1k1 code)
 
 // -- Optional adressable leds ----------------------
-#define USE_WS2812                               // WS2812 Led string using library NeoPixelBus (+5k code, +1k mem, 232 iram) - Disable by //
+// #define USE_WS2812                               // WS2812 Led string using library NeoPixelBus (+5k code, +1k mem, 232 iram) - Disable by //
 // -------- below is for ESP8266 only
 //  #define USE_WS2812_DMA                         // ESP8266 only, DMA supports only GPIO03 (= Serial RXD) (+1k mem). When USE_WS2812_DMA is enabled expect Exceptions on Pow
   #define USE_WS2812_RMT  0                      // ESP32 only, hardware RMT support (default). Specify the RMT channel 0..7. This should be preferred to software bit bang.
@@ -633,7 +633,7 @@
 //#define USE_ADC_VCC                              // Display Vcc in Power status. Disable for use as Analog input on selected devices
 
 // -- One wire sensors ----------------------------
-#define USE_DS18x20                              // Add support for DS18x20 sensors with id sort, single scan and read retry (+2k6 code)
+// #define USE_DS18x20                              // Add support for DS18x20 sensors with id sort, single scan and read retry (+2k6 code)
 //  #define W1_PARASITE_POWER                      // Optimize for parasite powered sensors
 //  #define DS18x20_USE_ID_AS_NAME                 // Use last 3 bytes for naming of sensors
 //  #define DS18x20_USE_ID_ALIAS                   // Add support aliasing for DS18x20 sensors. See comments in xsns_05 files (+0k5 code)
@@ -645,7 +645,7 @@
 #define I2CDRIVERS_64_95       0xFFFFFFFF          // Enable I2CDriver64 to I2CDriver95
 
 #ifdef USE_I2C
-//  #define USE_I2C_BUS2                           // Add experimental support for second I2C bus on ESP8266 (+0k6k code)
+  #define USE_I2C_BUS2                           // Add experimental support for second I2C bus on ESP8266 (+0k6k code)
 //  #define USE_SHT                                // [I2cDriver8] Enable SHT1X sensor (+1k4 code)
 //  #define USE_HTU                                // [I2cDriver9] Enable HTU21/SI7013/SI7020/SI7021 sensor (I2C address 0x40) (+1k5 code)
 //  #define USE_BMP                                // [I2cDriver10] Enable BMP085/BMP180/BMP280/BME280 sensors (I2C addresses 0x76 and 0x77) (+4k4 code)
@@ -703,7 +703,7 @@
 //  #define USE_SCD40                              // [I2cDriver62] Enable Sensiron SCd40/Scd41 CO2 sensor (I2C address 0x62) (+3k5 code)
 //  #define USE_SPS30                              // [I2cDriver30] Enable Sensiron SPS30 particle sensor (I2C address 0x69) (+1.7 code)
 //  #define USE_ADE7880                            // [I2cDriver65] Enable ADE7880 Energy monitor as used on Shelly 3EM (I2C address 0x38) (+3k8)
-  #define USE_ADE7953                            // [I2cDriver7] Enable ADE7953 Energy monitor as used on Shelly 2.5 (I2C address 0x38) (+1k5)
+//  #define USE_ADE7953                            // [I2cDriver7] Enable ADE7953 Energy monitor as used on Shelly 2.5 (I2C address 0x38) (+1k5)
 //  #define USE_VL53L0X                            // [I2cDriver31] Enable VL53L0x time of flight sensor (I2C address 0x29) (+4k code)
 //    #define VL53L0X_XSHUT_ADDRESS 0x78           //   VL53L0X base address when used with XSHUT control
 //  #define USE_VL53L1X                            // [I2cDriver54] Enable VL53L1X time of flight sensor (I2C address 0x29) using Pololu VL53L1X library (+2k9 code)
@@ -799,8 +799,8 @@
 //  #define USE_MS5837                             // [I2cDriver91] Enable MS5837 sensor (I2C address 0x76) (+2k7 code)
 //  #define USE_AP33772S                           // [I2cDriver93] Enable AP33772S USB PD Sink Controller (I2C addresses 0x52) (+3k1 code)
 
-//  #define USE_RTC_CHIPS                          // Enable RTC chip support and NTP server - Select only one
-//    #define USE_RV3028                           // [I2cDriver94] Enable RV3028 RTC chip support (I2C address 0x52)
+  #define USE_RTC_CHIPS                          // Enable RTC chip support and NTP server - Select only one
+    #define USE_RV3028                           // [I2cDriver94] Enable RV3028 RTC chip support (I2C address 0x52)
 //    #define USE_DS3231                           // [I2cDriver26] Enable DS3231 RTC - used by Ulanzi TC001 (I2C address 0x68) (+1k2 code)
 //    #define DS3231_ENABLE_TEMP                   //   In DS3231 driver, enable the internal temperature sensor
 //    #define USE_BM8563                           // [I2cDriver59] Enable BM8563 RTC - used by M5Stack - support both I2C buses on ESP32 (I2C address 0x51) (+2.5k code)
@@ -811,11 +811,11 @@
 
 //  #define USE_AGS02MA                            // [I2cDriver95] Enable AGS02MA Air Quality Sensor (I2C address 0x1A)
 
-//  #define USE_DISPLAY                            // Add I2C/TM1637/MAX7219 Display Support (+2k code)
+  #define USE_DISPLAY                            // Add I2C/TM1637/MAX7219 Display Support (+2k code)
     #define USE_DISPLAY_MODES1TO5                // Enable display mode 1 to 5 in addition to mode 0
     #define USE_DISPLAY_LCD                      // [DisplayModel 1] [I2cDriver3] Enable Lcd display (I2C addresses 0x27 and 0x3F) (+6k code)
     // REMOVED - #define USE_DISPLAY_SSD1306                  // [DisplayModel 2] [I2cDriver4] Enable SSD1306 Oled 128x64 display (I2C addresses 0x3C and 0x3D) (+16k code)
-    #define USE_DISPLAY_MATRIX                   // [DisplayModel 3] [I2cDriver5] Enable 8x8 Matrix display (I2C adresseses see below) (+11k code)
+  //  #define USE_DISPLAY_MATRIX                   // [DisplayModel 3] [I2cDriver5] Enable 8x8 Matrix display (I2C adresseses see below) (+11k code)
       #define MTX_ADDRESS1     0x71              // [DisplayAddress1] I2C address of first 8x8 matrix module
       #define MTX_ADDRESS2     0x74              // [DisplayAddress2] I2C address of second 8x8 matrix module
       #define MTX_ADDRESS3     0x75              // [DisplayAddress3] I2C address of third 8x8 matrix module
@@ -824,7 +824,7 @@
       #define MTX_ADDRESS6     0x76              // [DisplayAddress6] I2C address of sixth 8x8 matrix module
       #define MTX_ADDRESS7     0x00              // [DisplayAddress7] I2C address of seventh 8x8 matrix module
       #define MTX_ADDRESS8     0x00              // [DisplayAddress8] I2C address of eigth 8x8 matrix module
-    #define USE_DISPLAY_SEVENSEG                 // [DisplayModel 11] [I2cDriver47] Enable sevenseg display (I2C 0x70-0x77) (<+11k code)
+//    #define USE_DISPLAY_SEVENSEG                 // [DisplayModel 11] [I2cDriver47] Enable sevenseg display (I2C 0x70-0x77) (<+11k code)
 //      #define USE_DISPLAY_SEVENSEG_COMMON_ANODE  // Enable support for common anode sevenseg displays
                                                  // Multiple sevenseg displays are logically arranged vertically with MTX_ADDRESS1 at y=0,
                                                  // MTX_ADDRESS2 at y=1, up to MTX_ADDRESS8 at y=7
@@ -843,7 +843,7 @@
 
 #endif  // USE_I2C
 
-//#define USE_DISPLAY                              // Add I2C/TM1637/MAX7219 Display Support (+2k code)
+// #define USE_DISPLAY                              // Add I2C/TM1637/MAX7219 Display Support (+2k code)
 //  #define USE_DISPLAY_TM1637                     // [DisplayModel 15] Enable TM1637 Seven Segment Display Module (4-6 digits)
 //  #define USE_DISPLAY_MAX7219                    // [DisplayModel 15] Enable MAX7219 Seven Segment Display Module (8 digits)
 //  #define USE_DISPLAY_MAX7219_MATRIX             // [DisplayModel 19] Enable MAX7219 8x8 Matrix Display
@@ -851,15 +851,16 @@
 //    #define USE_IOTTIMER                         // Enable TM1640 based IotTimer
 
 // -- Universal Display Driver ---------------------------------
-// #define USE_UNIVERSAL_DISPLAY                   // New universal display driver for both I2C and SPI
+#define USE_UNIVERSAL_DISPLAY                   // New universal display driver for both I2C and SPI
     #define MAX_TOUCH_BUTTONS 16                 // Virtual touch buttons
+#define USE_UNIVERSAL_TOUCH
 
 // -- SPI sensors ---------------------------------
-//#define USE_SPI                                  // Hardware SPI using GPIO12(MISO), GPIO13(MOSI) and GPIO14(CLK) in addition to two user selectable GPIOs(CS and DC)
+#define USE_SPI                                  // Hardware SPI using GPIO12(MISO), GPIO13(MOSI) and GPIO14(CLK) in addition to two user selectable GPIOs(CS and DC)
 
 #ifdef USE_SPI
 //  #define USE_NRF24                              // Add SPI support for NRF24L01(+) (+2k6 code)
-    #define USE_MIBLE                            // BLE-bridge for some Mijia-BLE-sensors (+4k7 code)
+//    #define USE_MIBLE                            // BLE-bridge for some Mijia-BLE-sensors (+4k7 code)
 //  #define USE_DISPLAY                            // Add SPI Display support for 320x240 and 480x320 TFT
     // REMOVED -- #define USE_DISPLAY_ILI9341                  // [DisplayModel 4] Enable ILI9341 Tft 480x320 display (+19k code)
 //    #define USE_DISPLAY_EPAPER_29                // [DisplayModel 5] Enable e-paper 2.9 inch display (+19k code)
@@ -903,7 +904,7 @@
 //#define USE_DYP                                  // Add support for DYP ME-007 ultrasonic distance sensor, serial port version (+0k5 code)
 #define USE_SERIAL_BRIDGE                        // Add support for software Serial Bridge (+2k code)
 //  #define SERIAL_BRIDGE_BUFFER_SIZE 256          // Serial Bridge receive buffer size (Default ESP8266 = 256, ESP32 = 800)
-// #define USE_MODBUS_BRIDGE                        // Add support for software Modbus Bridge (+4.5k code)
+#define USE_MODBUS_BRIDGE                        // Add support for software Modbus Bridge (+4.5k code)
 // #define USE_MODBUS_BRIDGE_TCP                    // Add support for software Modbus TCP Bridge (also enable Modbus TCP Bridge) (+2k code)
 // #define MODBUS_BRIDGE_TCP_DEFAULT_PORT 502       // Add support for software Modbus TCP Bridge (start the TCP bridge automatically at PORT 502)
 //#define USE_TCP_BRIDGE                           //  Add support for Serial to TCP bridge (+1.3k code)
@@ -948,16 +949,16 @@
 //  #define DALI_LIGHT_NO_READ_AFTER_WRITE         // Use no DTR read-after-write for smooth color transitions saving 55ms / channel (-0k1 code)
 
 // -- Power monitoring sensors --------------------
-#define USE_ENERGY_SENSOR                        // Add support for Energy Monitors (+14k code)
-#define USE_ENERGY_MARGIN_DETECTION              // Add support for Energy Margin detection (+1k6 code)
+// #define USE_ENERGY_SENSOR                        // Add support for Energy Monitors (+14k code)
+// #define USE_ENERGY_MARGIN_DETECTION              // Add support for Energy Margin detection (+1k6 code)
   #define USE_ENERGY_POWER_LIMIT                 // Add additional support for Energy Power Limit detection (+1k2 code)
-#define USE_ENERGY_DUMMY                         // Add support for dummy Energy monitor allowing user values (+0k7 code)
-#define USE_HLW8012                              // Add support for HLW8012, BL0937 or HJL-01 Energy Monitor for Sonoff Pow and WolfBlitz
-#define USE_CSE7766                              // Add support for CSE7766 Energy Monitor for Sonoff S31 and Pow R2
-#define USE_PZEM004T                             // Add support for PZEM004T Energy monitor (+2k code)
-#define USE_PZEM_AC                              // Add support for PZEM014,016 Energy monitor (+1k1 code)
-#define USE_PZEM_DC                              // Add support for PZEM003,017 Energy monitor (+1k1 code)
-#define USE_MCP39F501                            // Add support for MCP39F501 Energy monitor as used in Shelly 2 (+3k1 code)
+// #define USE_ENERGY_DUMMY                         // Add support for dummy Energy monitor allowing user values (+0k7 code)
+// #define USE_HLW8012                              // Add support for HLW8012, BL0937 or HJL-01 Energy Monitor for Sonoff Pow and WolfBlitz
+// #define USE_CSE7766                              // Add support for CSE7766 Energy Monitor for Sonoff S31 and Pow R2
+// #define USE_PZEM004T                             // Add support for PZEM004T Energy monitor (+2k code)
+// #define USE_PZEM_AC                              // Add support for PZEM014,016 Energy monitor (+1k1 code)
+// #define USE_PZEM_DC                              // Add support for PZEM003,017 Energy monitor (+1k1 code)
+// #define USE_MCP39F501                            // Add support for MCP39F501 Energy monitor as used in Shelly 2 (+3k1 code)
 //#define USE_SDM72                                // Add support for Eastron SDM72-Modbus energy monitor (+0k3 code)
   #define SDM72_SPEED          9600              // SDM72-Modbus RS485 serial speed (default: 9600 baud)
   // #define SDM72_IMPEXP                            // Show additonal import/export active energy and power in MQTT and Web (+0k5 code)
@@ -1010,7 +1011,7 @@
 // Code impact of IR full protocols is +90k code, 3k mem
 
 // -- IR Remote features - subset of IR protocols --------------------------
-#define USE_IR_REMOTE                            // Send IR remote commands using library IRremoteESP8266 (+4k3 code, 0k3 mem, 48 iram)
+//#define USE_IR_REMOTE                            // Send IR remote commands using library IRremoteESP8266 (+4k3 code, 0k3 mem, 48 iram)
   #define IR_SEND_INVERTED          false        // Invert the output. (default = false) e.g. LED is illuminated when GPIO is LOW rather than HIGH.
                                                  // Setting inverted to something other than the default could easily destroy your IR LED if you are overdriving it.
                                                  // Unless you REALLY know what you are doing, don't change this.
@@ -1035,12 +1036,12 @@
 
   // When using 'USE_IR_REMOTE_FULL', parameters below
   // (USE_IR_REMOTE, USE_IR_RECEIVE, USE_IR_HVAC...) are IGNORED.
-  #define USE_IR_SEND_NEC                        // Support IRsend NEC protocol
-  #define USE_IR_SEND_RC5                        // Support IRsend Philips RC5 protocol
-  #define USE_IR_SEND_RC6                        // Support IRsend Philips RC6 protocol
+  // #define USE_IR_SEND_NEC                        // Support IRsend NEC protocol
+  // #define USE_IR_SEND_RC5                        // Support IRsend Philips RC5 protocol
+  // #define USE_IR_SEND_RC6                        // Support IRsend Philips RC6 protocol
 
   // Enable IR devoder via GPIO `IR Recv` - always enabled if `USE_IR_REMOTE_FULL`
-  #define USE_IR_RECEIVE                         // Support for IR receiver (+7k2 code, 264 iram)
+  // #define USE_IR_RECEIVE                         // Support for IR receiver (+7k2 code, 264 iram)
     #define IR_RCV_BUFFER_SIZE      100          // Max number of packets allowed in capture buffer (default 100 (*2 bytes ram))
     #define IR_RCV_TIMEOUT          15           // Number of milli-Seconds of no-more-data before we consider a message ended (default 15)
     #define IR_RCV_MIN_UNKNOWN_SIZE 6            // Set the smallest sized "UNKNOWN" message packets we actually care about (default 6, max 255)
@@ -1048,12 +1049,12 @@
     #define IR_RCV_TOLERANCE        25           // Base tolerance percentage for matching incoming IR messages (default 25, max 100)
 
 // -- SD Card support -----------------------------
-// #define USE_SDCARD                               // mount SD Card, requires configured SPI pins and setting of `SDCard CS` gpio
+  #define USE_SDCARD                               // mount SD Card, requires configured SPI pins and setting of `SDCard CS` gpio
   #define SDC_HIDE_INVISIBLES                    // hide hidden directories from the SD Card, which prevents crashes when dealing SD created on MacOS
 
 // -- Zigbee interface ----------------------------
 //#define USE_ZIGBEE                                // Enable serial communication with Zigbee CC2530/CC2652 flashed with ZNP or EFR32 flashed with EZSP (+49k code, +3k mem)
-  #define USE_ZIGBEE_ZNP                         // Enable ZNP protocol, needed for CC2530/CC2652 based devices
+// #define USE_ZIGBEE_ZNP                         // Enable ZNP protocol, needed for CC2530/CC2652 based devices
 //  #define USE_ZIGBEE_EZSP                        // Enable EZSP protocol, needed for EFR32 EmberZNet based devices, like Sonoff Zigbee bridge
                                                  // Note: USE_ZIGBEE_ZNP and USE_ZIGBEE_EZSP are mutually incompatible, you must select exactly one
   // #define USE_ZIGBEE_EEPROM                      // Use the EEPROM from the Sonoff ZBBridge to save Zigbee configuration and data
@@ -1190,9 +1191,9 @@
 
 #ifdef ESP32
 
-//#define USE_ESP32_WDT                            // Enable Watchdog for ESP32, trigger a restart if loop has not responded for 5s, and if `yield();` was not called
+#define USE_ESP32_WDT                            // Enable Watchdog for ESP32, trigger a restart if loop has not responded for 5s, and if `yield();` was not called
 
-#define SET_ESP32_STACK_SIZE  (8 * 1024)         // Set the stack size for Tasmota. The default value is 8192 for Arduino, some builds might need to increase it
+#define SET_ESP32_STACK_SIZE  (16 * 1024)         // Set the stack size for Tasmota. The default value is 8192 for Arduino, some builds might need to increase it
 
 #ifdef SOC_TOUCH_VERSION_1                       // ESP32
   #define ESP32_TOUCH_THRESHOLD   40             // [TouchThres] Below this level a touch is detected
@@ -1207,7 +1208,7 @@
 //#define USE_SONOFF_SPM                           // Add support for ESP32 based Sonoff Smart Stackable Power Meter (+11k code)
 //#define USE_DISPLAY_TM1621_SONOFF                // Add support for TM1621 dsiplay driver used by Sonoff POWR3xxD and THR3xxD
 
-//#define USE_ETHERNET                             // Add support for ethernet (+20k code)
+#define USE_ETHERNET                             // Add support for ethernet (+20k code)
 //  #define USE_WT32_ETH01                         // Add support for Wireless-Tag WT32-ETH01
 //  #define ETH_TYPE          0                    // [EthType] 0 = LAN8720, 1 = TLK110/IP101, 2 = RTL8201, 3 = DP83848, 4 = DM9051, 5 = KSZ8081, 6 = KSZ8041, 7 = JL1101, 8 = W5500, 9 = KSZ8851
 //  #define ETH_ADDRESS       1                    // [EthAddress] 0 = PHY0 .. 31 = PHY31
@@ -1237,20 +1238,20 @@
 #define USE_EXTENSION_MANAGER                    // Enable Esp32(x) extensions manager, requires USE_BERRY and USE_WEBCLIENT_HTTPS (11KB Flash)
 #define USE_BERRY                                // Enable Berry scripting language
   #define USE_BERRY_PYTHON_COMPAT                // Enable by default `import python_compat`
-  #define USE_BERRY_TIMEOUT             4000     // Timeout in ms, will raise an exception if running time exceeds this timeout
+  #define USE_BERRY_TIMEOUT             6000     // Timeout in ms, will raise an exception if running time exceeds this timeout
   #define USE_BERRY_PSRAM                        // Allocate Berry memory in PSRAM if PSRAM is connected - this might be slightly slower but leaves main memory intact
   #define USE_BERRY_IRAM                         // Allocate some data structures in IRAM (which is usually unused) when possible and if no PSRAM is available
   #define USE_BERRY_FAST_LOOP_SLEEP_MS  5        // Minimum time in milliseconds to before calling again `tasmota.fast_loop()`, a smaller value will consume more CPU (min 1ms)
-  // #define USE_BERRY_DEBUG                        // Compile Berry bytecode with line number information, makes exceptions easier to debug. Adds +8% of memory consumption for compiled code
-  //   #define UBE_BERRY_DEBUG_GC                   // Print low-level GC metrics
-  // #define USE_BERRY_INT64                        // Add 64 bits integer support (+1.7KB Flash)
+  #define USE_BERRY_DEBUG                        // Compile Berry bytecode with line number information, makes exceptions easier to debug. Adds +8% of memory consumption for compiled code
+  #define UBE_BERRY_DEBUG_GC                   // Print low-level GC metrics
+  #define USE_BERRY_INT64                        // Add 64 bits integer support (+1.7KB Flash)
   #define USE_WEBCLIENT_HTTPS                    // Enable HTTPS outgoing requests based on BearSSL (much ligher then mbedTLS, 42KB vs 150KB) in insecure mode (no verification of server's certificate)
                                                  // Note that only two ciphers are enabled: ECDHE_RSA_WITH_AES_128_GCM_SHA256, ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
     #define USE_BERRY_WEBCLIENT_USERAGENT  "TasmotaClient" // default user-agent used, can be changed with `wc.set_useragent()`
-    #define USE_BERRY_WEBCLIENT_TIMEOUT  2000    // Default timeout in milliseconds
+    #define USE_BERRY_WEBCLIENT_TIMEOUT  5000    // Default timeout in milliseconds
     // #define USE_BERRY_LEDS_PANEL                 // Add button to dynamically load the Leds Panel from a bec file online
     #define USE_BERRY_LEDS_PANEL_URL             "http://ota.tasmota.com/tapp/leds_panel.bec"
-    // #define USE_BERRY_LVGL_PANEL                 // Add button to dynamically load the LVGL Panel from a bec file online
+    #define USE_BERRY_LVGL_PANEL                 // Add button to dynamically load the LVGL Panel from a bec file online
     #define USE_BERRY_LVGL_PANEL_URL             "http://ota.tasmota.com/tapp/lvgl_panel.bec"
     //#define USE_BERRY_PARTITION_WIZARD           // Add a button to dynamically load the Partion Wizard from a bec file online (+1.3KB Flash)
     #define USE_BERRY_PARTITION_WIZARD_URL      "http://ota.tasmota.com/tapp/partition_wizard.bec"
@@ -1260,22 +1261,22 @@
   // #define USE_BERRY_ULP                          // Enable ULP (Ultra Low Power) support (+4.9k)
   // Berry crypto extensions below:
   #define USE_BERRY_CRYPTO_AES_GCM               // enable AES GCM 256 bits
-  // #define USE_BERRY_CRYPTO_AES_CCM               // enable AES CCM 128 bits
-  // #define USE_BERRY_CRYPTO_AES_CTR               // enable AES CTR 256 bits
-  // #define USE_BERRY_CRYPTO_EC_P256               // enable EC P256r1
-  // #define USE_BERRY_CRYPTO_EC_C25519             // enable Elliptic Curve C C25519
+  #define USE_BERRY_CRYPTO_AES_CCM               // enable AES CCM 128 bits
+  #define USE_BERRY_CRYPTO_AES_CTR               // enable AES CTR 256 bits
+  #define USE_BERRY_CRYPTO_EC_P256               // enable EC P256r1
+  #define USE_BERRY_CRYPTO_EC_C25519             // enable Elliptic Curve C C25519
   #define USE_BERRY_CRYPTO_SHA256                // enable SHA256 hash function
   #define USE_BERRY_CRYPTO_HMAC_SHA256           // enable HMAC SHA256 hash function
-  // #define USE_BERRY_CRYPTO_PBKDF2_HMAC_SHA256    // PBKDF2 with HMAC SHA256, used in Matter protocol
-  // #define USE_BERRY_CRYPTO_HKDF_SHA256      // HKDF with HMAC SHA256, used in Matter protocol
+  #define USE_BERRY_CRYPTO_PBKDF2_HMAC_SHA256    // PBKDF2 with HMAC SHA256, used in Matter protocol
+  #define USE_BERRY_CRYPTO_HKDF_SHA256      // HKDF with HMAC SHA256, used in Matter protocol
   // #define USE_BERRY_CRYPTO_SPAKE2P_MATTER   // SPAKE2+ used in Matter 1.0, complete name is SPAKE2+-P256-SHA256-HKDF-SHA256-HMAC-SHA256
-  // #define USE_BERRY_CRYPTO_RSA              // RSA primitives including JWT RS256 (3.9KB flash)
-#define USE_CSE7761                              // Add support for CSE7761 Energy monitor as used in Sonoff Dual R3
+  #define USE_BERRY_CRYPTO_RSA              // RSA primitives including JWT RS256 (3.9KB flash)
+// #define USE_CSE7761                              // Add support for CSE7761 Energy monitor as used in Sonoff Dual R3
 
 // -- LVGL Graphics Library ---------------------------------
-//#define USE_LVGL                                 // LVGL Engine, requires Berry (+382KB)
+#define USE_LVGL                                 // LVGL Engine, requires Berry (+382KB)
   #define USE_LVGL_PSRAM                         // Allocate LVGL memory in PSRAM if PSRAM is connected - this might be slightly slower but leaves main memory intact
-  #define USE_LVGL_HASPMOTA                      // Enable OpenHASP compatiblity and Robotocondensed fonts (+90KB flash)
+  //#define USE_LVGL_HASPMOTA                      // Enable OpenHASP compatiblity and Robotocondensed fonts (+90KB flash)
   #define USE_LVGL_MAX_SLEEP  10                 // max sleep in ms when LVGL is enabled, more than 10ms will make display less responsive
   #define USE_LVGL_PNG_DECODER                   // include a PNG image decoder from file system (+16KB)
   #define USE_LVGL_FREETYPE                      // Use the FreeType renderer to display fonts using native TTF files in file system (+77KB flash)
@@ -1301,7 +1302,7 @@
     #define BE_LV_WIDGET_SLIDER
     #define BE_LV_WIDGET_SWITCH
     #define BE_LV_WIDGET_TABLE
-    // #define BE_LV_WIDGET_TEXTAREA
+    #define BE_LV_WIDGET_TEXTAREA
 
     // adding ad-hoc colorwheel from LVGL8 to LVGL9
     #define BE_LV_WIDGET_COLORWHEEL
@@ -1310,10 +1311,10 @@
     #define BE_LV_WIDGET_CHART
     #define BE_LV_WIDGET_IMGBTN       // LVGL 8
     #define BE_LV_WIDGET_IMAGEBUTTON  // LVGL 9
-    // #define BE_LV_WIDGET_KEYBOARD
+    #define BE_LV_WIDGET_KEYBOARD
     #define BE_LV_WIDGET_LED
     #define BE_LV_WIDGET_LIST
-    // #define BE_LV_WIDGET_MENU
+    #define BE_LV_WIDGET_MENU
     #ifdef BE_LV_WIDGET_MENU          // if menu is enabled, also enable sub-element classes
       #define BE_LV_WIDGET_MENU_CONT
       #define BE_LV_WIDGET_MENU_PAGE
@@ -1325,12 +1326,12 @@
     #define BE_LV_WIDGET_QRCODE
     #define BE_LV_WIDGET_SCALE
     #define BE_LV_WIDGET_SCALE_SECTION
-    // #define BE_LV_WIDGET_SPINBOX
+    #define BE_LV_WIDGET_SPINBOX
     #define BE_LV_WIDGET_SPINNER
     #define BE_LV_WIDGET_SPANGROUP
     #define BE_LV_WIDGET_SPAN
     #define BE_LV_WIDGET_TABVIEW
-    // #define BE_LV_WIDGET_TILEVIEW
+    #define BE_LV_WIDGET_TILEVIEW
 
 // -- Matter protocol ---------------------------------
   // #define USE_MATTER_DEVICE                      // Enable Matter device support (+380KB)
@@ -1344,7 +1345,7 @@
 
 //#define DEBUG_TASMOTA_CORE                       // Enable core debug messages
 //#define DEBUG_TASMOTA_DRIVER                     // Enable driver debug messages
-//#define DEBUG_TASMOTA_SENSOR                     // Enable sensor debug messages
+///#define DEBUG_TASMOTA_SENSOR                     // Enable sensor debug messages
 //#define USE_DEBUG_DRIVER                         // Use xdrv_99_debug.ino providing commands CpuChk, CfgXor, CfgDump, CfgPeek and CfgPoke
 
 /*********************************************************************************************\
