@@ -187,8 +187,8 @@
   #define CORS_DOMAIN            ""                // [Cors] CORS Domain for preflight requests
 
 // -- HTTP Options --------------------------------
-#define GUI_NOSHOW_MODULE      false             // [SetOption141] Do not show module name in GUI main menu
-#define GUI_NOSHOW_DEVICENAME  false             // [SetOption163] Do not show device name in GUI main menu
+#define GUI_NOSHOW_MODULE      true             // [SetOption141] Do not show module name in GUI main menu
+#define GUI_NOSHOW_DEVICENAME  true             // [SetOption163] Do not show device name in GUI main menu
 #define GUI_SHOW_HOSTNAME      false             // [SetOption53] Show hostname and IP address in GUI main menu
 #define GUI_NOSHOW_STATETEXT   false             // [SetOption161] Do not show power state text in GUI
 
@@ -481,7 +481,7 @@
 
 // -- Wireguard VPN support ------------------------
 // VPN support since v14.6.1
-// #define USE_WIREGUARD                            // Enable Wireguard VPN support (ESP8266: +28k code +0.9k mem, ESP32: +22k code +0.9k mem)
+ #define USE_WIREGUARD                            // Enable Wireguard VPN support (ESP8266: +28k code +0.9k mem, ESP32: +22k code +0.9k mem)
 
 // -- Telegram Protocol ---------------------------
 //#define USE_TELEGRAM                             // Support for Telegram protocol (+49k code, +7.0k mem and +4.8k additional during connection handshake)
