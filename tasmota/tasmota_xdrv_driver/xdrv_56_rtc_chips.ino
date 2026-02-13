@@ -921,7 +921,6 @@ void Rx8025SetTime(uint32_t epoch_time) {
  * Detection
 \*-------------------------------------------------------------------------------------------*/
 void Rx8025Detected(void) {
-  delay(250);  // Sometimes the RTC chip need time to init.
   if (!RtcChip.detected && I2cEnabled(XI2C_96)) {
     RtcChip.address = RX8025_ADDRESS;
 
