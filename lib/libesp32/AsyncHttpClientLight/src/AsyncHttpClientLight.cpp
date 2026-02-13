@@ -1489,6 +1489,7 @@ int AsyncHttpClientLight::Job_AsyncPOST_Str(void* arg) {
 
 int AsyncHttpClientLight::asyncGETStart() {
 #ifdef ESP32
+  if (_asyncState == ASYNC_RUNNING) return 0;   // busy - return
   _asyncAbortReq = false;
   _asyncOp = AOP_GET;
   _asyncHttpCode = HTTPC_ERROR_NOT_CONNECTED;
@@ -1499,7 +1500,7 @@ int AsyncHttpClientLight::asyncGETStart() {
 
   int q = startJob(&Job_AsyncGET, arg);
   if (q <= 0) {
-    _asyncState = (q < 0 ? ASYNC_ERROR : ASYNC_IDLE);
+    ahcl_delete_obj(arg);
     return q;
   }
   _asyncState = ASYNC_RUNNING;
@@ -1511,6 +1512,7 @@ int AsyncHttpClientLight::asyncGETStart() {
 
 int AsyncHttpClientLight::asyncPOSTStart(uint8_t* payload, size_t size) {
 #ifdef ESP32
+  if (_asyncState == ASYNC_RUNNING) return 0;   // busy - return
   _asyncAbortReq = false;
   _asyncOp = AOP_POST;
   _asyncHttpCode = HTTPC_ERROR_NOT_CONNECTED;
@@ -1520,7 +1522,7 @@ int AsyncHttpClientLight::asyncPOSTStart(uint8_t* payload, size_t size) {
 
   int q = startJob(&Job_AsyncPOST_Buf, arg);
   if (q <= 0) {
-    _asyncState = (q < 0 ? ASYNC_ERROR : ASYNC_IDLE);
+    ahcl_delete_obj(arg);
     return q;
   }
   _asyncState = ASYNC_RUNNING;
@@ -1532,6 +1534,7 @@ int AsyncHttpClientLight::asyncPOSTStart(uint8_t* payload, size_t size) {
 
 int AsyncHttpClientLight::asyncPOSTStart(const String& payload) {
 #ifdef ESP32
+  if (_asyncState == ASYNC_RUNNING) return 0;   // busy - return
   _asyncAbortReq = false;
   _asyncOp = AOP_POST;
   _asyncHttpCode = HTTPC_ERROR_NOT_CONNECTED;
@@ -1541,7 +1544,7 @@ int AsyncHttpClientLight::asyncPOSTStart(const String& payload) {
 
   int q = startJob(&Job_AsyncPOST_Str, arg);
   if (q <= 0) {
-    _asyncState = (q < 0 ? ASYNC_ERROR : ASYNC_IDLE);
+    ahcl_delete_obj(arg);
     return q;
   }
   _asyncState = ASYNC_RUNNING;
