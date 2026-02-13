@@ -116,68 +116,6 @@ String wc_UrlEncode(const String& text) {
 extern "C" {
   // Berry: ``
   //
-#ifdef USE_BERRY_WEBCLIENT_ASYNC
-  // ---------------- ASYNC MODE - TLS PINNING (Berry API) ----------------
-
-  // wc.tls_pin_pubkey(fprint1 [, fprint2]) -> self
-  int32_t wc_tls_pin_pubkey(struct bvm *vm) {
-    const int32_t argc = be_top(vm);
-    if (argc < 2 || !be_isstring(vm, 2)) {
-      be_raise(vm, "type_error", "tls_pin_pubkey(fp1[, fp2]) expects string");
-    }
-    const char *fp1 = be_tostring(vm, 2);
-    const char *fp2 = (argc >= 3 && be_isstring(vm, 3)) ? be_tostring(vm, 3) : nullptr;
-
-    AsyncHttpClientLight *cl = nullptr;
-    be_getmember(vm, 1, ".p");
-    if (be_iscomptr(vm, -1)) { cl = (AsyncHttpClientLight*) be_tocomptr(vm, -1); }
-    be_pop(vm, 1);
-    if (!cl) { be_raise(vm, "value_error", "HTTP client not initialized"); }
-
-    if (!cl->setPubKeyPins(fp1, fp2)) {
-      be_raise(vm, "value_error", "bad fingerprint (need 40 hex, colons optional)");
-    }
-
-    be_pushvalue(vm, 1);
-    be_return(vm);
-  }
-
-  // wc.tls_clear_pins() -> self
-  int32_t wc_tls_clear_pins(struct bvm *vm) {
-    AsyncHttpClientLight *cl = nullptr;
-    be_getmember(vm, 1, ".p");
-    if (be_iscomptr(vm, -1)) { cl = (AsyncHttpClientLight*) be_tocomptr(vm, -1); }
-    be_pop(vm, 1);
-    if (!cl) { be_raise(vm, "value_error", "HTTP client not initialized"); }
-
-    cl->clearPubKeyPins();
-
-    be_pushvalue(vm, 1);
-    be_return(vm);
-  }
-
-  // wc.tls_set_rsa_only(bool) -> self
-  int32_t wc_tls_set_rsa_only(struct bvm *vm) {
-    const int32_t argc = be_top(vm);
-    if (argc < 2 || !be_isbool(vm, 2)) {
-      be_raise(vm, "type_error", "tls_set_rsa_only(bool) expects boolean");
-    }
-    const bool rsa_only = be_tobool(vm, 2);
-
-    AsyncHttpClientLight *cl = nullptr;
-    be_getmember(vm, 1, ".p");
-    if (be_iscomptr(vm, -1)) { cl = (AsyncHttpClientLight*) be_tocomptr(vm, -1); }
-    be_pop(vm, 1);
-    if (!cl) { be_raise(vm, "value_error", "HTTP client not initialized"); }
-
-    cl->setRSAOnly(rsa_only);
-
-    be_pushvalue(vm, 1);
-    be_return(vm);
-  }
-
-  // ---------------------------------------------------------
-#endif // WEBCLIENT_ASYNC
 
   int32_t wc_init(struct bvm *vm);
   int32_t wc_init(struct bvm *vm) {
@@ -674,7 +612,66 @@ extern "C" {
 
 
 #ifdef USE_BERRY_WEBCLIENT_ASYNC
-  // ------- ASYNC API (NEW) ---------------------------------------------
+
+  // ---------------- ASYNC MODE - TLS PINNING (Berry API) ----------------
+
+  // wc.tls_pin_pubkey(fprint1 [, fprint2]) -> self
+  int32_t wc_tls_pin_pubkey(struct bvm *vm) {
+    const int32_t argc = be_top(vm);
+    if (argc < 2 || !be_isstring(vm, 2)) {
+      be_raise(vm, "type_error", "tls_pin_pubkey(fp1[, fp2]) expects string");
+    }
+    const char *fp1 = be_tostring(vm, 2);
+    const char *fp2 = (argc >= 3 && be_isstring(vm, 3)) ? be_tostring(vm, 3) : nullptr;
+
+    AsyncHttpClientLight *cl = nullptr;
+    be_getmember(vm, 1, ".p");
+    if (be_iscomptr(vm, -1)) { cl = (AsyncHttpClientLight*) be_tocomptr(vm, -1); }
+    be_pop(vm, 1);
+    if (!cl) { be_raise(vm, "value_error", "HTTP client not initialized"); }
+
+    if (!cl->setPubKeyPins(fp1, fp2)) {
+      be_raise(vm, "value_error", "bad fingerprint (need 40 hex, colons optional)");
+    }
+
+    be_pushvalue(vm, 1);
+    be_return(vm);
+  }
+
+  // wc.tls_clear_pins() -> self
+  int32_t wc_tls_clear_pins(struct bvm *vm) {
+    AsyncHttpClientLight *cl = nullptr;
+    be_getmember(vm, 1, ".p");
+    if (be_iscomptr(vm, -1)) { cl = (AsyncHttpClientLight*) be_tocomptr(vm, -1); }
+    be_pop(vm, 1);
+    if (!cl) { be_raise(vm, "value_error", "HTTP client not initialized"); }
+
+    cl->clearPubKeyPins();
+
+    be_pushvalue(vm, 1);
+    be_return(vm);
+  }
+
+  // wc.tls_set_rsa_only(bool) -> self
+  int32_t wc_tls_set_rsa_only(struct bvm *vm) {
+    const int32_t argc = be_top(vm);
+    if (argc < 2 || !be_isbool(vm, 2)) {
+      be_raise(vm, "type_error", "tls_set_rsa_only(bool) expects boolean");
+    }
+    const bool rsa_only = be_tobool(vm, 2);
+
+    AsyncHttpClientLight *cl = nullptr;
+    be_getmember(vm, 1, ".p");
+    if (be_iscomptr(vm, -1)) { cl = (AsyncHttpClientLight*) be_tocomptr(vm, -1); }
+    be_pop(vm, 1);
+    if (!cl) { be_raise(vm, "value_error", "HTTP client not initialized"); }
+
+    cl->setRSAOnly(rsa_only);
+
+    be_pushvalue(vm, 1);
+    be_return(vm);
+  }
+// ------- ASYNC API (Berry API) ---------------------------------------------
 
   // wc.async_get_start() -> int (1 started, 0 busy, <0 error)
   int32_t wc_async_get_start(struct bvm *vm) {
@@ -739,6 +736,43 @@ extern "C" {
     AsyncHttpClientLight * cl = wc_getclient(vm);
     cl->asyncAbort();
     be_return_nil(vm);
+  }
+
+#else
+
+  int32_t wc_async_get_start(struct bvm *vm) {
+    be_raise(vm, "type_error", "wc_async_get_start command unavaliable in non-async webclient build.");
+    be_return(vm);
+  }
+
+  int32_t wc_tls_set_rsa_only(struct bvm *vm) {
+    be_raise(vm, "type_error", "wc_tls_set_rsa_only command unavaliable in non-async webclient build.");
+    be_return(vm);
+  }
+
+  int32_t wc_tls_pin_pubkey(struct bvm *vm) {
+    be_raise(vm, "type_error", "wc_tls_pin_pubkey command unavaliable in non-async webclient build.");
+    be_return(vm);
+  }
+
+  int32_t wc_tls_clear_pins(struct bvm *vm) {
+    be_raise(vm, "type_error", "wc_tls_clear_pins command unavaliable in non-async webclient build.");
+    be_return(vm);
+  }
+
+  int32_t wc_async_post_start(struct bvm *vm) {
+    be_raise(vm, "type_error", "wc_async_post_start command unavaliable in non-async webclient build.");
+    be_return(vm);
+  }
+
+  int32_t wc_async_state(struct bvm *vm) {
+    be_raise(vm, "type_error", "wc_async_state command unavaliable in non-async webclient build.");
+    be_return(vm);
+  }
+
+  int32_t wc_async_abort(struct bvm *vm) {
+    be_raise(vm, "type_error", "wc_async_abort command unavaliable in non-async webclient build.");
+    be_return(vm);
   }
 
   // ---------------------------------------------------------------------
