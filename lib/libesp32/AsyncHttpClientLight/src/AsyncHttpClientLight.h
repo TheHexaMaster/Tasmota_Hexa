@@ -1,6 +1,8 @@
 /*
  * AsyncHttpClientLight.h  - Created on: 26.08.2025
  *
+ * VER: 1.0
+ *
  * Copyright (C) 2025 by Martin Macák (HexaMaster) <hexamaster@icloud.com>
  *
  * Async HTTP/HTTPS client for ESP32 (WDT-friendly)

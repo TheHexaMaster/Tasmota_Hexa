@@ -1,5 +1,5 @@
 {
-  "name": "Async HttpClient Light",
+  "name": "Async HttpClient Light", 
   "version": "1.0",
   "description": "Async extension for HttpClientLight by Stephan Hadinger",
   "license": "MIT",

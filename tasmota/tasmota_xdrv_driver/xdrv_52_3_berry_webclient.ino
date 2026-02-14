@@ -20,7 +20,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program.  If not, see <https://www.gnu.org/licenses/>.
  *
- * ----- ASYNC WEBCLIENT UPDATE -----
+ * ----- ASYNC WEBCLIENT UPDATE ----- (VER: 1.0)
  *
  *  To use ASYNC Webclient instead of Sync webclient - # DEFINE USE_BERRY_WEBCLIENT_ASYNC
  * 

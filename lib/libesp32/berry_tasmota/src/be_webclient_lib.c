@@ -1,7 +1,7 @@
 /********************************************************************
  * Webclient ASYNC mapped to Arduino framework
  * 
- * 2026 - Update to use with ASYNC Webclient by HexaMaster
+ * 2026 -  ASYNC Webclient integration (#define USE_BERRY_WEBCLIENT_ASYNC) by HexaMaster 
  *
  * To use: `d = webclient()`
  *
