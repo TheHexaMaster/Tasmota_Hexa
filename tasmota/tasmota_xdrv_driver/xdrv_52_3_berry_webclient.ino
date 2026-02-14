@@ -741,37 +741,37 @@ extern "C" {
 #else
 
   int32_t wc_async_get_start(struct bvm *vm) {
-    be_raise(vm, "type_error", "wc_async_get_start command unavaliable in non-async webclient build.");
+    be_raise(vm, "type_error", "wc_async_get_start command unavailable in non-async webclient build.");
     be_return(vm);
   }
 
   int32_t wc_tls_set_rsa_only(struct bvm *vm) {
-    be_raise(vm, "type_error", "wc_tls_set_rsa_only command unavaliable in non-async webclient build.");
+    be_raise(vm, "type_error", "wc_tls_set_rsa_only command unavailable in non-async webclient build.");
     be_return(vm);
   }
 
   int32_t wc_tls_pin_pubkey(struct bvm *vm) {
-    be_raise(vm, "type_error", "wc_tls_pin_pubkey command unavaliable in non-async webclient build.");
+    be_raise(vm, "type_error", "wc_tls_pin_pubkey command unavailable in non-async webclient build.");
     be_return(vm);
   }
 
   int32_t wc_tls_clear_pins(struct bvm *vm) {
-    be_raise(vm, "type_error", "wc_tls_clear_pins command unavaliable in non-async webclient build.");
+    be_raise(vm, "type_error", "wc_tls_clear_pins command unavailable in non-async webclient build.");
     be_return(vm);
   }
 
   int32_t wc_async_post_start(struct bvm *vm) {
-    be_raise(vm, "type_error", "wc_async_post_start command unavaliable in non-async webclient build.");
+    be_raise(vm, "type_error", "wc_async_post_start command unavailable in non-async webclient build.");
     be_return(vm);
   }
 
   int32_t wc_async_state(struct bvm *vm) {
-    be_raise(vm, "type_error", "wc_async_state command unavaliable in non-async webclient build.");
+    be_raise(vm, "type_error", "wc_async_state command unavailable in non-async webclient build.");
     be_return(vm);
   }
 
   int32_t wc_async_abort(struct bvm *vm) {
-    be_raise(vm, "type_error", "wc_async_abort command unavaliable in non-async webclient build.");
+    be_raise(vm, "type_error", "wc_async_abort command unavailable in non-async webclient build.");
     be_return(vm);
   }
 
