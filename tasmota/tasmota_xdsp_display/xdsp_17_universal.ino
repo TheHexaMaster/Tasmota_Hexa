@@ -50,7 +50,7 @@ extern uint16_t bg_color;
 #endif
 
 #ifndef DISPDESC_SIZE
-#define DISPDESC_SIZE 1000
+#define DISPDESC_SIZE 2048
 #endif
 
 void Core2DisplayPower(uint8_t on);
