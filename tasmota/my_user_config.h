@@ -846,9 +846,19 @@
     #define FM24CXX_I2C_ADD             0x57    // Fram I2C address.
     #define FM24CXX_CAPACITY            8192    // FRAM Module size in bytes. 8192 = 64kbits (FM24C64), 4096 = 32kbits (FM24C32) etc..
     #define FM24CXX_BLOCK_SIZE          256     // Parsed block size. When 256 and FRAM Size 8192, there are 8192/256 = 32 blocks per 256 bytes.
-    #define FM24CXX_I2C_CHUNK           32      // I2C Read Chunk size. For maximum compatibility, use 32. ESP32 S3,P4 works with 128 (a bit faster writes)
+    #define FM24CXX_I2C_CHUNK           128      // I2C Read Chunk size. For maximum compatibility, use 32. ESP32 S3,P4 works with 128 (a bit faster writes)
     #define FM24CXX_MAX_WRITE_BYTES     4096    // Maximum bytes to be written at single cmd
     #define FM24CXX_JSON_MAX_BYTES      4096    // Maximum bytes to get in single json response in FramReadRaw cmd. Above raise error.
+
+  #define USE_AT24CXX                           // External EEPROM module over I2C accesible via tasmota console / berry.
+    #define AT24CXX_I2C_ADD             0x50    // EEPROM I2C address.
+    #define AT24CXX_CAPACITY            65536    // EEPROM Module size in bytes. 8192 = 64kbits (FM24C64), 4096 = 32kbits (FM24C32) etc..
+    #define AT24CXX_BLOCK_SIZE          2048     // Parsed block size. When 256 and FRAM Size 8192, there are 8192/256 = 32 blocks per 256 bytes.
+    #define AT24CXX_I2C_CHUNK           128      // I2C Read Chunk size. For maximum compatibility, use 32. ESP32 S3,P4 works with 128 (a bit faster writes)
+    #define AT24CXX_MAX_WRITE_BYTES     4096    // Maximum bytes to be written at single cmd
+    #define AT24CXX_JSON_MAX_BYTES      4096    // Maximum bytes to get in single json response in FramReadRaw cmd. Above raise error.
+    #define AT24CXX_WRITE_DELAY_MS      5       //
+    #define AT24CXX_PAGE_SIZE           128     //
 
 #endif  // USE_I2C
 
