@@ -57,7 +57,7 @@ const uint16_t HTTP_RESTART_RECONNECT_TIME = 10000;      // milliseconds - Allow
 const uint16_t HTTP_OTA_RESTART_RECONNECT_TIME = 24000;  // milliseconds - Allow time for uploading binary, unzip/write to final destination and wifi reconnect
 #endif  // ESP8266
 #ifdef ESP32
-const uint16_t HTTP_OTA_RESTART_RECONNECT_TIME = 10000;  // milliseconds - Allow time for restart and wifi reconnect
+const uint16_t HTTP_OTA_RESTART_RECONNECT_TIME = 15000;  // milliseconds - Allow time for restart and wifi reconnect
 #endif  // ESP32
 
 #include <ESP8266WebServer.h>
@@ -3244,6 +3244,18 @@ void HandleInformation(void) {
     ESP_getChipId(), 
     GetDeviceHardwareRevision().c_str());
   WSContentSend_P(PSTR("}1" D_FLASH_CHIP_ID "}20x%06X (" D_TASMOTA_FLASHMODE ")"), ESP_getFlashChipId());
+#ifdef ESP32
+  uint64_t mac = ESP.getEfuseMac();
+  uint8_t b0 = (uint8_t)(mac >> 0);
+  uint8_t b1 = (uint8_t)(mac >> 8);
+  uint8_t b2 = (uint8_t)(mac >> 16);
+  uint8_t b3 = (uint8_t)(mac >> 24);
+  uint8_t b4 = (uint8_t)(mac >> 32);
+  uint8_t b5 = (uint8_t)(mac >> 40);
+
+  WSContentSend_P(PSTR("}1EFuse MAC}2%02X:%02X:%02X:%02X:%02X:%02X"),
+                  b0,b1,b2,b3,b4,b5);
+#endif
 #ifdef ESP32
   WSContentSend_P(PSTR("}1" D_FLASH_CHIP_SIZE "}2%d KB"), ESP.getFlashChipSize() / 1024);
   WSContentSend_P(PSTR("}1" D_PROGRAM_FLASH_SIZE "}2%d KB"), ESP_getFlashChipMagicSize() / 1024);

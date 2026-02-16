@@ -17,6 +17,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
+
 #ifdef USE_I2C
 #ifdef USE_AT24CXX
 
@@ -63,6 +65,25 @@
 #define AT24CXX_PAGE_SIZE 32
 #endif
 
+// ---------- XOR "encryption" (obfuscation) ----------
+// Pozn.: AT24CXX_XOR nech je true/false (C++), NEPOUŽÍVAM #if AT24CXX_XOR,
+// lebo preprocesor by token "true" vyhodnotil ako 0.
+
+#ifndef AT24CXX_XOR
+#define AT24CXX_XOR false
+#endif
+
+#ifdef AT24CXX_XOR
+#include <t_bearssl.h>
+#endif
+
+
+// Default key (aby build nezlyhal aj bez definície). Keď si dáš vlastný, prepíšeš toto.
+#ifndef AT24CXX_XOR_KEY
+#define AT24CXX_XOR_KEY  0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x10,0x11,0x12,0x13,0x14,0x15,0x16
+#endif
+
+
 // TX payload must also include 2 address bytes in the same Wire transmission.
 // Typical Wire TX buffer is 32 bytes -> 30 bytes payload + 2 bytes addr.
 #define AT24CXX_TX_PAYLOAD_MAX  (AT24CXX_I2C_CHUNK > 2 ? (AT24CXX_I2C_CHUNK - 2) : 1)
@@ -81,6 +102,122 @@ struct {
 } at24;
 
 // ---------- Helpers ----------
+
+// XOR HELPERS:
+
+// XOR HELPERS (SHA256-keystream via BearSSL)
+
+// User key (16B) z build-time definície
+static const uint8_t kAt24_XorUserKey[16] = { AT24CXX_XOR_KEY };
+static_assert(sizeof(kAt24_XorUserKey) == 16, "AT24CXX_XOR_KEY must be exactly 16 bytes");
+
+static uint8_t at24_xor_user_key[16];   // RAM kópia po init (aby si už nečítal z rodata)
+
+// Derived secret (32B) + cache na 32B keystream blok
+static uint8_t  at24_xor_secret[32];
+static bool     at24_xor_inited = false;
+
+static uint32_t at24_xor_cache_block = 0xFFFFFFFFu; // pos>>5
+static uint8_t  at24_xor_cache[32];
+static bool     at24_xor_cache_valid = false;
+
+static void At24_Sha256_Begin(br_sha256_context *ctx) {
+  br_sha256_init(ctx);
+}
+
+static void At24_Sha256_Update(br_sha256_context *ctx, const void *data, size_t len) {
+  br_sha256_update(ctx, data, len);
+}
+
+static void At24_Sha256_Out(br_sha256_context *ctx, uint8_t out32[32]) {
+  br_sha256_out(ctx, out32);
+}
+
+static void At24_XorInit(void) {
+  if (at24_xor_inited) return;
+
+  uint64_t id = 0;
+
+#if defined(ARDUINO_ARCH_ESP32) || defined(ESP32)
+  id = ESP.getEfuseMac();              // unikát per chip (eFuse MAC)
+#elif defined(ESP8266)
+  id = (uint64_t)ESP.getChipId();      // fallback
+  id = (id << 32) ^ 0xA5A5A5A5u;       // rozšírenie na 64b (aby to nebolo "slabé")
+#else
+  id = 0x0123456789ABCDEFULL;
+#endif
+
+  // seed = (id[8]) || (chiprev[1]) || (userkey[16]) || ("AT24CXX"[6])
+  uint8_t seed[8 + 1 + 16 + 6];
+  for (uint8_t i = 0; i < 8; i++) seed[i] = (uint8_t)(id >> (i * 8));
+
+#if defined(ARDUINO_ARCH_ESP32) || defined(ESP32)
+  seed[8] = (uint8_t)ESP.getChipRevision();
+#else
+  seed[8] = 0;
+#endif
+
+  for (uint8_t i = 0; i < 16; i++) {
+    at24_xor_user_key[i] = kAt24_XorUserKey[i];
+    seed[9 + i]          = at24_xor_user_key[i];
+  }
+
+  // malý "domain separator" aby sa to náhodou nepoužilo inde v projekte s rovnakým seed
+  seed[25] = 'A';
+  seed[26] = 'T';
+  seed[27] = '2';
+  seed[28] = '4';
+  seed[29] = 'C';
+  seed[30] = 'X';
+  seed[31] = 'X';
+
+  br_sha256_context ctx;
+  At24_Sha256_Begin(&ctx);
+  At24_Sha256_Update(&ctx, seed, sizeof(seed));
+  At24_Sha256_Out(&ctx, at24_xor_secret);
+
+  at24_xor_cache_valid = false;
+  at24_xor_cache_block = 0xFFFFFFFFu;
+  at24_xor_inited = true;
+}
+
+// vygeneruj 32B keystream pre blok (pos>>5)
+static void At24_XorGenBlock(uint32_t block, uint8_t out32[32]) {
+  uint8_t b[4];
+  b[0] = (uint8_t)(block >> 24);
+  b[1] = (uint8_t)(block >> 16);
+  b[2] = (uint8_t)(block >> 8);
+  b[3] = (uint8_t)(block);
+
+  br_sha256_context ctx;
+  At24_Sha256_Begin(&ctx);
+  At24_Sha256_Update(&ctx, at24_xor_secret, sizeof(at24_xor_secret));
+  At24_Sha256_Update(&ctx, b, sizeof(b));
+
+  // extra domain separator pre "stream"
+  const uint8_t tag[4] = { 'S','T','R','M' };
+  At24_Sha256_Update(&ctx, tag, sizeof(tag));
+
+  At24_Sha256_Out(&ctx, out32);
+}
+
+static inline uint8_t At24_XorStreamByte(uint32_t pos) {
+  // pos = absolútna EEPROM adresa bajtu
+  if (!at24_xor_inited) At24_XorInit();
+
+  uint32_t block = (pos >> 5);          // 32B bloky
+  uint32_t off   = (pos & 31);
+
+  if (!at24_xor_cache_valid || at24_xor_cache_block != block) {
+    At24_XorGenBlock(block, at24_xor_cache);
+    at24_xor_cache_block = block;
+    at24_xor_cache_valid = true;
+  }
+
+  return at24_xor_cache[off];
+}
+
+// OTHER HELPERS 
 
 static char* At24_JsonEscapeAlloc(const char *in, uint32_t len) {
   // worst-case: every char -> \u00XX (6 chars)
@@ -123,6 +260,9 @@ static char* At24_JsonEscapeAlloc(const char *in, uint32_t len) {
   *d = 0;
   return out;
 }
+
+
+
 
 static void At24_RecalcBlocks(void) {
   uint32_t bs = at24.block_size;
@@ -202,6 +342,9 @@ static bool At24_I2cRead(uint16_t mem_addr, uint8_t *buf, uint32_t len) {
   TwoWire& myWire = I2cGetWire(at24.bus);
   if (&myWire == nullptr) { return false; }
 
+  // XOR
+  if (AT24CXX_XOR) { At24_XorInit(); }
+
   uint32_t done = 0;
   while (done < len) {
     uint32_t chunk = len - done;
@@ -224,7 +367,11 @@ static bool At24_I2cRead(uint16_t mem_addr, uint8_t *buf, uint32_t len) {
 
     for (uint32_t i = 0; i < chunk; i++) {
       if (!myWire.available()) return false;
-      buf[done + i] = (uint8_t)myWire.read();
+      uint8_t v = (uint8_t)myWire.read();
+      if (AT24CXX_XOR) {
+        v ^= At24_XorStreamByte((uint32_t)mem_addr + i);
+      }
+      buf[done + i] = v;
     }
 
     done += chunk;
@@ -238,6 +385,9 @@ static bool At24_I2cRead(uint16_t mem_addr, uint8_t *buf, uint32_t len) {
 static bool At24_I2cWrite(uint16_t mem_addr, const uint8_t *buf, uint32_t len) {
 
   TwoWire& myWire = I2cGetWire(at24.bus);
+
+  // XOR
+  if (AT24CXX_XOR) { At24_XorInit(); }
 
   uint32_t done = 0;
   while (done < len) {
@@ -259,7 +409,11 @@ static bool At24_I2cWrite(uint16_t mem_addr, const uint8_t *buf, uint32_t len) {
     myWire.write((uint8_t)(mem_addr >> 8));       // MSB
     myWire.write((uint8_t)(mem_addr & 0xFF));     // LSB
     for (uint32_t i = 0; i < chunk; i++) {
-      myWire.write(buf[done + i]);
+      uint8_t v = buf[done + i];
+      if (AT24CXX_XOR) {
+        v ^= At24_XorStreamByte((uint32_t)mem_addr + i);
+      }
+      myWire.write(v);
     }
 
     if (myWire.endTransmission(true) != 0) {

@@ -579,8 +579,8 @@
   #define DEVICE_GROUPS_ADDRESS 239,255,250,250  // Device groups multicast address
   #define DEVICE_GROUPS_PORT 4447                // Device groups multicast port
   #define USE_DEVICE_GROUPS_SEND                 // Add support for the DevGroupSend command (+0k6 code)
-#define USE_PWM_DIMMER                           // Add support for MJ-SD01/acenx/NTONPOWER PWM dimmers (+2k3 code, DGR=0k7)
-  #define USE_PWM_DIMMER_REMOTE                  // Add support for remote switches to PWM Dimmer (requires USE_DEVICE_GROUPS) (+0k6 code)
+// #define USE_PWM_DIMMER                           // Add support for MJ-SD01/acenx/NTONPOWER PWM dimmers (+2k3 code, DGR=0k7)
+//  #define USE_PWM_DIMMER_REMOTE                  // Add support for remote switches to PWM Dimmer (requires USE_DEVICE_GROUPS) (+0k6 code)
 //#define USE_KEELOQ                               // Add support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 // #define USE_SONOFF_D1                            // Add support for Sonoff D1 Dimmer (+0k7 code)
 // #define USE_SHELLY_DIMMER                        // Add support for Shelly Dimmer (+3k code)
@@ -845,20 +845,22 @@
   #define USE_FM24CXX                           // External FRAM module over I2C accesible via tasmota console / berry. be used to store super volatile data, frequently-changing settings, logs etc... (ps: shall work with AT24C32-AT24C512, but use with care - wear)
     #define FM24CXX_I2C_ADD             0x57    // Fram I2C address.
     #define FM24CXX_CAPACITY            8192    // FRAM Module size in bytes. 8192 = 64kbits (FM24C64), 4096 = 32kbits (FM24C32) etc..
-    #define FM24CXX_BLOCK_SIZE          256     // Parsed block size. When 256 and FRAM Size 8192, there are 8192/256 = 32 blocks per 256 bytes.
+    #define FM24CXX_BLOCK_SIZE          32     // Parsed block size. When 256 and FRAM Size 8192, there are 8192/256 = 32 blocks per 256 bytes.
     #define FM24CXX_I2C_CHUNK           128      // I2C Read Chunk size. For maximum compatibility, use 32. ESP32 S3,P4 works with 128 (a bit faster writes)
-    #define FM24CXX_MAX_WRITE_BYTES     4096    // Maximum bytes to be written at single cmd
-    #define FM24CXX_JSON_MAX_BYTES      4096    // Maximum bytes to get in single json response in FramReadRaw cmd. Above raise error.
+    #define FM24CXX_MAX_WRITE_BYTES     1024    // Maximum bytes to be written at single cmd
+    #define FM24CXX_JSON_MAX_BYTES      1024    // Maximum bytes to get in single json response in FramReadRaw cmd. Above raise error.
 
   #define USE_AT24CXX                           // External EEPROM module over I2C accesible via tasmota console / berry.
     #define AT24CXX_I2C_ADD             0x50    // EEPROM I2C address.
     #define AT24CXX_CAPACITY            65536    // EEPROM Module size in bytes. 8192 = 64kbits (FM24C64), 4096 = 32kbits (FM24C32) etc..
-    #define AT24CXX_BLOCK_SIZE          2048     // Parsed block size. When 256 and FRAM Size 8192, there are 8192/256 = 32 blocks per 256 bytes.
+    #define AT24CXX_BLOCK_SIZE          128     // Parsed block size. When 256 and FRAM Size 8192, there are 8192/256 = 32 blocks per 256 bytes.
     #define AT24CXX_I2C_CHUNK           128      // I2C Read Chunk size. For maximum compatibility, use 32. ESP32 S3,P4 works with 128 (a bit faster writes)
-    #define AT24CXX_MAX_WRITE_BYTES     4096    // Maximum bytes to be written at single cmd
-    #define AT24CXX_JSON_MAX_BYTES      4096    // Maximum bytes to get in single json response in FramReadRaw cmd. Above raise error.
+    #define AT24CXX_MAX_WRITE_BYTES     1024    // Maximum bytes to be written at single cmd
+    #define AT24CXX_JSON_MAX_BYTES      1024    // Maximum bytes to get in single json response in FramReadRaw cmd. Above raise error.
     #define AT24CXX_WRITE_DELAY_MS      5       //
     #define AT24CXX_PAGE_SIZE           128     //
+    #define AT24CXX_XOR                 true    // Enable / disable XOR crypt / decript writen data to secure data.
+//    #define AT24CXX_XOR_KEY             0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00   // 16 Byte XOR Key in HEX ()
 
   #define USE_IP5306
     #define IP5306_I2C_ADDR               0x75    // IP5306 I2C Driver in MSB Master
