@@ -424,84 +424,6 @@ void Pcf85063Detected(void) {
 #endif // USE_PCF85063
 
 /*********************************************************************************************\
- * BM8563 - Real Time Clock
- *
- * I2C Address: 0x51 (Fixed in library as BM8563_ADRESS)
-\*********************************************************************************************/
-#ifdef USE_BM8563
-
-#define XI2C_59             59       // See I2CDEVICES.md
-
-#include "BM8563.h"
-
-struct {
-  BM8563 Rtc;
-  bool rtc_ready = false;
-  bool ntp_time_ok = false;
-} bm8563_driver;
-
-uint32_t BM8563GetUtc(void) {
-  RTC_TimeTypeDef RTCtime;
-  // 1. read has errors ???
-  bm8563_driver.Rtc.GetTime(&RTCtime);
-//   core2_globs.Rtc.GetTime(&RTCtime);
-  RTC_DateTypeDef RTCdate;
-  bm8563_driver.Rtc.GetDate(&RTCdate);
-  TIME_T tm;
-  tm.second =  RTCtime.Seconds;
-  tm.minute = RTCtime.Minutes;
-  tm.hour = RTCtime.Hours;
-  tm.day_of_week = RTCdate.WeekDay;
-  tm.day_of_month = RTCdate.Date;
-  tm.month = RTCdate.Month;
-  tm.year = RTCdate.Year - 1970;
-  return MakeTime(tm);
-}
-
-void BM8563SetUtc(uint32_t epoch_time) {
-  TIME_T tm;
-  BreakTime(epoch_time, tm);
-  RTC_TimeTypeDef RTCtime;
-  RTCtime.Hours = tm.hour;
-  RTCtime.Minutes = tm.minute;
-  RTCtime.Seconds = tm.second;
-  bm8563_driver.Rtc.SetTime(&RTCtime);
-  RTC_DateTypeDef RTCdate;
-  RTCdate.WeekDay = tm.day_of_week;
-  RTCdate.Month = tm.month;
-  RTCdate.Date = tm.day_of_month;
-  RTCdate.Year = tm.year + 1970;
-  bm8563_driver.Rtc.SetDate(&RTCdate);
-}
-
-/*-------------------------------------------------------------------------------------------*\
- * Detection
-\*-------------------------------------------------------------------------------------------*/
-void BM8563Detected(void) {
-  if (!RtcChip.detected && I2cEnabled(XI2C_59)) {
-    RtcChip.address = BM8563_ADRESS;
-    if (I2cSetDevice(RtcChip.address, 0)) {
-      RtcChip.detected = 1;
-    }
-#ifdef ESP32
-    else if (I2cSetDevice(RtcChip.address, 1)) {
-      RtcChip.detected = 1;
-      RtcChip.bus = 1;
-      bm8563_driver.Rtc.setBus(1);                            // switch to bus 1
-    }
-#endif
-    if (RtcChip.detected) {
-      bm8563_driver.Rtc.begin();
-      strcpy_P(RtcChip.name, PSTR("BM8563"));
-      RtcChip.ReadTime = &BM8563GetUtc;
-      RtcChip.SetTime = &BM8563SetUtc;
-      RtcChip.mem_size = -1;
-    }
-  }
-}
-#endif  // USE_BM8563
-
-/*********************************************************************************************\
  * PCF85363 support
  *
  * I2C Address: 0x51
@@ -734,7 +656,7 @@ void Rx8010Detected(void) {
 \*********************************************************************************************/
 #if defined(USE_RX8025)
 
-#define XI2C_96             96       // See I2CDEVICES.md
+#define XI2C_59             59        // See I2CDEVICES.md
 #define RX8025_ADDRESS      0x32
 
 // RX8025T Register Addresses (per datasheet table 0..F)
@@ -921,7 +843,7 @@ void Rx8025SetTime(uint32_t epoch_time) {
  * Detection
 \*-------------------------------------------------------------------------------------------*/
 void Rx8025Detected(void) {
-  if (!RtcChip.detected && I2cEnabled(XI2C_96)) {
+  if (!RtcChip.detected && I2cEnabled(XI2C_59)) {
     RtcChip.address = RX8025_ADDRESS;
 
     for (RtcChip.bus = 0; RtcChip.bus < 2; RtcChip.bus++) {
@@ -975,9 +897,6 @@ void RtcChipDetect(void) {
 #ifdef USE_DS3231
   DS3231Detected();
 #endif  // USE_DS3231
-#ifdef USE_BM8563
-  BM8563Detected();
-#endif  // USE_BM8563
 #ifdef USE_PCF85363
   Pcf85363Detected();
 #endif // USE_PCF85363

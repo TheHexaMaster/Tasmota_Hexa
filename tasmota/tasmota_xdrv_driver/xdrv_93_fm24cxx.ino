@@ -15,13 +15,13 @@
 
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+*/ 
 
 #ifdef USE_I2C
 #ifdef USE_FM24CXX
 
 #define XDRV_93 93
-#define XI2C_98 98
+//#define XI2C_98 98
 
 #ifndef FM24CXX_I2C_ADD
 #define FM24CXX_I2C_ADD 0x57
@@ -274,7 +274,7 @@ static bool Fm24_WriteFill(uint16_t mem_addr, uint8_t fill, uint32_t len) {
 
 static void Fm24_Detect(void) {
   if (fm24.detected) return;
-  if (!I2cEnabled(XI2C_98)) return;
+
 
   fm24.address     = (uint8_t)FM24CXX_I2C_ADD;
   fm24.total_bytes = (uint32_t)FM24CXX_CAPACITY;

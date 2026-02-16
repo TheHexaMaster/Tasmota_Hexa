@@ -21,7 +21,7 @@
 #ifdef USE_AT24CXX
 
 #define XDRV_94 94
-#define XI2C_99 99
+//#define XI2C_99 99
 
 #ifndef AT24CXX_I2C_ADD
 #define AT24CXX_I2C_ADD 0x57
@@ -301,7 +301,7 @@ static bool At24_WriteFill(uint16_t mem_addr, uint8_t fill, uint32_t len) {
 
 static void At24_Detect(void) {
   if (at24.detected) return;
-  if (!I2cEnabled(XI2C_99)) return;
+//  if (!I2cEnabled(XI2C_99)) return;
 
   at24.address     = (uint8_t)AT24CXX_I2C_ADD;
   at24.total_bytes = (uint32_t)AT24CXX_CAPACITY;
