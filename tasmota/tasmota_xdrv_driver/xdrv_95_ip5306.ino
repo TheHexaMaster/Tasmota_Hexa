@@ -13,7 +13,7 @@
 #ifdef USE_IP5306
 
 #define XDRV_95   95
-//#define XI2C_100  100
+#define XI2C_100  100
 
 // Default IP5306 I2C address (commonly 0x75 on IP5306-I2C boards).
 #ifndef IP5306_I2C_ADDR
@@ -121,7 +121,7 @@ static bool Ip5306_ApplyMsbDefaults(void) {
 
 static void Ip5306_Detect(void) {
   if (ip53.detected) return;
- // if (!I2cEnabled(XI2C_100)) return;
+  if (!I2cEnabled(XI2C_100)) return;
 
   ip53.address  = (uint8_t)IP5306_I2C_ADDR;
 

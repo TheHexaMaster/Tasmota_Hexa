@@ -40,7 +40,7 @@
 \*********************************************************************************************/
 
 // -- Master parameter control --------------------
-#define CFG_HOLDER             7778              // [Reset 1] Change this value (max 32000) to load SECTION1 configuration parameters to flash
+#define CFG_HOLDER             7779              // [Reset 1] Change this value (max 32000) to load SECTION1 configuration parameters to flash
                                                  // If following define is disabled it increases configuration corruption detection BUT
                                                  //  it only allows firmware upgrades starting from version 6.6.0.11
 
@@ -638,9 +638,11 @@
 
 // -- I2C sensors ---------------------------------
 #define USE_I2C                                  // I2C using library wire (+10k code, 0k2 mem, 124 iram)
-#define I2CDRIVERS_0_31        0xFFFFFFFF          // Enable I2CDriver0  to I2CDriver31
-#define I2CDRIVERS_32_63       0xFFFFFFFF          // Enable I2CDriver32 to I2CDriver63
-#define I2CDRIVERS_64_95       0xFFFFFFFF          // Enable I2CDriver64 to I2CDriver95
+#define I2CDRIVERS_0_31        0xFFFFFFFF        // Enable I2CDriver0  to I2CDriver31
+#define I2CDRIVERS_32_63       0xFFFFFFFF        // Enable I2CDriver32 to I2CDriver63
+#define I2CDRIVERS_64_95       0xFFFFFFFF        // Enable I2CDriver64 to I2CDriver95
+#define I2CDRIVERS_96_127      0xFFFFFFFF        // Enable I2CDriver96 to I2CDriver127
+#define I2CDRIVERS_128_159     0xFFFFFFFF        // Enable I2CDriver128 to I2CDriver159
 
 #ifdef USE_I2C
 //  #define USE_I2C_BUS2                           // Add experimental support for second I2C bus on ESP8266 (+0k6k code)
