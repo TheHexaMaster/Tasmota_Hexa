@@ -28,7 +28,7 @@
 #endif
 
 #ifndef FM24CXX_BLOCK_SIZE
-#define FM24CXX_BLOCK_SIZE 0
+#define FM24CXX_BLOCK_SIZE 32
 #endif
 
 #ifndef FM24CXX_CAPACITY
@@ -377,6 +377,7 @@ static void CmndFramReadFormat(void) {
 }
 
 static void CmndFramRead(void) {
+  Fm24_Detect();
   if (!fm24.detected) {
     Response_P(PSTR("{\"FramRead\":\"not detected\"}"));
     return;
@@ -676,6 +677,45 @@ static void CmndFramWriteString(void) {
 
   Response_P(PSTR("{\"FramWriteString\":{\"block\":%u,\"bytes\":%u,\"filled\":%u,\"truncated\":%u}}"),
              (unsigned)block, (unsigned)n, (unsigned)(len - (n < len ? n : len)), (unsigned)(truncated ? 1 : 0));
+}
+
+// ===== Public API for other modules (bridge) =====
+
+bool Fm24_Available(void) {
+  Fm24_Detect();                 
+  return fm24.detected;
+}
+
+uint32_t Fm24_BlockSize(void) {
+  Fm24_Detect();
+  return fm24.block_size;
+}
+
+uint16_t Fm24_BlockCount(void) {
+  Fm24_Detect();
+  return fm24.block_count;
+}
+
+bool Fm24_ReadBlock(uint32_t block, uint8_t *buf, uint32_t len) {
+  Fm24_Detect();
+  if (!fm24.detected) return false;
+
+  uint32_t start = 0, blen = 0;
+  if (!Fm24_GetBlockParams(block, &start, &blen)) return false;
+  if (len > blen) return false;
+
+  return Fm24_I2cRead((uint16_t)start, buf, len);
+}
+
+bool Fm24_WriteBlock(uint32_t block, const uint8_t *buf, uint32_t len) {
+  Fm24_Detect();
+  if (!fm24.detected) return false;
+
+  uint32_t start = 0, blen = 0;
+  if (!Fm24_GetBlockParams(block, &start, &blen)) return false;
+  if (len > blen) return false;
+
+  return Fm24_I2cWrite((uint16_t)start, buf, len);
 }
 
 // ---------- Interface ----------

@@ -407,7 +407,7 @@
 
 // -- Wifi Config tools ---------------------------
 #define WIFI_SOFT_AP_CHANNEL   1                 // Soft Access Point Channel number between 1 and 13 as used by Wi-Fi Manager web GUI
-#define USE_IMPROV                               // Add support for IMPROV serial protocol as used by esp-web-tools (+2k code)
+// #define USE_IMPROV                               // Add support for IMPROV serial protocol as used by esp-web-tools (+2k code)
 
 // -- IPv6 support -------------------------------
 // #define USE_IPV6                                 // Enable IPv6 support (if the underlying esp-idf is also configured to support it)
@@ -866,6 +866,12 @@
     #define IP5306_I2C_ADDR               0x75    // IP5306 I2C Driver in MSB Master
     #define IP5306_APPLY_MSB_DEFAULTS_ON_BOOT 1 // Apply MSB Master Defaults
 
+  #define USE_XL9535
+    #define XL9535_FACTORY              true
+//    #define XL9535_FACTORY_CONFIG     0x0000  // BIT STATE, 0 - output, 1-input, little endian (0x0001 = pin1 input, pin2-16 output etc)
+//    #define XL9535_FACTORY_DEF_STATE  0x0000  // BIT STATE, 0-OFF, 1-ON (for outputs only).
+//    #define XL9535_FRAM_STATE         true    // Save last states to fram true / false
+//    #define XL9535_FRAM_BLOCK         0       // block number where to save data
 #endif  // USE_I2C
 
 // #define USE_DISPLAY                              // Add I2C/TM1637/MAX7219 Display Support (+2k code)

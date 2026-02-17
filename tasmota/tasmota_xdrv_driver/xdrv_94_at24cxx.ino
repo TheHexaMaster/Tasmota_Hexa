@@ -556,6 +556,7 @@ static void CmndEepromReadFormat(void) {
 }
 
 static void CmndEepromRead(void) {
+  At24_Detect();
   if (!at24.detected) {
     Response_P(PSTR("{\"EepromRead\":\"not detected\"}"));
     return;
