@@ -1,4 +1,6 @@
 /*
+  HEXAOS - Removed ESP8266 support
+
   support_tasmota.ino - Core support for Tasmota
 
   Copyright (C) 2021  Theo Arends
@@ -17,7 +19,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if defined(ESP32) && defined(USE_WEBCLIENT_HTTPS)
+#if defined(USE_WEBCLIENT_HTTPS)
   #include "HttpClientLight.h"
 #endif
 
@@ -294,19 +296,6 @@ void SetDevicePower(power_t rpower, uint32_t source) {
   if (XdrvCall(FUNC_SET_DEVICE_POWER)) {  // Set power state and stop if serviced
     // Serviced
   }
-#ifdef ESP8266
-  else if ((SONOFF_DUAL == TasmotaGlobal.module_type) || (CH4 == TasmotaGlobal.module_type)) {
-    Serial.write(0xA0);
-    Serial.write(0x04);
-    Serial.write(rpower &0xFF);
-    Serial.write(0xA1);
-    Serial.write('\n');
-    Serial.flush();
-  }
-  else if (EXS_RELAY == TasmotaGlobal.module_type) {
-    SetLatchingRelay(rpower, 1);
-  }
-#endif  // ESP8266
   else {
     uint32_t port = 0;
     uint32_t port_next;
@@ -394,7 +383,7 @@ void SetAllPower(uint32_t state, uint32_t source) {
     switch (state) {
     case POWER_OFF:
       // Keep locked bits and set all other to 0
-      TasmotaGlobal.power &= Settings->power_lock; 
+      TasmotaGlobal.power &= Settings->power_lock;
       break;
     case POWER_ON:
       // Keep locked bits and set all other to 1
@@ -406,7 +395,7 @@ void SetAllPower(uint32_t state, uint32_t source) {
       break;
     case POWER_OFF_FORCE:
       // Set all off even if locked on (Used by overtemp and overcurrent)
-      TasmotaGlobal.power = 0; 
+      TasmotaGlobal.power = 0;
       break;
     }
 #ifdef USE_SONOFF_IFAN
@@ -425,11 +414,6 @@ void SetAllPower(uint32_t state, uint32_t source) {
 
 void SetPowerOnState(void)
 {
-#ifdef ESP8266
-  if (MOTOR == TasmotaGlobal.module_type) {
-    Settings->poweronstate = POWER_ALL_ON;   // Needs always on else in limbo!
-  }
-#endif  // ESP8266
   if (POWER_ALL_ALWAYS_ON == Settings->poweronstate) {
     SetDevicePower(1, SRC_RESTART);
   } else {
@@ -467,28 +451,9 @@ void SetPowerOnState(void)
     }
   }
 
-//  AddLog(LOG_LEVEL_DEBUG, PSTR("PWR: PowerOnState %d restored"), Settings->poweronstate);
-
   // Issue #526 and #909
   uint32_t port = 0;
   for (uint32_t i = 0; i < TasmotaGlobal.devices_present; i++) {
-#ifdef ESP8266
-    if (!Settings->flag3.no_power_feedback &&  // SetOption63 - Don't scan relay power state at restart - #5594 and #5663
-        !TasmotaGlobal.power_on_delay          // SetOption47 - Delay switching relays to reduce power surge at power on
-#ifdef USE_SHUTTER
-        && !Settings->flag3.shutter_mode       // SetOption80 - Enable shutter support
-#endif // USE_SHUTTER
-       ) {
-      if ((port < MAX_RELAYS) && PinUsed(GPIO_REL1, port)) {
-        if (bitRead(TasmotaGlobal.rel_bistable, port)) {
-          port++;                              // Skip both bistable relays as always 0
-        } else {
-          bitWrite(TasmotaGlobal.power, i, digitalRead(Pin(GPIO_REL1, port)) ^ bitRead(TasmotaGlobal.rel_inverted, port));
-        }
-      }
-      port++;
-    }
-#endif  // ESP8266
     if (bitRead(TasmotaGlobal.power, i) || (POWER_ALL_OFF_PULSETIME_ON == Settings->poweronstate)) {
       SetPulseTimer(i % MAX_PULSETIMERS, Settings->pulse_timer[i % MAX_PULSETIMERS]);
     }
@@ -532,9 +497,7 @@ void SetLedPowerIdx(uint32_t led, uint32_t state)
 #else //USE_LIGHT
       pwm = changeUIntScale((uint16_t)(state ? Settings->ledpwm_on : Settings->ledpwm_off), 0, 255, 0, Settings->pwm_range); // linear
 #endif //USE_LIGHT
-#ifdef ESP32
       if (analogAttach(Pin(GPIO_LED1, led)) >= 0)
-#endif
         analogWrite(Pin(GPIO_LED1, led), bitRead(TasmotaGlobal.led_inverted, led) ? Settings->pwm_range - pwm : pwm);
     } else {
       DigitalWrite(GPIO_LED1, led, bitRead(TasmotaGlobal.led_inverted, led) ? !state : state);
@@ -574,12 +537,11 @@ void SetLedPowerAll(uint32_t state)
 }
 
 void SetLedLink(uint32_t state) {
-#ifdef ESP32
   uint32_t index = XdrvMailbox.index;
   XdrvMailbox.index = state;
   XdrvCall(FUNC_LED_LINK);
   XdrvMailbox.index = index;
-#endif  // ESP32
+
   int led_pin = Pin(GPIO_LEDLNK);
   uint32_t led_inv = TasmotaGlobal.ledlnk_inverted;
   if (-1 == led_pin) {                    // Legacy - LED1 is status
@@ -867,13 +829,6 @@ void MqttShowState(void)
     ResponseAppend_P(PSTR(",\"" D_CMND_ZIGBEE_BATTPERCENT "\":%d"), Settings->battery_level_percent);
   }
 
-#ifdef ESP8266
-#ifdef USE_ADC_VCC
-  dtostrfd((double)ESP.getVcc()/1000, 3, stemp1);
-  ResponseAppend_P(PSTR(",\"" D_JSON_VCC "\":%s"), stemp1);
-#endif  // USE_ADC_VCC
-#endif  // ESP8266
-
   ResponseAppend_P(PSTR(",\"" D_JSON_HEAPSIZE "\":%d,\"SleepMode\":\"%s\",\"Sleep\":%u,\"LoadAvg\":%u,\"MqttCount\":%u"),
     ESP_getFreeHeap1024(), GetTextIndexed(stemp1, sizeof(stemp1), Settings->flag3.sleep_normal, kSleepMode),  // SetOption60 - Enable normal sleep instead of dynamic sleep
     TasmotaGlobal.sleep, TasmotaGlobal.loop_load_avg, MqttConnectCount());
@@ -903,13 +858,13 @@ void MqttShowState(void)
   }
 
   if (TasmotaGlobal.pwm_present) {
-    ResponseAppend_P(PSTR(","));
+    ResponseAppend_P(PSTR(",")); 
     MqttShowPWMState();
   }
-  
+
   char *hostname = TasmotaGlobal.hostname;
   uint32_t ipaddress = 0;
-#if defined(ESP32) && defined(USE_ETHERNET)
+#if defined(USE_ETHERNET)
   if (static_cast<uint32_t>(EthernetLocalIP()) != 0) {
     hostname = EthernetHostname();           // Set ethernet as IP connection
     ipaddress = (uint32_t)EthernetLocalIP();
@@ -1137,7 +1092,6 @@ void PerformEverySecond(void)
 
     Settings->last_module = Settings->module;
 
-
 #ifdef USE_DEEPSLEEP
     if (!(DeepSleepEnabled() && !Settings->flag3.bootcount_update)) {  // SetOption76  - (Deepsleep) Enable incrementing bootcount (1) when deepsleep is enabled
 #endif
@@ -1242,18 +1196,11 @@ void PerformEverySecond(void)
     }
   }
 
-#ifdef ESP8266
-  // Wifi keep alive to send Gratuitous ARP
-  wifiKeepAlive();
-#endif
-
   WifiPollNtp();
 
-#ifdef ESP32
   if (11 == TasmotaGlobal.uptime) {  // Perform one-time ESP32 houskeeping
     ESP_getSketchSize();             // Init sketchsize as it can take up to 2 seconds
   }
-#endif
 
 #ifdef USE_UFILESYS
   static bool settings_lkg = false;  // Settings saved as Last Known Good
@@ -1277,11 +1224,6 @@ void Every100mSeconds(void)
   if (TasmotaGlobal.latching_relay_pulse) {
     TasmotaGlobal.latching_relay_pulse--;
     if (!TasmotaGlobal.latching_relay_pulse) {
-#ifdef ESP8266
-      if (EXS_RELAY == TasmotaGlobal.module_type) {
-        SetLatchingRelay(0, 0);
-      }
-#endif  // ESP8266
     }
   }
 
@@ -1364,11 +1306,6 @@ void Every250mSeconds(void)
   }
   if (Settings->ledstate &1 && (PinUsed(GPIO_LEDLNK) || !(TasmotaGlobal.blinks || TasmotaGlobal.restart_flag || TasmotaGlobal.ota_state_flag)) ) {
     bool tstate = TasmotaGlobal.power & Settings->ledmask;
-#ifdef ESP8266
-    if ((SONOFF_TOUCH == TasmotaGlobal.module_type) || (SONOFF_T11 == TasmotaGlobal.module_type) || (SONOFF_T12 == TasmotaGlobal.module_type) || (SONOFF_T13 == TasmotaGlobal.module_type)) {
-      tstate = (!TasmotaGlobal.power) ? 1 : 0;           // As requested invert signal for Touch devices to find them in the dark
-    }
-#endif  // ESP8266
     SetLedPower(tstate);
   }
 
@@ -1391,10 +1328,7 @@ void Every250mSeconds(void)
     if (TasmotaGlobal.ota_state_flag && CommandsReady()) {
       TasmotaGlobal.ota_state_flag--;
       if (2 == TasmotaGlobal.ota_state_flag) {
-//#ifdef CONFIG_IDF_TARGET_ESP32C3
-#ifdef ESP32
         OtaFactoryWrite(false);
-#endif
         RtcSettings.ota_loader = 0;                       // Try requested image first
         ota_retry_counter = OTA_ATTEMPTS;
         SettingsSave(1);                                  // Free flash for OTA update
@@ -1412,51 +1346,7 @@ void Every250mSeconds(void)
         if (ota_retry_counter) {
           char ota_url[TOPSZ];
           strlcpy(full_ota_url, GetOtaUrl(ota_url, sizeof(ota_url)), sizeof(full_ota_url));
-#ifdef ESP8266
-#ifndef FIRMWARE_MINIMAL
-          if (RtcSettings.ota_loader) {
-            // OTA File too large so try OTA minimal version
-            // Replace tasmota                                         with tasmota-minimal
-            // Replace tasmota-DE                                      with tasmota-minimal
-            // Replace tasmota.bin                                     with tasmota-minimal.bin
-            // Replace tasmota.xyz                                     with tasmota-minimal.xyz
-            // Replace tasmota.bin.gz                                  with tasmota-minimal.bin.gz
-            // Replace tasmota.xyz.gz                                  with tasmota-minimal.xyz.gz
-            // Replace tasmota.ino.bin                                 with tasmota-minimal.ino.bin
-            // Replace tasmota.ino.bin.gz                              with tasmota-minimal.ino.bin.gz
-            // Replace http://domus1:80/api/arduino/tasmota.bin        with http://domus1:80/api/arduino/tasmota-minimal.bin
-            // Replace http://domus1:80/api/arduino/tasmota.bin.gz     with http://domus1:80/api/arduino/tasmota-minimal.bin.gz
-            // Replace http://domus1:80/api/arduino/tasmota-DE.bin.gz  with http://domus1:80/api/arduino/tasmota-minimal.bin.gz
-            // Replace http://domus1:80/api/ard-uino/tasmota-DE.bin.gz with http://domus1:80/api/ard-uino/tasmota-minimal.bin.gz
-            // Replace http://192.168.2.17:80/api/arduino/tasmota.bin  with http://192.168.2.17:80/api/arduino/tasmota-minimal.bin
-            // Replace http://192.168.2.17/api/arduino/tasmota.bin.gz  with http://192.168.2.17/api/arduino/tasmota-minimal.bin.gz
 
-            char *bch = strrchr(full_ota_url, '/');         // Only consider filename after last backslash prevent change of urls having "-" in it
-            if (bch == nullptr) { bch = full_ota_url; }     // No path found so use filename only
-            char *ech = strchr(bch, '.');                              // Find file type in filename (none, .ino.bin, .ino.bin.gz, .bin, .bin.gz or .gz)
-            if (ech == nullptr) { ech = full_ota_url + strlen(full_ota_url); }  // Point to '/0' at end of full_ota_url becoming an empty string
-
-//AddLog(LOG_LEVEL_DEBUG, PSTR("OTA: File type [%s]"), ech);
-
-            char ota_url_type[strlen(ech) +1];
-            strncpy(ota_url_type, ech, sizeof(ota_url_type));          // Either empty, .ino.bin, .ino.bin.gz, .bin, .bin.gz or .gz
-
-            char *pch = strrchr(bch, '-');                             // Find last dash (-) and ignore remainder - handles tasmota-DE
-            if (pch == nullptr) { pch = ech; }                         // No dash so ignore filetype
-            *pch = '\0';                                               // full_ota_url = http://domus1:80/api/arduino/tasmota
-            snprintf_P(full_ota_url, sizeof(full_ota_url), PSTR("%s-" D_JSON_MINIMAL "%s"), full_ota_url, ota_url_type);  // Minimal filename must be filename-minimal
-          }
-#endif  // FIRMWARE_MINIMAL
-          if (ota_retry_counter < OTA_ATTEMPTS / 2) {
-            if (StrCaseStr_P(full_ota_url, PSTR(".gz"))) {
-              ota_retry_counter = 1;
-            } else {
-              strcat_P(full_ota_url, PSTR(".gz"));
-            }
-          }
-#endif  // ESP8266
-
-#ifdef ESP32
 #ifndef FIRMWARE_MINIMAL
 #ifdef USE_WEBCLIENT_HTTPS
           if (TasmotaGlobal.ota_factory) {
@@ -1474,10 +1364,7 @@ void Every250mSeconds(void)
           } else
 #endif  // USE_WEBCLIENT_HTTPS
           if (EspSingleOtaPartition()) {
-//#ifdef CONFIG_IDF_TARGET_ESP32C3
-#ifdef ESP32
             OtaFactoryWrite(true);
-#endif
             RtcSettings.ota_loader = 1;                 // Try safeboot image next
             XsnsXdrvCall(FUNC_ABOUT_TO_RESTART);
             SettingsSaveAll();
@@ -1486,12 +1373,11 @@ void Every250mSeconds(void)
             EspRestart();
           }
 #endif  // FIRMWARE_MINIMAL
-#endif  // ESP32
 
           char version[50];
           snprintf_P(version, sizeof(version), PSTR("%s%s"), TasmotaGlobal.version, TasmotaGlobal.image_name);
           AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_UPLOAD "%s %s"), full_ota_url, version);
-#if defined(ESP32) && defined(USE_WEBCLIENT_HTTPS)
+#if defined(USE_WEBCLIENT_HTTPS)
           HTTPClientLight OTAclient;
           if (!OTAclient.begin(full_ota_url)) {
             AddLog(LOG_LEVEL_INFO, "OTA: unsupported protocol");
@@ -1510,11 +1396,6 @@ void Every250mSeconds(void)
 #ifndef FIRMWARE_MINIMAL
             int ota_error = ESPhttpUpdate.getLastError();
             DEBUG_CORE_LOG(PSTR("OTA: Error %d"), ota_error);
-#ifdef ESP8266
-            if ((HTTP_UE_TOO_LESS_SPACE == ota_error) || (HTTP_UE_BIN_FOR_WRONG_FLASH == ota_error)) {
-              RtcSettings.ota_loader = 1;                 // Try minimal image next
-            }
-#endif  // ESP8266
 #endif  // FIRMWARE_MINIMAL
             TasmotaGlobal.ota_state_flag = 2;             // Upgrade failed - retry
           }
@@ -1585,9 +1466,6 @@ void Every250mSeconds(void)
         strncpy(storage_mqtttopic, SettingsText(SET_MQTT_TOPIC), sizeof(storage_mqtttopic));
         uint16_t mqtt_port = Settings->mqtt_port;
 
-//        if (216 == TasmotaGlobal.restart_flag) {
-          // Backup mqtt host, port, client, username and password
-//        }
         if ((215 == TasmotaGlobal.restart_flag) ||        // Reset 5
             (216 == TasmotaGlobal.restart_flag)) {        // Reset 6
           SettingsErase(2);  // Erase all flash from program end to end of physical excluding optional filesystem
@@ -1649,13 +1527,10 @@ void Every250mSeconds(void)
     {
       if (!TasmotaGlobal.global_state.network_down) {
 #ifdef FIRMWARE_MINIMAL
-//#ifdef CONFIG_IDF_TARGET_ESP32C3
-#ifdef ESP32
         if (OtaFactoryRead()) {
           OtaFactoryWrite(false);
           RtcSettings.ota_loader = 1;
         }
-#endif
         if (1 == RtcSettings.ota_loader) {
           RtcSettings.ota_loader = 0;
           AddLog(LOG_LEVEL_DEBUG, PSTR("OTA: Propagating upload"));
@@ -1670,12 +1545,7 @@ void Every250mSeconds(void)
 #ifdef USE_WEBSERVER
         if (Settings->webserver) {
 
-#ifdef ESP8266
-          if (!WifiIsInManagerMode()) { StartWebserver(Settings->webserver); }
-#endif  // ESP8266
-#ifdef ESP32
           StartWebserver(Settings->webserver);
-#endif  // ESP32
 
 #ifdef USE_DISCOVERY
 #ifdef WEBSERVER_ADVERTISE
@@ -1693,7 +1563,6 @@ void Every250mSeconds(void)
 #endif  // USE_DEVICE_GROUPS
 
         // send FUNC_NETWORK_UP to all modules
-//        AddLog(LOG_LEVEL_DEBUG_MORE, PSTR("WIF: Sending FUNC_NETWORK_UP"));
         XdrvXsnsCall(FUNC_NETWORK_UP);
 
         MqttCheck();
@@ -1704,99 +1573,12 @@ void Every250mSeconds(void)
 #endif  // USE_DEVICE_GROUPS
 
         // send FUNC_NETWORK_DOWN to all modules
-//        AddLog(LOG_LEVEL_DEBUG_MORE, PSTR("WIF: Sending FUNC_NETWORK_DOWN"));
         XdrvXsnsCall(FUNC_NETWORK_DOWN);
       }                                           // Every x.75 second
     }
     break;
   }
 }
-
-#ifdef ESP8266
-#ifdef USE_ARDUINO_OTA
-/*********************************************************************************************\
- * Allow updating via the Arduino OTA-protocol.
- *
- * - Once started disables current wifi clients and udp
- * - Perform restart when done to re-init wifi clients
-\*********************************************************************************************/
-
-bool arduino_ota_triggered = false;
-uint16_t arduino_ota_progress_dot_count = 0;
-
-void ArduinoOTAInit(void)
-{
-  ArduinoOTA.setPort(8266);
-  ArduinoOTA.setHostname(NetworkHostname());
-  if (strlen(SettingsText(SET_WEBPWD))) {
-    ArduinoOTA.setPassword(SettingsText(SET_WEBPWD));
-  }
-
-  ArduinoOTA.onStart([]()
-  {
-    SettingsSave(1);         // Free flash for OTA update
-#ifdef USE_WEBSERVER
-    if (Settings->webserver) { StopWebserver(); }
-#endif  // USE_WEBSERVER
-    AllowInterrupts(0);
-    if (Settings->flag.mqtt_enabled) {
-      MqttDisconnect();      // SetOption3  - Enable MQTT
-    }
-    AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_UPLOAD "Arduino OTA " D_UPLOAD_STARTED));
-    arduino_ota_triggered = true;
-    arduino_ota_progress_dot_count = 0;
-    delay(100);              // Allow time for message xfer
-  });
-
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total)
-  {
-    if ((LOG_LEVEL_DEBUG <= TasmotaGlobal.seriallog_level)) {
-      arduino_ota_progress_dot_count++;
-      TasConsole.printf(".");
-      if (!(arduino_ota_progress_dot_count % 80)) { TasConsole.println(); }
-    }
-  });
-
-  ArduinoOTA.onError([](ota_error_t error)
-  {
-    /*
-    From ArduinoOTA.h:
-    typedef enum { OTA_AUTH_ERROR, OTA_BEGIN_ERROR, OTA_CONNECT_ERROR, OTA_RECEIVE_ERROR, OTA_END_ERROR } ota_error_t;
-    */
-    char error_str[100];
-
-    if ((LOG_LEVEL_DEBUG <= TasmotaGlobal.seriallog_level) && arduino_ota_progress_dot_count) { TasConsole.println(); }
-    switch (error) {
-      case OTA_BEGIN_ERROR: strncpy_P(error_str, PSTR(D_UPLOAD_ERR_2), sizeof(error_str)); break;
-      case OTA_RECEIVE_ERROR: strncpy_P(error_str, PSTR(D_UPLOAD_ERR_5), sizeof(error_str)); break;
-      case OTA_END_ERROR: strncpy_P(error_str, PSTR(D_UPLOAD_ERR_7), sizeof(error_str)); break;
-      default:
-        snprintf_P(error_str, sizeof(error_str), PSTR(D_UPLOAD_ERROR_CODE " %d"), error);
-    }
-    AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_UPLOAD "Arduino OTA  %s. " D_RESTARTING), error_str);
-    EspRestart();
-  });
-
-  ArduinoOTA.onEnd([]()
-  {
-    if ((LOG_LEVEL_DEBUG <= TasmotaGlobal.seriallog_level)) { TasConsole.println(); }
-    AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_UPLOAD "Arduino OTA " D_SUCCESSFUL ". " D_RESTARTING));
-    EspRestart();
-	});
-
-  ArduinoOTA.begin();
-  AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_UPLOAD "Arduino OTA " D_ENABLED " " D_PORT " 8266"));
-}
-
-void ArduinoOtaLoop(void)
-{
-  MDNS.update();
-  ArduinoOTA.handle();
-  // Once OTA is triggered, only handle that and dont do other stuff. (otherwise it fails)
-  while (arduino_ota_triggered) { ArduinoOTA.handle(); }
-}
-#endif  // USE_ARDUINO_OTA
-#endif  // ESP8266
 
 /********************************************************************************************/
 
@@ -1816,22 +1598,10 @@ void SerialInput(void) {
     if (0 == TasmotaGlobal.serial_in_byte_counter) {
       serial_buffer_overrun = false;
     }
-    else if ((TasmotaGlobal.serial_in_byte_counter == INPUT_BUFFER_SIZE)
-#ifdef ESP8266
-             || Serial.hasOverrun()
-#endif
-                                                             ) {
+    else if ((TasmotaGlobal.serial_in_byte_counter == INPUT_BUFFER_SIZE)) {
       serial_buffer_overrun = true;
     }
 
-#ifdef ESP8266
-/*-------------------------------------------------------------------------------------------*\
- * Sonoff dual and ch4 19200 baud serial interface
-\*-------------------------------------------------------------------------------------------*/
-    if ((SONOFF_DUAL == TasmotaGlobal.module_type) || (CH4 == TasmotaGlobal.module_type)) {
-      TasmotaGlobal.serial_in_byte = ButtonSerial(TasmotaGlobal.serial_in_byte);
-    }
-#endif  // ESP8266
 /*-------------------------------------------------------------------------------------------*/
 
 #ifdef USE_IMPROV
@@ -1894,25 +1664,7 @@ void SerialInput(void) {
       }
     }
 
-#ifdef USE_SONOFF_SC
-/*-------------------------------------------------------------------------------------------*\
- * Sonoff SC 19200 baud serial interface
-\*-------------------------------------------------------------------------------------------*/
-    if (SONOFF_SC == TasmotaGlobal.module_type) {
-      if (TasmotaGlobal.serial_in_byte == '\x1B') {                                // Sonoff SC status from ATMEGA328P
-        TasmotaGlobal.serial_in_buffer[TasmotaGlobal.serial_in_byte_counter] = 0;  // Serial data completed
-        SonoffScSerialInput(TasmotaGlobal.serial_in_buffer);
-        TasmotaGlobal.serial_in_byte_counter = 0;
-        Serial.flush();
-        return;
-      }
-    } else
-#endif  // USE_SONOFF_SC
-/*-------------------------------------------------------------------------------------------*/
-
-#ifdef ESP32
     if (tasconsole_serial) {
-#endif  // ESP32
 
     if (!Settings->flag.mqtt_serial && (TasmotaGlobal.serial_in_byte == '\n')) {   // CMND_SERIALSEND and CMND_SERIALLOG
       TasmotaGlobal.serial_in_buffer[TasmotaGlobal.serial_in_byte_counter] = 0;    // Serial data completed
@@ -1929,9 +1681,7 @@ void SerialInput(void) {
       return;
     }
 
-#ifdef ESP32
     }
-#endif  // ESP32
 
   }  // endWhile
 
@@ -1963,8 +1713,6 @@ void SerialInput(void) {
 }
 
 /********************************************************************************************/
-
-#ifdef ESP32
 
 String console_buffer = "";
 
@@ -2015,8 +1763,6 @@ void TasConsoleInput(void) {
   }
 }
 
-#endif  // ESP32
-
 /********************************************************************************************/
 
 void GpioInit(void)
@@ -2024,12 +1770,7 @@ void GpioInit(void)
   if (!ValidModule(Settings->module)) {
     uint32_t module = MODULE;
     if (!ValidModule(MODULE)) {
-#ifdef ESP8266
-      module = SONOFF_BASIC;
-#endif  // ESP8266
-#ifdef ESP32
       module = WEMOS;
-#endif  // ESP32
     }
 
     Settings->module = module;
@@ -2038,10 +1779,6 @@ void GpioInit(void)
   SetModuleType();
 
 //  AddLog(LOG_LEVEL_DEBUG, PSTR("DBG: Used GPIOs %d"), GPIO_SENSOR_END);
-
-#ifdef ESP8266
-  ConvertGpios();
-#endif  // ESP8266
 
   for (uint32_t i = 0; i < nitems(Settings->user_template.gp.io); i++) {
     if ((Settings->user_template.gp.io[i] >= AGPIO(GPIO_SENSOR_END)) && (Settings->user_template.gp.io[i] < AGPIO(GPIO_USER))) {
@@ -2103,7 +1840,6 @@ void GpioInit(void)
         ButtonInvertFlag(mpin - AGPIO(GPIO_KEY1_INV_NP));  //  0 .. 3
         mpin -= (AGPIO(GPIO_KEY1_INV_NP) - AGPIO(GPIO_KEY1));
       }
-#ifdef ESP32
       else if ((mpin >= AGPIO(GPIO_OPTION_E)) && (mpin < (AGPIO(GPIO_OPTION_E) + MAX_OPTIONS_E))) {
         TasmotaGlobal.emulated_module_type = pgm_read_byte(kModuleEmulationList + (mpin - AGPIO(GPIO_OPTION_E)));
         SetModuleType();
@@ -2128,7 +1864,6 @@ void GpioInit(void)
         mpin -= (AGPIO(GPIO_KEY1_TC) - AGPIO(GPIO_KEY1));
       }
 #endif  // ESP32 SOC_TOUCH_VERSION_1 or SOC_TOUCH_VERSION_2
-#endif //ESP32
       else if ((mpin >= AGPIO(GPIO_REL1_INV)) && (mpin < (AGPIO(GPIO_REL1_INV) + MAX_RELAYS))) {
         bitSet(TasmotaGlobal.rel_inverted, mpin - AGPIO(GPIO_REL1_INV));
         mpin -= (AGPIO(GPIO_REL1_INV) - AGPIO(GPIO_REL1));
@@ -2186,54 +1921,12 @@ void GpioInit(void)
   analogWriteRange(Settings->pwm_range);      // Default is 1023 (Arduino.h)
   analogWriteFreq(Settings->pwm_frequency);   // Default is 1000 (core_esp8266_wiring_pwm.c)
 
-#ifdef ESP8266
-  if ((2 == Pin(GPIO_TXD)) || (H801 == TasmotaGlobal.module_type)) { Serial.set_tx(2); }
-  SetSerialSwap();
-#endif
-
   uint32_t sspi_mosi = (PinUsed(GPIO_SSPI_SCLK) && PinUsed(GPIO_SSPI_MOSI)) ? SPI_MOSI : SPI_NONE;
   uint32_t sspi_miso = (PinUsed(GPIO_SSPI_SCLK) && PinUsed(GPIO_SSPI_MISO)) ? SPI_MISO : SPI_NONE;
   TasmotaGlobal.soft_spi_enabled = sspi_mosi + sspi_miso;
   AddLogSpi(0, Pin(GPIO_SSPI_SCLK), Pin(GPIO_SSPI_MOSI), Pin(GPIO_SSPI_MISO));
 
 #ifdef USE_SPI
-#ifdef ESP8266
-  if (!TasmotaGlobal.soft_spi_enabled) {
-    uint32_t spi_mosi = (14 == Pin(GPIO_SPI_CLK)) && (13 == Pin(GPIO_SPI_MOSI)) ? SPI_MOSI : SPI_NONE;
-    uint32_t spi_miso = (14 == Pin(GPIO_SPI_CLK)) && (12 == Pin(GPIO_SPI_MISO)) ? SPI_MISO : SPI_NONE;
-    TasmotaGlobal.spi_enabled = spi_mosi + spi_miso;
-    if (!TasmotaGlobal.spi_enabled) {
-      bool valid_cs = (ValidSpiPinUsed(GPIO_SPI_CS) ||
-                      ValidSpiPinUsed(GPIO_RC522_CS) ||
-                      (ValidSpiPinUsed(GPIO_NRF24_CS) && ValidSpiPinUsed(GPIO_NRF24_DC)) ||
-                      ValidSpiPinUsed(GPIO_ILI9341_CS) ||
-                      ValidSpiPinUsed(GPIO_ILI9341_DC) || // there are also boards without cs
-                      ValidSpiPinUsed(GPIO_EPAPER29_CS) ||
-                      ValidSpiPinUsed(GPIO_EPAPER42_CS) ||
-                      ValidSpiPinUsed(GPIO_ILI9488_CS) ||
-                      ValidSpiPinUsed(GPIO_SSD1351_CS) ||
-                      ValidSpiPinUsed(GPIO_RA8876_CS) ||
-                      ValidSpiPinUsed(GPIO_ST7789_DC) ||  // ST7789 CS may be omitted so chk DC too
-                      ValidSpiPinUsed(GPIO_ST7789_CS) ||
-                      (ValidSpiPinUsed(GPIO_SSD1331_CS) && ValidSpiPinUsed(GPIO_SSD1331_DC)) ||
-                      ValidSpiPinUsed(GPIO_SDCARD_CS) ||
-                      ValidSpiPinUsed(GPIO_MCP2515_CS)
-                      );
-      // If SPI_CS and/or SPI_DC is used they must be valid
-      TasmotaGlobal.spi_enabled = (valid_cs) ? SPI_MOSI_MISO : SPI_NONE;
-    }
-    if (TasmotaGlobal.spi_enabled) {
-      TasmotaGlobal.my_module.io[12] = AGPIO(GPIO_SPI_MISO);
-      SetPin(12, AGPIO(GPIO_SPI_MISO));
-      TasmotaGlobal.my_module.io[13] = AGPIO(GPIO_SPI_MOSI);
-      SetPin(13, AGPIO(GPIO_SPI_MOSI));
-      TasmotaGlobal.my_module.io[14] = AGPIO(GPIO_SPI_CLK);
-      SetPin(14, AGPIO(GPIO_SPI_CLK));
-    }
-  }
-  AddLogSpi(1, Pin(GPIO_SPI_CLK), Pin(GPIO_SPI_MOSI), Pin(GPIO_SPI_MISO));
-#endif  // ESP8266
-#ifdef ESP32
   uint32_t spi_mosi = (PinUsed(GPIO_SPI_CLK) && PinUsed(GPIO_SPI_MOSI)) ? SPI_MOSI : SPI_NONE;
   uint32_t spi_miso = (PinUsed(GPIO_SPI_CLK) && PinUsed(GPIO_SPI_MISO)) ? SPI_MISO : SPI_NONE;
   TasmotaGlobal.spi_enabled = spi_mosi + spi_miso;
@@ -2243,7 +1936,6 @@ void GpioInit(void)
   spi_miso = (PinUsed(GPIO_SPI_CLK, 1) && PinUsed(GPIO_SPI_MISO, 1)) ? SPI_MISO : SPI_NONE;
   TasmotaGlobal.spi_enabled2 = spi_mosi + spi_miso;
   AddLogSpi(2, Pin(GPIO_SPI_CLK, 1), Pin(GPIO_SPI_MOSI, 1), Pin(GPIO_SPI_MISO, 1));
-#endif  // ESP32
 #endif  // USE_SPI
 
   for (uint32_t i = 0; i < nitems(TasmotaGlobal.my_module.io); i++) {
@@ -2257,35 +1949,6 @@ void GpioInit(void)
       pinMode(i, OUTPUT);
       digitalWrite(i, 0);
     }
-
-/*
-  // Until 20210726
-
-    // Set any non-used GPIO to INPUT - Related to resetPins() in support_legacy_cores.ino
-    // Doing it here solves relay toggles at restart.
-#if CONFIG_IDF_TARGET_ESP32C3
-    else if (((i < 11) || (i > 17)) && (GPIO_NONE == mpin)) {  // Skip SPI flash interface
-      if (!((20 == i) || (21 == i))) {             // Skip serial
-        pinMode(i, INPUT);
-      }
-    }
-#else // CONFIG_IDF_TARGET_ESP32C3
-    else if (((i < 6) || (i > 11)) && (GPIO_NONE == mpin)) {  // Skip SPI flash interface
-      if (!((1 == i) || (3 == i))) {             // Skip serial
-        pinMode(i, INPUT);
-      }
-    }
-#endif // CONFIG_IDF_TARGET_ESP32C3
-*/
-#ifdef ESP8266
-    // Set any non-used GPIO to INPUT - Related to resetPins() in support_legacy_cores.ino
-    // Doing it here solves relay toggles at restart.
-    else if (((i < 6) || (i > 11)) && (GPIO_NONE == mpin)) {  // Skip SPI flash interface
-      if (!((1 == i) || (3 == i))) {             // Skip serial
-        pinMode(i, INPUT);
-      }
-    }
-#endif  // ESP8266
   }
 
   DigitalWrite(GPIO_HEARTBEAT, 0, TasmotaGlobal.heartbeat_inverted);
@@ -2304,24 +1967,6 @@ void GpioInit(void)
   }
 
 #ifdef USE_I2C
-/*
-  if (PinUsed(GPIO_I2C_SCL) && PinUsed(GPIO_I2C_SDA)) {
-    TasmotaGlobal.i2c_enabled[0] = I2cBegin(Pin(GPIO_I2C_SDA), Pin(GPIO_I2C_SCL));
-#ifdef ESP32
-    if (TasmotaGlobal.i2c_enabled[0]) {
-      AddLog(LOG_LEVEL_INFO, PSTR("I2C: Bus1 using GPIO%02d(SCL) and GPIO%02d(SDA)"), Pin(GPIO_I2C_SCL), Pin(GPIO_I2C_SDA));
-    }
-#endif
-  }
-#ifdef ESP32
-  if (PinUsed(GPIO_I2C_SCL, 1) && PinUsed(GPIO_I2C_SDA, 1)) {
-    TasmotaGlobal.i2c_enabled[1] = I2cBegin(Pin(GPIO_I2C_SDA, 1), Pin(GPIO_I2C_SCL, 1), 1);
-    if (TasmotaGlobal.i2c_enabled[1]) {
-      AddLog(LOG_LEVEL_INFO, PSTR("I2C: Bus2 using GPIO%02d(SCL) and GPIO%02d(SDA)"), Pin(GPIO_I2C_SCL, 1), Pin(GPIO_I2C_SDA, 1));
-    }
-  }
-#endif
-*/
   uint32_t max_bus = 1;
 #ifdef USE_I2C_BUS2
   max_bus = 2;
@@ -2329,11 +1974,11 @@ void GpioInit(void)
   for (uint32_t bus = 0; bus < max_bus; bus++) {
     if (PinUsed(GPIO_I2C_SCL, bus) && PinUsed(GPIO_I2C_SDA, bus)) {
       if (I2cBegin(Pin(GPIO_I2C_SDA, bus), Pin(GPIO_I2C_SCL, bus), bus)) {
-        if (0 == bus) { 
+        if (0 == bus) {
           TasmotaGlobal.i2c_enabled[0] = true;
         }
 #ifdef USE_I2C_BUS2
-        else { 
+        else {
           TasmotaGlobal.i2c_enabled[1] = true;
         }
         AddLog(LOG_LEVEL_INFO, PSTR("I2C: Bus%d using GPIO%02d(SCL) and GPIO%02d(SDA)"), bus +1, Pin(GPIO_I2C_SCL, bus), Pin(GPIO_I2C_SDA, bus));
@@ -2348,11 +1993,6 @@ void GpioInit(void)
   for (uint32_t i = 0; i < MAX_RELAYS; i++) {
     if (PinUsed(GPIO_REL1, i)) {
       TasmotaGlobal.devices_present++;
-#ifdef ESP8266
-      if (EXS_RELAY == TasmotaGlobal.module_type) {
-        if (i &1) { TasmotaGlobal.devices_present--; }
-      }
-#endif  // ESP8266
       if (!Settings->flag6.bistable_single_pin) {  // SetOption152 - (Power) Use single pin bistable
         if (bitRead(TasmotaGlobal.rel_bistable, i)) {
           if (bi_device &1) {
@@ -2378,19 +2018,6 @@ void GpioInit(void)
   if (XdrvCall(FUNC_MODULE_INIT)) {                        // Init and claim single module (like tuya, armtronix, ifan, light)
     // Serviced
   }
-#ifdef ESP8266
-  else if (YTF_IR_BRIDGE == TasmotaGlobal.module_type) {
-    ClaimSerial();  // Stop serial loopback mode
-  }
-  else if (SONOFF_DUAL == TasmotaGlobal.module_type) {
-    UpdateDevicesPresent(2);
-    SetSerial(19200, TS_SERIAL_8N1);
-  }
-  else if (CH4 == TasmotaGlobal.module_type) {
-    UpdateDevicesPresent(4);
-    SetSerial(19200, TS_SERIAL_8N1);
-  }
-#endif  // ESP8266
 
   GpioInitPwm();
 

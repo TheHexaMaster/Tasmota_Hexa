@@ -1,4 +1,6 @@
 /*
+  HexaOS - Remove ESP8266 support
+
   support.ino - support for Tasmota
 
   Copyright (C) 2021  Theo Arends
@@ -24,7 +26,7 @@ extern struct rst_info resetInfo;
 /*********************************************************************************************\
  * ESP32 Watchdog
 \*********************************************************************************************/
-#ifdef ESP32
+
 // Watchdog - yield() resets the watchdog
 
 extern "C" void __yield(void);              // original function from Arduino Core
@@ -47,66 +49,10 @@ extern "C" void __wrap_delay(uint32_t ms) {
 #endif
 }
 
-#endif // ESP32
 
 /*********************************************************************************************\
- * Watchdog extension (https://github.com/esp8266/Arduino/issues/1532)
+ * Watchdog extension 
 \*********************************************************************************************/
-
-#ifdef ESP8266
-#include <Ticker.h>
-
-Ticker tickerOSWatch;
-
-const uint32_t OSWATCH_RESET_TIME = 120;
-
-static unsigned long oswatch_last_loop_time;
-uint8_t oswatch_blocked_loop = 0;
-
-#ifndef USE_WS2812_DMA  // Collides with Neopixelbus but solves exception
-//void OsWatchTicker() IRAM_ATTR;
-#endif  // USE_WS2812_DMA
-
-void OsWatchTicker(void) {
-  uint32_t t = millis();
-  uint32_t last_run = t - oswatch_last_loop_time;
-
-#ifdef DEBUG_THEO
-  int32_t rssi = WiFi.RSSI();
-  AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_APPLICATION D_OSWATCH " FreeRam %d, rssi %d %% (%d dBm), last_run %d"), ESP_getFreeHeap(), WifiGetRssiAsQuality(rssi), rssi, last_run);
-#endif  // DEBUG_THEO
-  if (last_run >= (OSWATCH_RESET_TIME * 1000)) {
-//    AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_APPLICATION D_OSWATCH " " D_BLOCKED_LOOP ". " D_RESTARTING));  // Save iram space
-    RtcSettings.oswatch_blocked_loop = 1;
-    RtcSettingsSave();
-
-//    ESP.restart();  // normal reboot
-//    ESP.reset();  // hard reset
-    // Force an exception to get a stackdump
-    // ESP32: Guru Meditation Error: Core  0 panic'ed (LoadProhibited). Exception was unhandled.
-    volatile uint32_t dummy;
-    dummy = *((uint32_t*) 0x00000000);
-    (void)dummy;    // avoid compiler warning
-  }
-}
-
-void OsWatchInit(void) {
-  oswatch_blocked_loop = RtcSettings.oswatch_blocked_loop;
-  RtcSettings.oswatch_blocked_loop = 0;
-  oswatch_last_loop_time = millis();
-  tickerOSWatch.attach_ms(((OSWATCH_RESET_TIME / 3) * 1000), OsWatchTicker);
-}
-
-void OsWatchLoop(void) {
-  oswatch_last_loop_time = millis();
-//  while(1) delay(1000);  // this will trigger the os watch
-}
-
-bool OsWatchBlockedLoop(void) {
-  return oswatch_blocked_loop;
-}
-
-#else  // Anything except ESP8266
 
 void OsWatchInit(void) {}
 void OsWatchLoop(void) {}
@@ -114,7 +60,6 @@ bool OsWatchBlockedLoop(void) {
   return false;
 }
 
-#endif  // ESP8266
 
 uint32_t ResetReason(void) {
   /*
@@ -145,7 +90,6 @@ String GetResetReason(void) {
   }
 }
 
-#ifdef ESP32
 /*********************************************************************************************\
  * ESP32 AutoMutex
 \*********************************************************************************************/
@@ -209,7 +153,6 @@ TasAutoMutex::~TasAutoMutex() {
 void TasAutoMutex::init(SemaphoreHandle_t* ptr) {
   SemaphoreHandle_t mutex = xSemaphoreCreateRecursiveMutex();
   (*ptr) = mutex;
-  // needed, else for ESP8266 as we will initialis more than once in logging
 //  (*ptr) = (void *) 1;
 }
 
@@ -233,7 +176,6 @@ void TasAutoMutex::take() {
   }
 }
 
-#endif  // ESP32
 
 
 /*********************************************************************************************\
@@ -1483,45 +1425,6 @@ bool GetNextSensor(void) {
  * GPIO Module and Template management
 \*********************************************************************************************/
 
-#ifdef ESP8266
-uint16_t GpioConvert(uint8_t gpio) {
-  if (gpio >= nitems(kGpioConvert)) {
-    return AGPIO(GPIO_USER);
-  }
-  return pgm_read_word(kGpioConvert + gpio);
-}
-
-uint16_t Adc0Convert(uint8_t adc0) {
-  if (adc0 > 7) {
-    return AGPIO(GPIO_USER);
-  }
-  else if (0 == adc0) {
-    return GPIO_NONE;
-  }
-  return AGPIO(GPIO_ADC_INPUT + adc0 -1);
-}
-
-void TemplateConvert(uint8_t template8[], uint16_t template16[]) {
-  for (uint32_t i = 0; i < (sizeof(mytmplt) / 2) -2; i++) {
-    template16[i] = GpioConvert(template8[i]);
-  }
-  template16[(sizeof(mytmplt) / 2) -2] = Adc0Convert(template8[sizeof(mytmplt8285) -1]);
-}
-
-void ConvertGpios(void) {
-  if (Settings->gpio16_converted != 0xF5A0) {
-    // Convert 8-bit user template
-    TemplateConvert((uint8_t*)&Settings->ex_user_template8, (uint16_t*)&Settings->user_template);
-
-    for (uint32_t i = 0; i < sizeof(Settings->ex_my_gp8.io); i++) {
-      Settings->my_gp.io[i] = GpioConvert(Settings->ex_my_gp8.io[i]);
-    }
-    Settings->my_gp.io[(sizeof(myio) / 2) -1] = Adc0Convert(Settings->ex_my_adc0);
-    Settings->gpio16_converted = 0xF5A0;
-  }
-}
-#endif  // ESP8266
-
 int IRAM_ATTR Pin(uint32_t gpio, uint32_t index = 0) {
   uint16_t real_gpio = gpio << 5;
   uint16_t mask = 0xFFE0;
@@ -1610,9 +1513,7 @@ String AnyModuleName(uint32_t index)
   if (USER_MODULE == index) {
     return String(SettingsText(SET_TEMPLATE_NAME));
   } else {
-#ifdef ESP32
     index = ModuleTemplate(index);
-#endif
     char name[TOPSZ];
     return String(GetTextIndexed(name, sizeof(name), index, kModuleNames));
   }
@@ -1622,46 +1523,6 @@ String ModuleName(void)
 {
   return AnyModuleName(Settings->module);
 }
-
-#ifdef ESP8266
-void GetInternalTemplate(void* ptr, uint32_t module, uint32_t option) {
-  uint8_t module_template = pgm_read_byte(kModuleTemplateList + module);
-
-//  AddLog(LOG_LEVEL_DEBUG, PSTR("DBG: Template %d, Option %d"), module_template, option);
-
-  // template8 = GPIO 0,1,2,3,4,5,9,10,12,13,14,15,16,Adc
-  uint8_t template8[sizeof(mytmplt8285)] = { GPIO_NONE };
-  if (module_template < TMP_WEMOS) {
-    memcpy_P(&template8, &kModules8266[module_template], 6);
-    memcpy_P(&template8[8], &kModules8266[module_template].gp.io[6], 6);
-  } else {
-    memcpy_P(&template8, &kModules8285[module_template - TMP_WEMOS], sizeof(template8));
-  }
-
-//  AddLog(LOG_LEVEL_DEBUG, PSTR("DBG: GetInternalTemplate %*_H"), sizeof(mytmplt8285), (uint8_t *)&template8);
-
-  // template16  = GPIO 0,1,2,3,4,5,9,10,12,13,14,15,16,Adc,Flg
-  uint16_t template16[(sizeof(mytmplt) / 2)] = { GPIO_NONE };
-  TemplateConvert(template8, template16);
-
-  uint32_t index = 0;
-  uint32_t size = sizeof(mycfgio);      // template16[module_template].gp
-  switch (option) {
-    case 2: {
-      index = (sizeof(mytmplt) / 2) -1; // template16[module_template].flag
-      size = 2;
-      break;
-    }
-    case 3: {
-      size = sizeof(mytmplt);           // template16[module_template]
-      break;
-    }
-  }
-  memcpy(ptr, &template16[index], size);
-
-//  AddLog(LOG_LEVEL_DEBUG, PSTR("FNC: GetInternalTemplate option %d, %*_V"), option, size / 2, (uint8_t *)ptr);
-}
-#endif  // ESP8266
 
 #ifdef CONFIG_IDF_TARGET_ESP32
 // Conversion table from gpio template to physical gpio
@@ -1677,12 +1538,7 @@ void TemplateGpios(myio *gp)
   if (USER_MODULE == Settings->module) {
     memcpy(&src, &Settings->user_template.gp, sizeof(mycfgio));
   } else {
-#ifdef ESP8266
-    GetInternalTemplate(&src, Settings->module, 1);
-#endif  // ESP8266
-#ifdef ESP32
     memcpy_P(&src, &kModules[ModuleTemplate(Settings->module)].gp, sizeof(mycfgio));
-#endif  // ESP32
   }
   // 11 85 00 85 85 00 00 00 15 38 85 00 00 81
 
@@ -1691,29 +1547,7 @@ void TemplateGpios(myio *gp)
   // Expand template to physical GPIO array, j=phy_GPIO, i=template_GPIO
   uint32_t j = 0;
   for (uint32_t i = 0; i < nitems(Settings->user_template.gp.io); i++) {
-/*
-#if defined(ESP32) && CONFIG_IDF_TARGET_ESP32C3
-    dest[i] = src[i];
-#elif defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3)
-    if (22 == i) { j = 33; }    // skip 22-32
-    dest[j] = src[i];
-    j++;
-#elif defined(CONFIG_IDF_TARGET_ESP32)
-    dest[Esp32TemplateToPhy[i]] = src[i];
-#else // ESP8266
-    if (6 == i) { j = 9; }
-    if (8 == i) { j = 12; }
-    dest[j] = src[i];
-    j++;
-#endif
-*/
-#ifdef ESP8266
-    if (6 == i) { j = 9; }
-    if (8 == i) { j = 12; }
-    dest[j] = src[i];
-    j++;
-#endif  // ESP8266
-#ifdef ESP32
+
 #if CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32P4
     dest[i] = src[i];
 #elif CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
@@ -1723,7 +1557,6 @@ void TemplateGpios(myio *gp)
 #else  // ESP32
     dest[Esp32TemplateToPhy[i]] = src[i];
 #endif  // ESP32C2/C3/C6 and S2/S3
-#endif  // ESP32
   }
   // 11 85 00 85 85 00 00 00 00 00 00 00 15 38 85 00 00 81
 
@@ -1737,12 +1570,7 @@ gpio_flag ModuleFlag(void)
   if (USER_MODULE == Settings->module) {
     flag = Settings->user_template.flag;
   } else {
-#ifdef ESP8266
-    GetInternalTemplate(&flag, Settings->module, 2);
-#endif  // ESP8266
-#ifdef ESP32
     memcpy_P(&flag, &kModules[ModuleTemplate(Settings->module)].flag, sizeof(gpio_flag));
-#endif  // ESP32
   }
 
   return flag;
@@ -1753,35 +1581,23 @@ void ModuleDefault(uint32_t module)
   if (USER_MODULE == module) { module = WEMOS; }  // Generic
   Settings->user_template_base = module;
 
-#ifdef ESP32
   module = ModuleTemplate(module);
-#endif
 
   char name[TOPSZ];
   SettingsUpdateText(SET_TEMPLATE_NAME, GetTextIndexed(name, sizeof(name), module, kModuleNames));
-#ifdef ESP8266
-  GetInternalTemplate(&Settings->user_template, module, 3);
-#endif  // ESP8266
-#ifdef ESP32
   memcpy_P(&Settings->user_template, &kModules[module], sizeof(mytmplt));
-#endif  // ESP32
 }
 
 void SetModuleType(void)
 {
   TasmotaGlobal.module_type = (USER_MODULE == Settings->module) ? Settings->user_template_base : Settings->module;
-#ifdef ESP32
   if (TasmotaGlobal.emulated_module_type) {
     TasmotaGlobal.module_type = TasmotaGlobal.emulated_module_type;
   }
-#endif
 }
 
 bool FlashPin(uint32_t pin) {
-#ifdef ESP8266
-  return (((pin > 5) && (pin < 9)) || (11 == pin));
-#endif  // ESP8266
-#ifdef ESP32
+
 #if CONFIG_IDF_TARGET_ESP32C2
   return (((pin > 10) && (pin < 12)) || ((pin > 13) && (pin < 18)));  // ESP32C3 has GPIOs 11-17 reserved for Flash, with some boards GPIOs 12 13 are useable
 #elif CONFIG_IDF_TARGET_ESP32C3
@@ -1797,14 +1613,10 @@ bool FlashPin(uint32_t pin) {
 #else
   return (pin >= 28) && (pin <= 31);   // ESP32 skip 28-31
 #endif  // ESP32C2/C3/C5/C6 and S2/S3
-#endif  // ESP32
 }
 
 bool RedPin(uint32_t pin) {            // Pin may be dangerous to change, display in RED in template console
-#ifdef ESP8266
-  return (9 == pin) || (10 == pin);
-#endif  // ESP8266
-#ifdef ESP32
+
 #if CONFIG_IDF_TARGET_ESP32C2
   return (12 == pin) || (13 == pin);   // ESP32C2: GPIOs 12 13 are usually used for Flash (mode QIO/QOUT)
 #elif CONFIG_IDF_TARGET_ESP32C3
@@ -1823,7 +1635,6 @@ bool RedPin(uint32_t pin) {            // Pin may be dangerous to change, displa
   // PICO can also have 16/17/18/23 not available
   return ((6 <= pin) && (11 >= pin)) || (16 == pin) || (17 == pin);  // TODO adapt depending on the exact type of ESP32
 #endif  // ESP32C2/C3/C6 and S2/S3
-#endif  // ESP32
 }
 
 uint32_t ValidPin(uint32_t pin, uint32_t gpio, uint8_t isTuya = false) {
@@ -1831,29 +1642,17 @@ uint32_t ValidPin(uint32_t pin, uint32_t gpio, uint8_t isTuya = false) {
     return GPIO_NONE;    // Disable flash pins GPIO6, GPIO7, GPIO8 and GPIO11
   }
 
-#ifdef ESP8266
-  if (((WEMOS == Settings->module) || isTuya) && !Settings->flag3.user_esp8285_enable) {  // SetOption51 - Enable ESP8285 user GPIO's
-    if ((9 == pin) || (10 == pin)) {
-      return GPIO_NONE;  // Disable possible flash GPIO9 and GPIO10
-    }
-  }
-#endif
-
   return gpio;
 }
 
 bool ValidGPIO(uint32_t pin, uint32_t gpio) {
-#ifdef ESP8266
-#ifdef USE_ADC_VCC
-  if (ADC0_PIN == pin) { return false; }  // ADC0 = GPIO17
-#endif
-#endif
+
   return (GPIO_USER == ValidPin(pin, BGPIO(gpio)));  // Only allow GPIO_USER pins
 }
 
 
 bool ValidSpiPinUsed(uint32_t gpio) {
-  // ESP8266: If SPI pin selected chk if it's not one of the three Hardware SPI pins (12..14)
+
   bool result = false;
   if (PinUsed(gpio)) {
     int pin = Pin(gpio);
@@ -1882,32 +1681,6 @@ bool JsonTemplate(char* dataBuf)
   }
   JsonParserArray arr = root[PSTR(D_JSON_GPIO)];
   if (arr) {
-#ifdef ESP8266
-    bool old_template = false;
-    uint8_t template8[sizeof(mytmplt8285)] = { GPIO_NONE };
-    if (13 == arr.size()) {  // Possible old template
-      uint32_t gpio = 0;
-      for (uint32_t i = 0; i < nitems(template8) -1; i++) {
-        gpio = arr[i].getUInt();
-        if (gpio > 255) {    // New templates might have values above 255
-          break;
-        }
-        template8[i] = gpio;
-      }
-      old_template = (gpio < 256);
-    }
-    if (old_template) {
-
-      AddLog(LOG_LEVEL_DEBUG, PSTR("TPL: Converting template ..."));
-
-      val = root[PSTR(D_JSON_FLAG)];
-      if (val) {
-        template8[nitems(template8) -1] = val.getUInt() & 0x0F;
-      }
-      TemplateConvert(template8, Settings->user_template.gp.io);
-      Settings->user_template.flag.data = 0;
-    } else {
-#endif
       for (uint32_t i = 0; i < nitems(Settings->user_template.gp.io); i++) {
         JsonParserToken val = arr[i];
         if (!val) { break; }
@@ -1922,9 +1695,6 @@ bool JsonTemplate(char* dataBuf)
         Settings->user_template.flag.data = val.getUInt();
       }
     }
-#ifdef ESP8266
-  }
-#endif
   val = root[PSTR(D_JSON_BASE)];
   if (val) {
     uint32_t base = val.getUInt();
@@ -2111,13 +1881,9 @@ int8_t ParseSerialConfig(const char *pstr)
 }
 
 uint32_t ConvertSerialConfig(uint8_t serial_config) {
-#ifdef ESP8266
-  return (uint32_t)pgm_read_byte(kTasmotaSerialConfig + serial_config);
-#elif defined(ESP32)
+
   return (uint32_t)pgm_read_dword(kTasmotaSerialConfig + serial_config);
-#else
-  #error "platform not supported"
-#endif
+
 }
 
 // workaround disabled 05.11.2021 solved with https://github.com/espressif/arduino-esp32/pull/5549
@@ -2142,25 +1908,12 @@ uint32_t GetSerialBaudrate(void) {
 }
 //#endif
 
-#ifdef ESP8266
-void SetSerialSwap(void) {
-  if ((15 == Pin(GPIO_TXD)) && (13 == Pin(GPIO_RXD))) {
-    Serial.flush();
-    Serial.swap();
-    AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_SERIAL "Serial pins swapped to alternate"));
-  }
-}
-#endif
 
 void SetSerialBegin(void) {
   TasmotaGlobal.baudrate = Settings->baudrate * 300;
   AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_SERIAL "Set to %s %d bit/s"), GetSerialConfig().c_str(), TasmotaGlobal.baudrate);
   Serial.flush();
-#ifdef ESP8266
-  Serial.begin(TasmotaGlobal.baudrate, (SerialConfig)ConvertSerialConfig(Settings->serial_config));
-  SetSerialSwap();
-#endif  // ESP8266
-#ifdef ESP32
+
 #if ARDUINO_USB_MODE
 //  Serial.end();
 //  Serial.begin();
@@ -2172,7 +1925,6 @@ void SetSerialBegin(void) {
   delay(10);  // Allow time to cleanup queues - if not used hangs ESP32
   Serial.begin(TasmotaGlobal.baudrate, ConvertSerialConfig(Settings->serial_config));
 #endif  // Not ARDUINO_USB_MODE
-#endif  // ESP32
 }
 
 void SetSerialInitBegin(void) {
@@ -2210,7 +1962,6 @@ void SetSerial(uint32_t baudrate, uint32_t serial_config) {
 }
 
 void ClaimSerial(void) {
-#ifdef ESP32
 #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
 #ifdef USE_USB_CDC_CONSOLE
   if (!tasconsole_serial) {
@@ -2218,7 +1969,6 @@ void ClaimSerial(void) {
   }
 #endif  // USE_USB_CDC_CONSOLE
 #endif  // ESP32C3/C6, S2 or S3
-#endif  // ESP32
   TasmotaGlobal.serial_local = true;
   AddLog(LOG_LEVEL_INFO, PSTR("SNS: Hardware Serial"));
   SetSeriallog(LOG_LEVEL_NONE);
@@ -2271,18 +2021,14 @@ uint8_t TasShiftIn(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder) {
 
   for (uint32_t i = 0; i < 8; ++i) {
     digitalWrite(clockPin, HIGH);
-#ifdef ESP32
     delayMicroseconds(1);
-#endif
     if(bitOrder == LSBFIRST) {
       value |= digitalRead(dataPin) << i;
     } else {
       value |= digitalRead(dataPin) << (7 - i);
     }
     digitalWrite(clockPin, LOW);
-#ifdef ESP32
     delayMicroseconds(1);
-#endif
   }
   return value;
 }
@@ -2295,42 +2041,15 @@ void TasShiftOut(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder, uint8_t va
       digitalWrite(dataPin, !!(val & (1 << (7 - i))));
     }
     digitalWrite(clockPin, HIGH);
-#ifdef ESP32
     delayMicroseconds(1);
-#endif
     digitalWrite(clockPin, LOW);
-#ifdef ESP32
     delayMicroseconds(1);
-#endif
   }
 }
 
 /*********************************************************************************************\
  * Sleep aware time scheduler functions borrowed from ESPEasy
 \*********************************************************************************************/
-/*
-// No need to use 64-bit
-inline uint64_t GetMicros64() {
-#ifdef ESP8266
-  return micros64();
-#endif
-#ifdef ESP32
-  return esp_timer_get_time();
-#endif
-}
-
-inline int64_t TimeDifference64(uint64_t prev, uint64_t next) {
-  return ((int64_t) (next - prev));
-}
-
-int64_t TimePassedSince64(const uint64_t& timestamp) {
-  return TimeDifference64(timestamp, GetMicros64());
-}
-
-bool TimeReached64(const uint64_t& timer) {
-  return TimePassedSince64(timer) >= 0;
-}
-*/
 
 // Return the time difference as a signed value, taking into account the timers may overflow.
 // Returned timediff is between -24.9 days and +24.9 days.
@@ -2417,15 +2136,11 @@ void SetTasConlog(uint32_t loglevel) {
 }
 
 void SetSeriallog(uint32_t loglevel) {
-#ifdef ESP32
   if (tasconsole_serial) {
-#endif  // ESP32
 
   SetTasConlog(loglevel);
 
-#ifdef ESP32
   }
-#endif  // ESP32
 }
 
 void SetSyslog(uint32_t loglevel)
@@ -2573,24 +2288,10 @@ void SyslogAsync(bool refresh) {
       TasConsole.write((uint8_t*)msg_start, msg_len);
       TasConsole.printf((char*)"'\r\n");
 */
-#ifdef ESP8266
-      // Packets over 1460 bytes are not send
-      uint32_t package_len;
-      int32_t log_len = msg_len;
-      while (log_len > 0) {
-        PortUdp.write(header);
-        package_len = (log_len > 1460) ? 1460 : log_len;
-        PortUdp.write((uint8_t*)msg_start, package_len);
-        PortUdp.endPacket();
-        log_len -= 1460;
-        msg_start += 1460;
-      }
-#else
+
       PortUdp.write((const uint8_t*)header, strlen(header));
       PortUdp.write((uint8_t*)msg_start, msg_len);
       PortUdp.endPacket();
-#endif
-
       delay(1);                          // Add time for UDP handling (#5512)
     }
   }
@@ -2599,11 +2300,9 @@ void SyslogAsync(bool refresh) {
 bool NeedLogRefresh(uint32_t req_loglevel, uint32_t index) {
   if (!TasmotaGlobal.log_buffer) { return false; }  // Leave now if there is no buffer available
 
-#ifdef ESP32
   // this takes the mutex, and will be release when the class is destroyed -
   // i.e. when the functon leaves  You CAN call mutex.give() to leave early.
   TasAutoMutex mutex((SemaphoreHandle_t *)&TasmotaGlobal.log_buffer_mutex);
-#endif  // ESP32
 
   // Skip initial buffer fill
   if (strlen(TasmotaGlobal.log_buffer) < LOG_BUFFER_SIZE / 2) { return false; }
@@ -2621,11 +2320,9 @@ uint32_t GetLog(uint32_t req_loglevel, uint32_t* index_p, char** entry_pp, size_
   uint32_t index = *index_p;
   if (!req_loglevel || (index == TasmotaGlobal.log_buffer_pointer)) { return 0; }
 
-#ifdef ESP32
   // this takes the mutex, and will be release when the class is destroyed -
   // i.e. when the functon leaves  You CAN call mutex.give() to leave early.
   TasAutoMutex mutex((SemaphoreHandle_t *)&TasmotaGlobal.log_buffer_mutex);
-#endif  // ESP32
 
   if (!index) {                            // Dump all
     index = TasmotaGlobal.log_buffer[0];
@@ -2775,23 +2472,17 @@ void AddLogData(uint32_t loglevel, const char* log_data, const char* log_data_pa
   // Store log_data in buffer
   // To lower heap usage log_data_payload may contain the payload data from MqttPublishPayload()
   //  and log_data_retained may contain optional retained message from MqttPublishPayload()
-#ifdef ESP32
   // this takes the mutex, and will be release when the class is destroyed -
   // i.e. when the functon leaves  You CAN call mutex.give() to leave early.
   TasAutoMutex mutex((SemaphoreHandle_t *)&TasmotaGlobal.log_buffer_mutex);
-#endif  // ESP32
 
   char mxtime[21];  // "13:45:21.999-123/12 "
   snprintf_P(mxtime, sizeof(mxtime), PSTR("%02d" D_HOUR_MINUTE_SEPARATOR "%02d" D_MINUTE_SECOND_SEPARATOR "%02d.%03d"),
     RtcTime.hour, RtcTime.minute, RtcTime.second, RtcMillis());
   if (Settings->flag5.show_heap_with_timestamp) {
-#ifdef ESP8266
-    snprintf_P(mxtime, sizeof(mxtime), PSTR("%s-%03d"),
-      mxtime, ESP_getFreeHeap1024());
-#else
+
     snprintf_P(mxtime, sizeof(mxtime), PSTR("%s-%03d/%02d"),
       mxtime, ESP_getFreeHeap1024(), ESP_getHeapFragmentation());
-#endif
   }
   strcat(mxtime, " ");
 
@@ -2864,11 +2555,9 @@ void AddLogData(uint32_t loglevel, const char* log_data, const char* log_data_pa
     }
 #endif  // USE_SERIAL_BRIDGE
 #ifdef USE_TELNET
-#ifdef ESP32
     if (loglevel <= TasmotaGlobal.seriallog_level) {
-      TelnetWrite(log_line, log_data_len);  // This uses too much heap on ESP8266
+      TelnetWrite(log_line, log_data_len);
     }
-#endif  // ESP32
 #endif  // USE_TELNET
 
   }
@@ -2879,7 +2568,6 @@ void TasConsoleLDJsonPPCb(const char* line, uint32_t len) {
 }
 
 void AddLog(uint32_t loglevel, PGM_P formatP, ...) {
-#ifdef ESP32
   if (xPortInIsrContext()) {
     // When called from an ISR, you should not send out logs.
     // Allocating memory from within an ISR is a big no-no.
@@ -2887,7 +2575,6 @@ void AddLog(uint32_t loglevel, PGM_P formatP, ...) {
     // is also really not a good idea from an ISR call.
     return;
   }
-#endif
   uint32_t highest_loglevel = HighestLogLevel();
   // If no logging is requested then do not access heap to fight fragmentation
   if ((loglevel <= highest_loglevel) && (TasmotaGlobal.masterlog_level <= highest_loglevel)) {

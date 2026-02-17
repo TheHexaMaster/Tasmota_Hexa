@@ -1,4 +1,6 @@
 /*
+  HEXAOS - Refactor, removing ESP8266 Support
+
   settings.ino - user settings for Tasmota
 
   Copyright (C) 2021  Theo Arends
@@ -21,18 +23,23 @@
  * RTC memory
 \*********************************************************************************************/
 
+// CRC Helper
+
+static uint32_t RtcMemCrcWeightedSum(const void *ptr, uint32_t len) {
+  const uint8_t *bytes = (const uint8_t*)ptr;
+  uint32_t crc = 0;
+  for (uint32_t i = 0; i < len; i++) {
+    crc += (uint32_t)bytes[i] * (i + 1);
+  }
+  return crc;
+}
+
 const uint16_t RTC_MEM_VALID = 0xA55A;
 
 uint32_t rtc_settings_crc = 0;
 
 uint32_t GetRtcSettingsCrc(void) {
-  uint32_t crc = 0;
-  uint8_t *bytes = (uint8_t*)&RtcSettings;
-
-  for (uint32_t i = 0; i < sizeof(RtcSettings); i++) {
-    crc += bytes[i]*(i+1);
-  }
-  return crc;
+  return RtcMemCrcWeightedSum(&RtcSettings, sizeof(RtcSettings));
 }
 
 void RtcSettingsSave(void) {
@@ -63,25 +70,16 @@ void RtcSettingsSave(void) {
 
 //    AddLog(LOG_LEVEL_INFO, PSTR("DBG: energy_kWhtoday_ph[0] %d/%d"), RtcSettings.energy_kWhtoday_ph[0], Settings->energy_kWhtoday_ph[0]);
 
-#ifdef ESP8266
-    ESP.rtcUserMemoryWrite(100, (uint32_t*)&RtcSettings, sizeof(RtcSettings));
-#endif  // ESP8266
-#ifdef ESP32
-    RtcDataSettings = RtcSettings;
-#endif  // ESP32
 
+
+    RtcDataSettings = RtcSettings;
     rtc_settings_crc = GetRtcSettingsCrc();
   }
 }
 
 bool RtcSettingsLoad(uint32_t update) {
-#ifdef ESP8266
-  ESP.rtcUserMemoryRead(100, (uint32_t*)&RtcSettings, sizeof(RtcSettings));  // 0x290
-#endif  // ESP8266
-#ifdef ESP32
-  RtcSettings = RtcDataSettings;
-#endif  // ESP32
 
+  RtcSettings = RtcDataSettings;
   bool read_valid = (RTC_MEM_VALID == RtcSettings.valid);
   if (update) {
     if (!read_valid) {
@@ -100,24 +98,13 @@ bool RtcSettingsValid(void) {
 uint32_t rtc_reboot_crc = 0;
 
 uint32_t GetRtcRebootCrc(void) {
-  uint32_t crc = 0;
-  uint8_t *bytes = (uint8_t*)&RtcReboot;
-
-  for (uint32_t i = 0; i < sizeof(RtcReboot); i++) {
-    crc += bytes[i]*(i+1);
-  }
-  return crc;
+  return RtcMemCrcWeightedSum(&RtcReboot, sizeof(RtcReboot));
 }
 
 void RtcRebootSave(void) {
   if (GetRtcRebootCrc() != rtc_reboot_crc) {
     RtcReboot.valid = RTC_MEM_VALID;
-#ifdef ESP8266
-    ESP.rtcUserMemoryWrite(100 - sizeof(RtcReboot), (uint32_t*)&RtcReboot, sizeof(RtcReboot));
-#endif  // ESP8266
-#ifdef ESP32
     RtcDataReboot = RtcReboot;
-#endif  // ESP32
     rtc_reboot_crc = GetRtcRebootCrc();
   }
 }
@@ -128,12 +115,7 @@ void RtcRebootReset(void) {
 }
 
 void RtcRebootLoad(void) {
-#ifdef ESP8266
-  ESP.rtcUserMemoryRead(100 - sizeof(RtcReboot), (uint32_t*)&RtcReboot, sizeof(RtcReboot));  // 0x280
-#endif  // ESP8266
-#ifdef ESP32
   RtcReboot = RtcDataReboot;
-#endif  // ESP32
   if (RtcReboot.valid != RTC_MEM_VALID) {
     memset(&RtcReboot, 0, sizeof(RtcReboot));
     RtcReboot.valid = RTC_MEM_VALID;
@@ -147,77 +129,16 @@ bool RtcRebootValid(void) {
   return (RTC_MEM_VALID == RtcReboot.valid);
 }
 
-/*********************************************************************************************\
- * ESP8266 Tasmota Flash usage offset from 0x40200000
- *
- * Tasmota 1M  Tasmota 2M  Tasmota 4M - Flash usage
- * 0x00000000                         - 4k Unzipped binary bootloader
- * 0x00000FFF
- *
- * 0x00001000                         - Unzipped binary code start
- *    ::::
- * 0x000xxxxx                         - Unzipped binary code end
- * 0x000x1000                         - First page used by Core OTA
- *    ::::
- * 0x000F2FFF  0x000F5FFF  0x000F5FFF
- ******************************************************************************
- *                                      Next 32k is overwritten by OTA
- * 0x000F3000  0x000F6000  0x000F6000 - 4k Tasmota Quick Power Cycle counter (SETTINGS_LOCATION - CFG_ROTATES) - First four bytes only
- * 0x000F3FFF  0x000F6FFF  0x000F6FFF
- * 0x000F4000  0x000F7000  0x000F7000 - 4k First Tasmota rotating settings page
- *    ::::
- * 0x000FA000  0x000FD000  0x000FD000 - 4k Last Tasmota rotating settings page = Last page used by Core OTA (SETTINGS_LOCATION)
- * 0x000FAFFF  0x000FDFFF  0x000FDFFF
- ******************************************************************************
- *             0x000FE000  0x000FE000 - 3k9 Not used
- *             0x000FEFF0  0x000FEFF0 - 4k1  Empty
- *             0x000FFFFF  0x000FFFFF
- *
- * 0x000FB000  0x00100000  0x00100000 - 0k, 980k or 2980k Core FS start (LittleFS)
- * 0x000FB000  0x001FA000  0x003FA000 - 0k, 980k or 2980k Core FS end (LittleFS)
- *             0x001FAFFF  0x003FAFFF
- *
- * 0x000FB000  0x001FB000  0x003FB000 - 4k Core EEPROM = Tasmota settings page during OTA and when no flash rotation is active (EEPROM_LOCATION)
- * 0x000FBFFF  0x001FBFFF  0x003FBFFF
- *
- * 0x000FC000  0x001FC000  0x003FC000 - 4k SDK - Uses first 128 bytes for phy init data mirrored by Core in RAM. See core_esp8266_phy.cpp phy_init_data[128] = Core user_rf_cal_sector
- * 0x000FD000  0x001FD000  0x003FD000 - 4k SDK - Uses scattered bytes from 0x340 (iTead use as settings storage from 0x000FD000)
- * 0x000FE000  0x001FE000  0x003FE000 - 4k SDK - Uses scattered bytes from 0x340 (iTead use as mirrored settings storage from 0x000FE000)
- * 0x000FF000  0x001FF000  0x0031F000 - 4k SDK - Uses at least first 32 bytes of this page - Tasmota Zigbee persistence from 0x000FF800 to 0x000FFFFF
- * 0x000FFFFF  0x001FFFFF  0x003FFFFF
-\*********************************************************************************************/
-
 extern "C" {
 #include "spi_flash.h"
-#ifdef ESP32
 #include "spi_flash_mmap.h"
-#endif  // ESP32
 }
 
-#ifdef ESP8266
 
-#include "eboot_command.h"
-
-extern "C" uint32_t _FS_start;      // 1M = 0x402fb000, 2M = 0x40300000, 4M = 0x40300000
-const uint32_t FLASH_FS_START = (((uint32_t)&_FS_start - 0x40200000) / SPI_FLASH_SEC_SIZE);
-uint32_t SETTINGS_LOCATION = FLASH_FS_START -1;                                                 // 0xFA, 0x0FF or 0x0FF
-
-extern "C" uint32_t _FS_end;
-const uint32_t FLASH_FS_SIZE = (uint32_t)&_FS_end - (uint32_t)&_FS_start;
-
-// From libraries/EEPROM/EEPROM.cpp EEPROMClass
-extern "C" uint32_t _EEPROM_start;  // 1M = 0x402FB000, 2M = 0x403FB000, 4M = 0x405FB000
-const uint32_t EEPROM_LOCATION = ((uint32_t)&_EEPROM_start - 0x40200000) / SPI_FLASH_SEC_SIZE;  // 0xFB, 0x1FB or 0x3FB
-
-#endif  // ESP8266
-
-#ifdef ESP32
 
 // dummy defines
 #define EEPROM_LOCATION (SPI_FLASH_SEC_SIZE * 200)
 uint32_t SETTINGS_LOCATION = EEPROM_LOCATION;
-
-#endif  // ESP32
 
 const uint8_t CFG_ROTATES = 7;      // Number of flash sectors used (handles uploads)
 
@@ -246,34 +167,6 @@ void UpdateQuickPowerCycle(bool update) {
 #ifdef USE_COUNTER
   CounterInterruptDisable(true);
 #endif
-#ifdef ESP8266
-  const uint32_t qpc_sector = SETTINGS_LOCATION - CFG_ROTATES;
-  const uint32_t qpc_location = qpc_sector * SPI_FLASH_SEC_SIZE;
-
-  uint32_t qpc_buffer[QPC_COUNT +1];
-  ESP.flashRead(qpc_location, (uint32*)&qpc_buffer, sizeof(qpc_buffer));
-  if (update && (QPC_SIGNATURE == qpc_buffer[0])) {
-    uint32_t counter = 1;
-    while ((0 == qpc_buffer[counter]) && (counter <= QPC_COUNT)) { counter++; }
-    if (QPC_COUNT == counter) {  // 7 power cycles in a row
-      SettingsErase(3);          // Quickly reset all settings including QuickPowerCycle flag
-      EspRestart();              // And restart
-    } else {
-      qpc_buffer[0] = 0;
-      ESP.flashWrite(qpc_location + (counter * 4), (uint32*)&qpc_buffer, 4);
-      AddLog(LOG_LEVEL_INFO, PSTR("QPC: Count %d"), counter);
-    }
-  }
-  else if ((qpc_buffer[0] != QPC_SIGNATURE) || (0 == qpc_buffer[1])) {
-    qpc_buffer[0] = QPC_SIGNATURE;
-    // Assume flash is default all ones and setting a bit to zero does not need an erase
-    if (ESP.flashEraseSector(qpc_sector)) {
-      ESP.flashWrite(qpc_location, (uint32*)&qpc_buffer, 4);
-      AddLog(LOG_LEVEL_INFO, PSTR("QPC: Reset"));
-    }
-  }
-#endif  // ESP8266
-#ifdef ESP32
   uint32_t pc_register;
   QPCRead(&pc_register, sizeof(pc_register));
   if (update && ((pc_register & 0xFFFFFFF0) == 0xFFA55AF0)) {
@@ -294,7 +187,6 @@ void UpdateQuickPowerCycle(bool update) {
     QPCWrite(&pc_register, sizeof(pc_register));
     AddLog(LOG_LEVEL_INFO, PSTR("QPC: Reset"));
   }
-#endif  // ESP32
 #ifdef USE_COUNTER
   CounterInterruptDisable(false);
 #endif
@@ -324,11 +216,9 @@ void EmergencyReset(void) {
   }
   Serial.println();
   Serial.flush();
-#ifdef ESP32
   delay(10);                  // Allow time to cleanup queues - if not used hangs ESP32
   Serial.end();
   delay(10);                  // Allow time to cleanup queues - if not used hangs ESP32
-#endif  // ESP32
 }
 #endif  // USE_EMERGENCY_RESET
 
@@ -385,10 +275,11 @@ void SettingsSaveAll(void) {
 String SettingsConfigFilename(void) {
   char filename[TOPSZ];
   char hostname[sizeof(TasmotaGlobal.hostname)];
-  snprintf_P(filename, sizeof(filename), PSTR("Config_%s_%s.dmp"), NoAlNumToUnderscore(hostname, TasmotaGlobal.hostname), TasmotaGlobal.version);
+  strlcpy(hostname, TasmotaGlobal.hostname, sizeof(hostname));  // FIX: hostname buffer musí obsahovať kópiu
+  NoAlNumToUnderscore(hostname, hostname);
+  snprintf_P(filename, sizeof(filename), PSTR("Config_%s_%s.dmp"), hostname, TasmotaGlobal.version);
   return String(filename);
 }
-
 void SettingsBufferXor(void) {
   if (config_xor_on_set) {
     uint32_t xor_index = (settings_size > sizeof(TSettings)) ? 18 : 2;
@@ -535,10 +426,6 @@ bool SettingsConfigRestore(void) {
 
   if (valid_settings) {
     // uint8_t       config_version;               // F36
-#ifdef ESP8266
-    valid_settings = (0 == settings_buffer[0xF36]);  // Settings->config_version
-#endif  // ESP8266
-#ifdef ESP32
 #if CONFIG_IDF_TARGET_ESP32S3
     valid_settings = (2 == settings_buffer[0xF36]);  // Settings->config_version ESP32S3
 #elif CONFIG_IDF_TARGET_ESP32S2
@@ -556,7 +443,6 @@ bool SettingsConfigRestore(void) {
 #else
     valid_settings = (1 == settings_buffer[0xF36]);  // Settings->config_version ESP32 all other
 #endif  // CONFIG_IDF_TARGET_ESP32S3
-#endif  // ESP32
   }
 
   if (valid_settings) {
@@ -612,8 +498,8 @@ uint32_t GetSettingsTextLen(void) {
   return position - Settings->text_pool;
 }
 
-bool settings_text_mutex = false;
-uint32_t settings_text_busy_count = 0;
+static volatile bool settings_text_mutex = false;
+static uint32_t settings_text_busy_count = 0;
 
 bool SettingsUpdateFinished(void) {
   uint32_t wait_loop = 10;
@@ -764,26 +650,10 @@ void SettingsSave(uint8_t rotate) {
 #ifdef USE_COUNTER
     CounterInterruptDisable(true);
 #endif
-#ifdef ESP8266
-#ifdef USE_UFILESYS
-    TfsSaveFile(TASM_FILE_SETTINGS, (const uint8_t*)Settings, sizeof(TSettings));
-#endif  // USE_UFILESYS
-    if (ESP.flashEraseSector(settings_location)) {
-      ESP.flashWrite(settings_location * SPI_FLASH_SEC_SIZE, (uint32*)Settings, sizeof(TSettings));
-    }
 
-    if (!TasmotaGlobal.stop_flash_rotate && rotate) {  // SetOption12 - (Settings) Switch between dynamic (0) or fixed (1) slot flash save location
-      for (uint32_t i = 0; i < CFG_ROTATES; i++) {
-        ESP.flashEraseSector(SETTINGS_LOCATION -i);    // Delete previous configurations by resetting to 0xFF
-        delay(1);
-      }
-    }
-    AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_CONFIG D_SAVED_TO_FLASH_AT " %X, " D_COUNT " %d, " D_BYTES " %d"), settings_location, Settings->save_flag, sizeof(TSettings));
-#endif  // ESP8266
-#ifdef ESP32
     SettingsWrite(Settings, sizeof(TSettings));
     AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_CONFIG "Saved, " D_COUNT " %d, " D_BYTES " %d"), Settings->save_flag, sizeof(TSettings));
-#endif  // ESP32
+
 
     settings_crc32 = Settings->cfg_crc32;
   }
@@ -794,52 +664,7 @@ void SettingsSave(uint8_t rotate) {
 #endif
 }
 void SettingsLoad(void) {
-#ifdef ESP8266
-  // Load configuration from optional file and flash (eeprom and 7 additonal slots) if first valid load does not stop_flash_rotate
-  // Activated with version 8.4.0.2 - Fails to read any config before version 6.6.0.11
-  settings_location = 0;
-  uint32_t save_flag = 0;
-  uint32_t max_slots = CFG_ROTATES +1;
-  uint32_t flash_location;
-  uint32_t slot = 1;
-#ifdef USE_UFILESYS
-  if (TfsLoadFile(TASM_FILE_SETTINGS, (uint8_t*)Settings, sizeof(TSettings))) {
-    flash_location = 1;
-    slot = 0;
-  }
-#endif  // USE_UFILESYS
-  while (slot <= max_slots) {                                  // Read all config pages in search of valid and latest
-    if (slot > 0) {
-      flash_location = (1 == slot) ? EEPROM_LOCATION : (2 == slot) ? SETTINGS_LOCATION : flash_location -1;
-      ESP.flashRead(flash_location * SPI_FLASH_SEC_SIZE, (uint32*)Settings, sizeof(TSettings));
-    }
-    if ((Settings->cfg_crc32 != 0xFFFFFFFF) && (Settings->cfg_crc32 != 0x00000000) && (Settings->cfg_crc32 == GetSettingsCrc32())) {
-      if (Settings->save_flag > save_flag) {                    // Find latest page based on incrementing save_flag
-        save_flag = Settings->save_flag;
-        settings_location = flash_location;
-        if (Settings->flag.stop_flash_rotate && (1 == slot)) {  // Stop if only eeprom area should be used and it is valid
-          break;
-        }
-      }
-    }
-    slot++;
-    delay(1);
-  }
-  if (settings_location > 0) {
-#ifdef USE_UFILESYS
-    if (1 == settings_location) {
-      TfsLoadFile(TASM_FILE_SETTINGS, (uint8_t*)Settings, sizeof(TSettings));
-      AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_CONFIG "Loaded from File, " D_COUNT " %lu"), Settings->save_flag);
-    } else
-#endif  // USE_UFILESYS
-    {
-      ESP.flashRead(settings_location * SPI_FLASH_SEC_SIZE, (uint32*)Settings, sizeof(TSettings));
-      AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_CONFIG D_LOADED_FROM_FLASH_AT " %X, " D_COUNT " %lu"), settings_location, Settings->save_flag);
-    }
-  }
-#endif  // ESP8266
 
-#ifdef ESP32
   uint32_t source = SettingsRead(Settings, sizeof(TSettings));
   if (source) {
     settings_location = 1;
@@ -847,7 +672,6 @@ void SettingsLoad(void) {
       AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_CONFIG "Loaded from %s, " D_COUNT " %lu"), (2 == source)?"File":"NVS", Settings->save_flag);
     }
   }
-#endif  // ESP32
 
 #ifndef FIRMWARE_MINIMAL
   if ((0 == settings_location) || (Settings->cfg_holder != (uint16_t)CFG_HOLDER)) {  // Init defaults if cfg_holder differs from user settings in my_user_config.h
@@ -872,60 +696,6 @@ void SettingsLoad(void) {
 uint32_t CfgTime(void) {
   return Settings->cfg_timestamp;
 }
-
-#ifdef ESP8266
-void SettingsErase(uint8_t type) {
-  /*
-    For Arduino core and SDK:
-    Erase only works from flash start address to SDK recognized flash end address (flashchip->chip_size = ESP_getFlashChipSize).
-    Addresses above SDK recognized size (up to ESP.getFlashChipRealSize) are not accessable.
-    For Esptool:
-    The only way to erase whole flash is esptool which uses direct SPI writes to flash.
-
-    The default erase function is EspTool (EsptoolErase)
-
-    0 = Erase from program end until end of flash as seen by SDK including optional filesystem
-    1 = Erase 16k SDK parameter area near end of flash as seen by SDK (0x0XFCxxx - 0x0XFFFFF) solving possible wifi errors
-    2 = Erase from program end until end of flash as seen by SDK excluding optional filesystem
-    3 = Erase Tasmota and SDK parameter area (0x0F3xxx - 0x0FFFFF)
-    4 = Erase SDK parameter area used for wifi calibration (0x0FCxxx - 0x0FCFFF)
-  */
-
-#ifndef FIRMWARE_MINIMAL
-                           // Reset 2 = Erase all flash from program end to end of physical flash
-  uint32_t _sectorStart = (ESP.getSketchSize() / SPI_FLASH_SEC_SIZE) + 1;
-  uint32_t _sectorEnd = ESP.getFlashChipRealSize() / SPI_FLASH_SEC_SIZE;  // Flash size as reported by hardware
-  if (1 == type) {         // Reset 3 = SDK parameter area
-    // source Esp.cpp and core_esp8266_phy.cpp
-    _sectorStart = (ESP.getFlashChipSize() / SPI_FLASH_SEC_SIZE) - 4;
-  }
-  else if (2 == type) {    // Reset 5, 6 = Erase all flash from program end to end of physical flash but skip filesystem
-/*
-#ifdef USE_UFILESYS
-    TfsDeleteFile(TASM_FILE_SETTINGS);  // Not needed as it is recreated by set defaults before restart
-#endif
-*/
-    EsptoolErase(_sectorStart, FLASH_FS_START);
-    _sectorStart = EEPROM_LOCATION;
-    _sectorEnd = ESP_getFlashChipSize() / SPI_FLASH_SEC_SIZE;  // Flash size as seen by SDK
-  }
-  else if (3 == type) {    // QPC Reached = QPC and Tasmota and SDK parameter area (0x0F3xxx - 0x0FFFFF)
-#ifdef USE_UFILESYS
-    TfsDeleteFile(TASM_FILE_SETTINGS);
-#endif
-    EsptoolErase(SETTINGS_LOCATION - CFG_ROTATES, SETTINGS_LOCATION +1);
-    _sectorStart = EEPROM_LOCATION;
-    _sectorEnd = ESP.getFlashChipSize() / SPI_FLASH_SEC_SIZE;  // Flash size as seen by SDK
-  }
-  else if (4 == type) {    // WIFI_FORCE_RF_CAL_ERASE = SDK wifi calibration
-    _sectorStart = EEPROM_LOCATION +1;                         // SDK phy area and Core calibration sector (0x0XFC000)
-    _sectorEnd = _sectorStart +1;                              // SDK end of phy area and Core calibration sector (0x0XFCFFF)
-  }
-
-  EsptoolErase(_sectorStart, _sectorEnd);                      // Esptool - erases flash completely
-#endif  // FIRMWARE_MINIMAL
-}
-#endif  // ESP8266
 
 void SettingsSdkErase(void) {
   WiFi.disconnect(false);  // Delete SDK wifi config
@@ -978,11 +748,6 @@ void SettingsDefaultSet2(void) {
   SysMBitfield1  flag2 = { 0 };
   SysMBitfield2  mbflag2 = { 0 };
 
-#ifdef ESP8266
-  Settings->gpio16_converted = 0xF5A0;
-//  Settings->config_version = 0;  // ESP8266 (Has been 0 for long time)
-#endif  // ESP8266
-#ifdef ESP32
 #if CONFIG_IDF_TARGET_ESP32S3
   Settings->config_version = 2;  // ESP32S3
 #elif CONFIG_IDF_TARGET_ESP32S2
@@ -1001,7 +766,6 @@ void SettingsDefaultSet2(void) {
   Settings->config_version = 1;  // ESP32
 #endif  // CONFIG_IDF_TARGET_ESP32S3
   Settings->webcam_clk = 20;
-#endif  // ESP32
 
   flag.stop_flash_rotate |= APP_FLASH_CYCLE;
   flag.global_state |= APP_ENABLE_LEDLINK;
@@ -1071,11 +835,9 @@ void SettingsDefaultSet2(void) {
 
   // Ethernet
   flag4.network_ethernet |= 1;
-#ifdef ESP32
   Settings->eth_type = ETH_TYPE;
   Settings->eth_clk_mode = ETH_CLKMODE;
   Settings->eth_address = ETH_ADDRESS;
-#endif  // ESP32
 
   // Wifi
   flag4.network_wifi |= 1;
@@ -1540,68 +1302,9 @@ void SettingsEnableAllI2cDrivers(void) {
 void SettingsDelta(void) {
   if (Settings->version != TASMOTA_VERSION) {  // Fix version dependent changes
 
-#ifdef ESP8266
-#ifndef UPGRADE_V8_MIN
-    // Although no direct upgrade is supported try to make a viable environment
-    if (Settings->version < 0x08000000) {
-      // Save SSIDs and Passwords
-      char temp31[strlen(Settings->ex_sta_ssid[0]) +1];
-      strncpy(temp31, Settings->ex_sta_ssid[0], sizeof(temp31));
-      char temp32[strlen(Settings->ex_sta_ssid[1]) +1];
-      strncpy(temp32, Settings->ex_sta_ssid[1], sizeof(temp32));
-      char temp41[strlen(Settings->ex_sta_pwd[0]) +1];
-      strncpy(temp41, Settings->ex_sta_pwd[0], sizeof(temp41));
-      char temp42[strlen(Settings->ex_sta_pwd[1]) +1];
-      strncpy(temp42, Settings->ex_sta_pwd[1], sizeof(temp42));
-
-      char temp7[strlen(Settings->ex_mqtt_host) +1];
-      strncpy(temp7, Settings->ex_mqtt_host, sizeof(temp7));
-      char temp9[strlen(Settings->ex_mqtt_user) +1];
-      strncpy(temp9, Settings->ex_mqtt_user, sizeof(temp9));
-      char temp10[strlen(Settings->ex_mqtt_pwd) +1];
-      strncpy(temp10, Settings->ex_mqtt_pwd, sizeof(temp10));
-      char temp11[strlen(Settings->ex_mqtt_topic) +1];
-      strncpy(temp11, Settings->ex_mqtt_topic, sizeof(temp11));
-
-      SettingsDefault();
-
-      // Restore current SSIDs and Passwords
-      SettingsUpdateText(SET_STASSID1, temp31);
-      SettingsUpdateText(SET_STASSID2, temp32);
-      SettingsUpdateText(SET_STAPWD1, temp41);
-      SettingsUpdateText(SET_STAPWD2, temp42);
-
-#if defined(USE_MQTT_TLS) && defined(USE_MQTT_CLIENT_CERT)
-      if (!strlen(Settings->ex_mqtt_user)) {
-        SettingsUpdateText(SET_MQTT_HOST, temp7);
-        SettingsUpdateText(SET_MQTT_USER, temp9);
-      } else {
-        char aws_mqtt_host[66];
-        snprintf_P(aws_mqtt_host, sizeof(aws_mqtt_host), PSTR("%s%s"), temp9, temp7);
-        SettingsUpdateText(SET_MQTT_HOST, aws_mqtt_host);
-        SettingsUpdateText(SET_MQTT_USER, "");
-      }
-#else  // No USE_MQTT_TLS and USE_MQTT_CLIENT_CERT
-      SettingsUpdateText(SET_MQTT_HOST, temp7);
-      SettingsUpdateText(SET_MQTT_USER, temp9);
-#endif  // USE_MQTT_TLS and USE_MQTT_CLIENT_CERT
-      SettingsUpdateText(SET_MQTT_PWD, temp10);
-      SettingsUpdateText(SET_MQTT_TOPIC, temp11);
-    }
-#endif  // UPGRADE_V8_MIN
-
-    if (Settings->version < 0x08020003) {
-      SettingsUpdateText(SET_TEMPLATE_NAME, Settings->user_template_name);
-      Settings->zb_channel = 0;      // set channel to zero to force reinit of zigbee parameters
-    }
-#endif  // ESP8266
-
     if (Settings->version < 0x08020004) {
       Settings->flag3.mqtt_buttons = 0;  // SetOption73 (0) - Decouple button from relay and send just mqtt topic
-#ifdef ESP8266
-      Settings->config_version = 0;  // ESP8266 (Has been 0 for long time)
-#endif  // ESP8266
-#ifdef ESP32
+
 #if CONFIG_IDF_TARGET_ESP32S3
       Settings->config_version = 2;  // ESP32S3
 #elif CONFIG_IDF_TARGET_ESP32S2
@@ -1619,13 +1322,10 @@ void SettingsDelta(void) {
 #else
       Settings->config_version = 1;  // ESP32
 #endif  // CONFIG_IDF_TARGET_ESP32S3
-#endif  // ESP32
     }
     if (Settings->version < 0x08020006) {
-#ifdef ESP32
       Settings->module = WEMOS;
       ModuleDefault(WEMOS);
-#endif  // ESP32
       // make sure the empty rules have two consecutive NULLs, to be compatible with compressed rules
       if (Settings->rules[0][0] == 0) { Settings->rules[0][1] = 0; }
       if (Settings->rules[1][0] == 0) { Settings->rules[1][1] = 0; }
@@ -1641,13 +1341,11 @@ void SettingsDelta(void) {
       Settings->flag4.network_wifi = 1;
       Settings->flag4.network_ethernet = 1;
     }
-#ifdef ESP32
     if (Settings->version < 0x08030105) {
       Settings->eth_type = ETH_TYPE;
       Settings->eth_clk_mode = ETH_CLKMODE;
       Settings->eth_address = ETH_ADDRESS;
     }
-#endif  // ESP32
     if (Settings->version < 0x08030106) {
       Settings->fallback_module = FALLBACK_MODULE;
     }
@@ -1656,14 +1354,6 @@ void SettingsDelta(void) {
       Settings->energy_power_delta[1] = 0;
       Settings->energy_power_delta[2] = 0;
     }
-#ifdef ESP8266
-    if (Settings->version < 0x09000002) {
-      char parameters[32];
-      snprintf_P(parameters, sizeof(parameters), PSTR("%d,%d,%d,%d,%d"),
-        Settings->influxdb_version, Settings->sensors[0][0], Settings->sensors[0][1], (int)Settings->sensors[0][2], Settings->mbflag2.data);
-      SettingsUpdateText(SET_ADC_PARAM1, parameters);
-    }
-#endif  // ESP8266
     if (Settings->version < 0x09010000) {
       Settings->dimmer_step = DEFAULT_DIMMER_STEP;
     }
@@ -1804,11 +1494,9 @@ void SettingsDelta(void) {
       else if (DAWN_NAUTIC == SUNRISE_DAWN_ANGLE) { Settings->mbflag2.sunrise_dawn_angle = 2; }
       else if (DAWN_ASTRONOMIC == SUNRISE_DAWN_ANGLE) { Settings->mbflag2.sunrise_dawn_angle = 3; }
     }
-#ifdef ESP32
     if (Settings->version < 0x0C010106) {  // 12.1.1.6
       Settings->webcam_clk = 20;
     }
-#endif  // ESP32
     if (Settings->version < 0x0C020002) {  // 12.2.0.2
       Settings->energy_kWhdoy = Settings->energy_current_calibration2 & 0xFFFF;
       Settings->energy_min_power = (Settings->energy_current_calibration2 >> 16) & 0xFFFF;

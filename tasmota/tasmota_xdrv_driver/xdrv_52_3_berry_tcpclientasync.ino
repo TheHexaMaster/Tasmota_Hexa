@@ -536,9 +536,7 @@ extern "C" {
       else if (offset + len > buf_len) { len = buf_len - offset; }    // len is too long, adjust
 
       if (len > 0) {
-        // now adjust the buffer with offset
-        buf_len += offset;
-        size_t bw = tcp->write(buf, buf_len);
+        size_t bw = tcp->write(buf + offset, len);
         be_pushint(vm, bw);
       } else {
         be_pushint(vm, 0);    // nothing to send
