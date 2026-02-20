@@ -3788,8 +3788,8 @@ void HandlePreflightRequest(void) {
 #ifdef USE_CORS
   HttpHeaderCors();
 #endif
-  Webserver->sendHeader(F("Access-Control-Allow-Methods"), F("GET, POST"));
-  Webserver->sendHeader(F("Access-Control-Allow-Headers"), F("authorization"));
+  Webserver->sendHeader("Access-Control-Allow-Methods", "GET, POST");
+  Webserver->sendHeader("Access-Control-Allow-Headers", "authorization");
   WSSend(200, CT_HTML, "");
 }
 

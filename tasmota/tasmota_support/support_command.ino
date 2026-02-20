@@ -905,7 +905,9 @@ void CmndStatus(void)
   if (!Settings->flag.mqtt_enabled && (6 == payload)) { return; }  // SetOption3 - Enable MQTT
   if (!TasmotaGlobal.energy_driver && (9 == payload)) { return; }
 #ifndef FIRMWARE_MINIMAL
+#ifdef MSB_USE_CRASH
   if (!CrashFlag() && (12 == payload)) { return; }
+#endif // MSB_USE_CRASH
 #endif // FIRMWARE_MINIMAL
   if (!Settings->flag3.shutter_mode && (13 == payload)) { return; }
 
@@ -1166,15 +1168,17 @@ void CmndStatus(void)
   }
 
 #ifndef FIRMWARE_MINIMAL
+#ifdef MSB_USE_CRASH
   if (CrashFlag()) {
     // Status 12 - StatusSTK
     if ((0 == payload) || (12 == payload)) {
       Response_P(PSTR("{\"" D_CMND_STATUS D_STATUS12_STATUS "\":"));
       CrashDump();
-      ResponseJsonEnd();
+      ResponseJsonEnd();CrashDumpClear
       CmndStatusResponse(12);
     }
   }
+#endif // MSB_USE_CRASH
 #endif // FIRMWARE_MINIMAL
 
 #ifdef USE_SHUTTER
@@ -1380,6 +1384,7 @@ void CmndRestart(void)
     ResponseCmndChar(PSTR("Go to sleep"));
     break;
 #ifndef FIRMWARE_MINIMAL
+#ifdef MSB_USE_CRASH
   case -1:
     CmndCrash();    // force a crash
     break;
@@ -1390,6 +1395,7 @@ void CmndRestart(void)
     CmndBlockedLoop();
     break;
 #endif // FIRMWARE_MINIMAL
+#endif // MSB_USE_CRASHCrashFlag
   case 99:
     AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_APPLICATION D_RESTARTING));
     EspRestart();

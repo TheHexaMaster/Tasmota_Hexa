@@ -1613,8 +1613,10 @@ void EspRestart(void) {
   ResetPwm();
   WifiShutdown(true);
 #ifndef FIRMWARE_MINIMAL
+#ifdef MSB_USE_CRASH
   CrashDumpClear();           // Clear the stack dump in RTC
 #endif // FIRMWARE_MINIMAL
+#endif // MSB_USE_CRASH
 
 #ifdef CONFIG_IDF_TARGET_ESP32C3
   GpioForceHoldRelay();       // Retain the state when the chip or system is reset, for example, when watchdog time-out or Deep-sleep

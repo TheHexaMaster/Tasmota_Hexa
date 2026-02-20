@@ -33,7 +33,8 @@ struct DSIPanelConfig {
     int ldo_channel;                // 3  
     int ldo_voltage_mv;             // 2500
     uint32_t pixel_clock_hz;        // 54000000 
-    uint32_t lane_speed_mbps;       // 750
+//    uint32_t lane_speed_mbps;       // 750
+    float lane_speed_mbps;       // 750
     uint8_t rgb_order;              // 0=RGB, 1=BGR
     uint8_t data_endian;            // 0=Big, 1=Little
     

@@ -17,6 +17,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifdef MSB_USE_CRASH
 #ifndef FIRMWARE_MINIMAL
 
 // Generate a crash to test the crash recorder
@@ -368,3 +369,4 @@ void CrashDump(void)
 #endif
 
 #endif  //  FIRMWARE_MINIMAL
+#endif  //  MSB_USE_CRASH

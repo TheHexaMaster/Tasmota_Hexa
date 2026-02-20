@@ -169,7 +169,7 @@ static void At24_XorInit(void) {
   seed[28] = '4';
   seed[29] = 'C';
   seed[30] = 'X';
-  seed[31] = 'X';
+//  seed[31] = 'X';
 
   br_sha256_context ctx;
   At24_Sha256_Begin(&ctx);
