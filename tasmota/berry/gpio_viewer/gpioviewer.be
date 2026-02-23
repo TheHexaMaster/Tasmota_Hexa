@@ -19,7 +19,7 @@
 
 var gpio_viewer = module('gpio_viewer')
 
-class GPIO_viewer
+class tst
   var port
   var web
   var sampling_interval
@@ -66,7 +66,7 @@ class GPIO_viewer
   
   def init(port)
     self.port = port
-    self.web = webserver_async(5555)
+    self.web = webserver_async(port)
     self.sampling_interval = self.SAMPLING
     self.payload1 = bytes(100)              # reserve 100 bytes by default
     self.payload2 = bytes(100)              # reserve 100 bytes by default

@@ -1255,7 +1255,7 @@
 
 #define USE_ADC                                  // Add support for ADC on GPIO32 to GPIO39
 
-#define USE_NETWORK_LIGHT_SCHEMES                // Add support for light schemes via DDP (via UDP on port 4048)
+// #define USE_NETWORK_LIGHT_SCHEMES                // Add support for light schemes via DDP (via UDP on port 4048)
 
 //#define USE_SPI                                  // Add support for hardware SPI
 //#define USE_MI_ESP32                             // Add support for ESP32 as a BLE-bridge (+9k2 mem, +292k flash)
@@ -1309,10 +1309,10 @@
 #define USE_LVGL                                 // LVGL Engine, requires Berry (+382KB)
   #define USE_LVGL_PSRAM                         // Allocate LVGL memory in PSRAM if PSRAM is connected - this might be slightly slower but leaves main memory intact
   //#define USE_LVGL_HASPMOTA                    // Enable OpenHASP compatiblity and Robotocondensed fonts (+90KB flash)
-  #define USE_LVGL_MAX_SLEEP  10                  // max sleep in ms when LVGL is enabled, more than 10ms will make display less responsive
+  #define USE_LVGL_MAX_SLEEP  5                  // max sleep in ms when LVGL is enabled, more than 10ms will make display less responsive
   #define USE_LVGL_PNG_DECODER                   // include a PNG image decoder from file system (+16KB)
   #define USE_LVGL_FREETYPE                      // Use the FreeType renderer to display fonts using native TTF files in file system (+77KB flash)
-    #define USE_LVGL_FREETYPE_MAX_FACES 64       // max number of FreeType faces in cache
+    #define USE_LVGL_FREETYPE_MAX_FACES 256       // max number of FreeType faces in cache
   #define USE_LVGL_BG_DEFAULT 0x000000           // Default color for the uninitialized background screen (black)
   // Disabling select widgets that will be rarely used in Tasmota (-13KB)
   // Main widgets as defined in LVGL8

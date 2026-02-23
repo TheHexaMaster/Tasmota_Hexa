@@ -187,8 +187,8 @@ const uint8_t STATES = 20;                  // Number of states per second using
 const uint8_t IMMINENT_RESET_FACTOR = 10;   // Factor to extent button hold time for imminent Reset to default 40 seconds using KEY_HOLD_TIME of 40
 const uint32_t BOOT_LOOP_TIME = 10;         // Number of seconds to stop detecting boot loops
 const uint32_t POWER_CYCLE_TIME = 8;        // Number of seconds to reset power cycle boot loops
-const uint16_t SYSLOG_TIMER = 600;          // Seconds to restore syslog_level
-const uint16_t SERIALLOG_TIMER = 600;       // Seconds to disable SerialLog
+const uint16_t SYSLOG_TIMER = 20;          // Seconds to restore syslog_level
+const uint16_t SERIALLOG_TIMER = 20;       // Seconds to disable SerialLog
 #ifdef ESP8266
 const uint8_t OTA_ATTEMPTS = 10;            // Number of times to try fetching the new firmware
 #else
@@ -220,8 +220,8 @@ const uint32_t MIN_BACKLOG_DELAY = 200;     // Minimal backlog delay in mSeconds
 
 const uint32_t SOFT_BAUDRATE = 9600;        // Default software serial baudrate
 const uint32_t APP_BAUDRATE = 115200;       // Default serial baudrate
-const uint32_t SERIAL_POLLING = 100;        // Serial receive polling in ms
-const uint32_t ZIGBEE_POLLING = 100;        // Serial receive polling in ms
+const uint32_t SERIAL_POLLING = 300;        // Serial receive polling in ms
+const uint32_t ZIGBEE_POLLING = 300;        // Serial receive polling in ms
 const uint8_t MAX_STATUS = 13;              // Max number of status lines
 
 const uint32_t START_VALID_TIME = 1451602800;  // Time is synced and after 2016-01-01
