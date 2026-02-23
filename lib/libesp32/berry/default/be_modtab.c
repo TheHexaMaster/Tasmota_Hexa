@@ -233,6 +233,7 @@ BERRY_LOCAL const bntvmodule_t* const be_module_table[] = {
 #endif // USE_BERRY_ANIMATION_DSL
 #endif // USE_BERRY_ANIMATION
 #endif // USE_WS2812
+
 #endif // TASMOTA
     CUSTOM_NATIVE_MODULES
     /* user-defined modules register end */
@@ -269,6 +270,7 @@ be_extern_native_class(AudioOpusDecoder);
 be_extern_native_class(AudioInputI2S);
 be_extern_native_class(md5);
 be_extern_native_class(udp);
+be_extern_native_class(modbus_rtu);
 be_extern_native_class(webclient);
 be_extern_native_class(tcpclient);
 be_extern_native_class(tcpclientasync);
@@ -290,6 +292,8 @@ be_extern_native_class(lv_clock);
 be_extern_native_class(lv_clock_icon);
 
 be_extern_native_class(int64);
+
+
 
 #ifdef USE_BERRY_IMAGE
 be_extern_native_class(img);
@@ -375,6 +379,11 @@ BERRY_LOCAL bclass_array be_class_table = {
 #if defined(USE_BERRY_INT64) || defined(USE_MATTER_DEVICE)
     &be_native_class(int64),
 #endif
+
+#ifdef USE_BERRY_MODBUS_RTU
+    &be_native_class(modbus_rtu),
+#endif
+
     CUSTOM_NATIVE_CLASSES
     NULL, /* do not remove */
 };
