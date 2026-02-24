@@ -8,19 +8,13 @@
 
 extern int32_t b_mbrtu_init(bvm *vm);
 extern int32_t b_mbrtu_deinit(bvm *vm);
-
 extern int32_t b_mbrtu_start(bvm *vm);
 extern int32_t b_mbrtu_stop(bvm *vm);
-
 extern int32_t b_mbrtu_add_device(bvm *vm);
 extern int32_t b_mbrtu_enable_device(bvm *vm);
-
 extern int32_t b_mbrtu_clear_patterns(bvm *vm);
 extern int32_t b_mbrtu_add_pattern(bvm *vm);
-
 extern int32_t b_mbrtu_get_block(bvm *vm); 
-extern int32_t b_mbrtu_get_block_ts(bvm *vm);
-
 extern int32_t b_mbrtu_write_reg(bvm *vm);
 extern int32_t b_mbrtu_write_regs(bvm *vm);
 
@@ -40,19 +34,13 @@ class be_class_modbus_rtu (scope: global, name: modbus_rtu) {
   init, func(b_mbrtu_init)
   deinit, func(b_mbrtu_deinit)
   close, func(b_mbrtu_deinit)
-
   start, func(b_mbrtu_start)
   stop, func(b_mbrtu_stop)
-
   add_device, func(b_mbrtu_add_device)
   enable_device, func(b_mbrtu_enable_device)
-
   clear_patterns, func(b_mbrtu_clear_patterns)
   add_pattern, func(b_mbrtu_add_pattern)
-
   get_block, func(b_mbrtu_get_block)
-  get_block_ts, func(b_mbrtu_get_block_ts)
-
   write_reg, func(b_mbrtu_write_reg)
   write_regs, func(b_mbrtu_write_regs)
 }

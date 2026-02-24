@@ -1,5 +1,5 @@
 #include "AsyncModbus.h"
-#include <cstring>
+#include <cstring> 
 #include <cstdlib>
 
 struct AsyncModbusRtu::PatternNode {
@@ -615,24 +615,23 @@ bool AsyncModbusRtu::wqPop(WriteReq& out) {
 AsyncModbusRtu::Device* AsyncModbusRtu::selectNextDevice() {
   uint32_t now = millis();
   Device* best = nullptr;
-  uint32_t best_due = 0xFFFFFFFFu;
+  int32_t best_delta = 0x7FFFFFFF;  // smallest (most negative) wins = most overdue
 
-  Device* d = _dev_head;
-  while (d) {
-    if (!d->enabled) { d = d->next; continue; }
-    if (!d->ir_head && !d->hr_head) { d = d->next; continue; }
+  for (Device* d = _dev_head; d; d = d->next) {
+    if (!d->enabled) continue;
+    if (!d->ir_head && !d->hr_head) continue;
 
-    uint32_t due = 0xFFFFFFFFu;
+    uint32_t due;
     if (!d->ir_head && d->hr_head) due = d->next_hr_ms;
     else if (d->hr_round && d->hr_head) due = d->next_hr_ms;
     else if (d->ir_head) due = d->next_ir_ms;
     else due = d->next_hr_ms;
 
     int32_t delta = (int32_t)(due - now);
-    if (delta <= 0) return d;
-
-    if (due < best_due) { best_due = due; best = d; }
-    d = d->next;
+    if (delta < best_delta) {
+      best_delta = delta;
+      best = d;
+    }
   }
   return best;
 }
