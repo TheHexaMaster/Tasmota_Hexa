@@ -1,7 +1,6 @@
 /********************************************************************
  * Modbus RTU (async)
  * 
- * 
  *******************************************************************/
 
 #include "be_constobj.h"
@@ -14,9 +13,13 @@ extern int32_t b_mbrtu_add_device(bvm *vm);
 extern int32_t b_mbrtu_enable_device(bvm *vm);
 extern int32_t b_mbrtu_clear_patterns(bvm *vm);
 extern int32_t b_mbrtu_add_pattern(bvm *vm);
-extern int32_t b_mbrtu_get_block(bvm *vm); 
+extern int32_t b_mbrtu_get_block(bvm *vm);
 extern int32_t b_mbrtu_write_reg(bvm *vm);
 extern int32_t b_mbrtu_write_regs(bvm *vm);
+
+/* NEW */
+extern int32_t b_mbrtu_add_datamap(bvm *vm);
+extern int32_t b_mbrtu_get_data(bvm *vm);
 
 #include "be_fixed_be_class_modbus_rtu.h"
 
@@ -43,6 +46,8 @@ class be_class_modbus_rtu (scope: global, name: modbus_rtu) {
   get_block, func(b_mbrtu_get_block)
   write_reg, func(b_mbrtu_write_reg)
   write_regs, func(b_mbrtu_write_regs)
+  add_datamap, func(b_mbrtu_add_datamap)
+  get_data, func(b_mbrtu_get_data)
 }
 
 @const_object_info_end */

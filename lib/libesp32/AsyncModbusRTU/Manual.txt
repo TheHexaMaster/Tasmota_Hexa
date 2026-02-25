@@ -1,0 +1,234 @@
+Async Modbus RTU for Berry (Tasmota)
+What it is
+
+modbus_rtu is a Berry module that talks Modbus RTU over UART/RS485.
+Polling runs in the background (FreeRTOS task in asyncmodbus.*). Berry only configures devices/patterns and reads cached data.
+
+1) Create an instance
+import modbus_rtu
+mb = modbus_rtu(rx, tx, baud, cfg, inverted, tx_en_gpio)
+
+Arguments
+
+rx (int): GPIO RX pin
+
+tx (int): GPIO TX pin
+
+baud (int): e.g. 9600, 19200, 38400
+
+cfg (int): UART config (the numeric value used by Arduino/Tasmota, e.g. SERIAL_8N1)
+
+inverted (bool): invert UART logic (rare; only if your hardware needs it)
+
+tx_en_gpio (int): RS485 DE/RE enable pin, or -1 if not used
+
+Minimal:
+
+mb = modbus_rtu(16, 17, 9600, cfg, false, 4)
+
+Destroy:
+
+mb.deinit()
+# or
+mb.close()
+2) Start / Stop polling
+
+Polling is not automatic.
+
+mb.start()
+mb.stop()
+
+If you never call start(), get_block() will keep returning nil.
+
+3) Add/Configure a slave device
+mb.add_device(addr, timeout_ms, retry, ir_interval_ms, hr_interval_ms, hr_div)
+
+Meaning
+
+addr: Modbus slave address (1..247)
+
+timeout_ms: response timeout (typical 200–500 ms)
+
+retry: retry count for read timeouts
+
+ir_interval_ms: default interval for “IR” patterns (fast group)
+
+hr_interval_ms: default interval for “HR” patterns (slow group)
+
+hr_div: do one HR round after N IR rounds
+
+Example:
+
+mb.add_device(1, 250, 1, 200, 1000, 3)
+
+Enable/disable polling for a slave:
+
+mb.enable_device(1, true)
+mb.enable_device(1, false)
+4) Define read patterns (what registers to poll)
+
+First clear patterns for the device:
+
+mb.clear_patterns(1)
+
+Add a polling block:
+
+mb.add_pattern(addr, is_hr, func, start, count, interval_ms)
+
+Arguments
+
+addr: which slave this pattern belongs to
+
+is_hr (bool): scheduling group only (IR vs HR)
+
+func: 0x03 (Holding Registers) or 0x04 (Input Registers)
+
+start: register start offset (see addressing notes below)
+
+count: number of registers (1..125)
+
+interval_ms: optional override (0 = use default from add_device)
+
+Example (read 4 input registers starting at 0 every 200ms):
+
+mb.add_pattern(1, false, 0x04, 0, 4, 200)
+
+Example (read 2 holding registers starting at 100 every 5s as HR):
+
+mb.add_pattern(1, true, 0x03, 100, 2, 5000)
+5) Register addressing (common pitfall)
+
+Datasheets often label registers as:
+
+30001... (Input)
+
+40001... (Holding)
+
+But Modbus RTU request uses 0-based offsets in the PDU.
+
+Typical mapping:
+
+datasheet 40001 → start = 0
+
+datasheet 40010 → start = 9
+
+datasheet 30001 → start = 0
+
+If values are wrong, check:
+
+off-by-one addressing,
+
+wrong function (0x03 vs 0x04),
+
+endian/word-swap for 32-bit values.
+
+6) Read data from cache
+
+Get the latest cached block:
+
+b = mb.get_block(addr, func, start, count)    # -> bytes or nil
+
+Response if data: {"data":<bytes>, "ts":<int>}
+- the data reply is in pure "bytes"
+- timestamp (ts) is in millis (ms from system start)
+- Response if no data: <nil>
+
+nil means: no valid data received yet (or no cache entry exists for that block).
+
+7) Decode bytes into numbers
+
+Each Modbus register is 2 bytes. Offsets are reg_index * 2.
+
+Unsigned 16-bit (U16), big-endian
+v = b.get(offset, -2)
+Signed 16-bit (S16), big-endian
+v = b.geti(offset, -2)
+Float32 (2 registers), big-endian
+f = b.getfloat(offset, true)
+Useful helper functions
+def u16(b, reg)
+  return b.get(reg*2, -2)
+end
+
+def s16(b, reg)
+  return b.geti(reg*2, -2)
+end
+
+def f32_be(b, reg)
+  return b.getfloat(reg*2, true)
+end
+Word-swap float (common with energy meters)
+
+Some devices swap the two 16-bit words of a float.
+
+def f32_wordswap(b, reg)
+  var o = reg*2
+  var x = bytes(4)
+  x[0]=b[o+2]; x[1]=b[o+3]
+  x[2]=b[o+0]; x[3]=b[o+1]
+  return x.getfloat(0, true)
+end
+8) Write registers
+Write single register (FC06)
+ok = mb.write_reg(addr, reg, value)   # -> bool
+
+Example:
+
+ok = mb.write_reg(1, 10, 1)
+Write multiple registers (FC16)
+
+You pass a bytes payload length = 2 * count in big-endian register order.
+
+p = bytes(4)
+p.set(0, 0x1234, -2)
+p.set(2, 0xABCD, -2)
+
+ok = mb.write_regs(1, 100, p)
+9) Minimal working example
+import modbus_rtu
+
+cfg = 0   # set to your SERIAL_8N1 numeric value (or your build default)
+
+mb = modbus_rtu(16, 17, 9600, cfg, false, 4)
+
+mb.add_device(1, 250, 1, 200, 1000, 3)
+mb.clear_patterns(1)
+mb.add_pattern(1, false, 0x04, 0, 4, 200)
+
+mb.start()
+
+def loop()
+  var b = mb.get_block(1, 0x04, 0, 4)["data"]
+  if b != nil
+    print("R0=", b.get(0,-2), " R1=", b.get(2,-2), " R2=", b.get(4,-2), " R3=", b.get(6,-2))
+  end
+end
+10) Troubleshooting checklist
+
+get_block() always nil:
+
+you forgot mb.start()
+
+wrong slave addr
+
+wrong func (0x03 vs 0x04)
+
+wrong start (0-based vs 1-based/datasheet)
+
+RS485 wiring: missing GND, swapped A/B, wrong DE/RE pin, wrong baud/parity
+
+Values exist but are nonsense:
+
+word-swap needed for 32-bit values
+
+scaling factors (×0.1, ×0.01 per datasheet)
+
+reading wrong registers
+
+Writes return true but nothing changes:
+
+register is read-only
+
+device expects a different register map / needs unlock sequence
+
+writing to wrong function/register offset

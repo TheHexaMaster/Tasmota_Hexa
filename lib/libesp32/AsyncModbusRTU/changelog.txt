@@ -1,0 +1,185 @@
+1) API
+1.1 mb.add_datamap(datamap_id, points)
+
+datamap_id (int): ID mapy (1..255). 0 = nepoužíva sa.
+
+points: list datapointov, každý datapoint je list 8 alebo 9 bajtov (0..255).
+
+8B = bez jednotky (unit_id = 0)
+
+9B = posledný bajt je unit_id
+
+1.2 mb.add_device(..., datamap_no)
+
+Rozšírenie:
+mb.add_device(addr, timeout_ms, retry, ir_interval_ms, hr_interval_ms, hr_div, datamap_no)
+
+datamap_no=0 → datamap sa nepoužíva (len raw get_block)
+
+datamap_no>0 → device používa danú mapu na dekódovanie
+
+1.3 mb.get_data(addr)
+
+Vracia map:
+
+{
+  "ts": <int>,
+  3: { start_reg: [raw, formatted, unit], ... },
+  4: { start_reg: [raw, formatted, unit], ... }
+}
+
+"ts" sa aktualizuje vždy, keď driver reálne aktualizuje aspoň jeden mapovaný datapoint (pri zmenených dátach).
+
+start_reg je absolútne číslo registra (0-based, Growatt: register N = N).
+
+unit je string alebo nil.
+
+2) Formát datapointu (8B / 9B)
+8 bajtov
+
+[B0,B1,B2,B3,B4,B5,B6,B7]
+
+9 bajtov (s jednotkou)
+
+[B0,B1,B2,B3,B4,B5,B6,B7,B8]
+
+Význam bajtov:
+
+B0 func: 0x03 alebo 0x04
+
+B1 endianFlags (globálne):
+
+0x01 = SWAP_BYTES16 (AB→BA v každom 16b slove)
+
+0x02 = SWAP_WORDS32 (len 32b typy: [W0,W1]→[W1,W0])
+
+B2..B3 start: uint16 big-endian (start_hi, start_lo)
+
+B4 count: počet registrov (1..125)
+
+B5 type (enum):
+
+0x01 int16 (count=1)
+
+0x02 uint16 (count=1)
+
+0x03 int32 (count=2)
+
+0x04 uint32 (count=2)
+
+0x05 string (count>=1)
+
+0x06 time6 (count=6)
+
+B6 decimals: len pre čísla
+
+0 → bez škálovania (formatted = integer)
+
+>0 → formatted = raw / 10^decimals (real)
+
+B7 optionFlags (typovo špecifické, nekolidujúce):
+
+pre STRING (type=0x05) bity 0..2:
+
+0x01 STR_NULLTERM
+
+0x02 STR_TRIM_TAIL
+
+0x04 STR_ALLOW_NONPRINT (inak strict ASCII 0x20..0x7E → neplatné => nil)
+
+pre TIME6 (type=0x06) bity 4..6:
+
+0x10 TIME_USE_HI_BYTE_FIELDS (inak low byte)
+
+0x20 TIME_BCD_FIELDS
+
+0x40 TIME_BCD_YEAR
+
+B8 unit_id (iba ak je 9. bajt): jednotka podľa tabuľky
+
+3) RAW / formatted / unit
+Numerické typy
+
+raw = integer (INT64 OK)
+
+formatted =
+
+integer (decimals=0)
+
+real (decimals>0)
+
+unit = podľa unit_id alebo nil
+
+String
+
+raw = HEX string zo surových bajtov (2*count), napr. "31323334"
+
+formatted = string alebo nil (strict/relaxed podľa flagu)
+
+unit typicky nil
+
+Time6
+
+raw = HEX string z 12 bajtov (6 registrov)
+
+formatted = "YYYY-MM-DD HH:MM:SS" alebo nil (ak invalid range)
+
+unit typicky nil
+
+4) Jednotky (unit_id)
+
+0x00 = nil
+
+0x01 = "V"
+
+0x02 = "VA"
+
+0x03 = "A"
+
+0x04 = "W"
+
+0x05 = "Wh"
+
+0x06 = "kWh"
+
+0x07 = "Hz"
+
+0x08 = "°C"
+
+0x09 = "%"
+
+0x0A = "Ah"
+
+0x0B = "kW"
+
+0x0C = "kVA"
+
+0x0D = "VAr"
+
+0x0E = "Ω"
+
+0x0F = "ms"
+
+ostatné rezervované na rozšírenie
+
+5) Kedy a ako sa datapoint spracuje
+
+Pri prijatom bloku (addr, func, blk_start, blk_count) sa datapoint spracuje iba ak je plne pokrytý:
+
+dp_start >= blk_start
+
+dp_start + dp_count <= blk_start + blk_count
+
+Offset do bytes:
+
+byte_off = (dp_start - blk_start) * 2
+
+Dekódovanie sa spúšťa iba keď sa cache entry zmenila (fp/memcmp), aby sa zbytočne nepočítalo.
+
+6) Timestamp "ts"
+
+Jeden timestamp na device.
+
+Update pri každej reálnej aktualizácii aspoň jedného mapovaného datapointu.
+
+Do get_data() sa vloží ako {"ts": <int>, ...}.
