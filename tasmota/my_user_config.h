@@ -1358,7 +1358,6 @@
 //#define FIRMWARE_SENSORS                         // Create tasmota-sensors with useful sensors enabled
 //#define FIRMWARE_KNX_NO_EMULATION                // Create tasmota-knx with KNX but without Emulation
 //#define FIRMWARE_DISPLAYS                        // Create tasmota-display with display drivers enabled
-//#define FIRMWARE_IR                              // Create tasmota-ir with IR full protocols activated, and many sensors disabled
 //#define FIRMWARE_MINIMAL                         // Create tasmota-minimal as intermediate firmware for OTA-MAGIC
 
 /*********************************************************************************************\

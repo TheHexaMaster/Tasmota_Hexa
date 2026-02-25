@@ -40,7 +40,6 @@
 #undef FIRMWARE_SENSORS                         // Disable tasmota-sensors with useful sensors enabled
 #undef FIRMWARE_KNX_NO_EMULATION                // Disable tasmota-knx with KNX but without Emulation
 #undef FIRMWARE_DISPLAYS                        // Disable tasmota-display with display drivers enabled
-#undef FIRMWARE_IR                              // Disable tasmota-ir with IR full protocols activated
 #undef FIRMWARE_WEBCAM
 #undef FIRMWARE_BLUETOOTH
 #undef FIRMWARE_LVGL
@@ -149,7 +148,6 @@
 #undef USE_MAX31855                              // Disable MAX31855 K-Type thermocouple sensor using softSPI
 #undef USE_MAX31865                              // Disable support for MAX31865 RTD sensors using softSPI
 #undef USE_LMT01                                 // Disable support for TI LMT01 temperature sensor, count pulses on single GPIO (+0k5 code)
-#undef USE_IR_REMOTE                             // Disable IR driver
 #undef USE_TM1638                                // Disable support for TM1638 switches copying Switch1 .. Switch8
 #undef USE_HX711                                 // Disable support for HX711 load cell
 #undef USE_TX20_WIND_SENSOR                      // Disable support for La Crosse TX20 anemometer
@@ -220,7 +218,6 @@
 #undef USE_DOMOTICZ
 #undef USE_SERIAL_BRIDGE
 #undef ROTARY_V1
-#undef USE_IR_REMOTE
 #undef USE_ADC
 #undef USE_AC_ZERO_CROSS_DIMMER
 #undef USE_PWM_DIMMER
@@ -480,8 +477,6 @@
 //#define USE_ZIGBEE                               // Enable serial communication with Zigbee CC2530 flashed with ZNP
 //#define USE_RDM6300                              // Add support for RDM6300 125kHz RFID Reader (+0k8)
 
-#define USE_IR_REMOTE
-
 #define USE_ETHERNET                             // Add support for ethernet (+20k code
 
 #endif  // FIRMWARE_TASMOTA_LVGL *******************************************************************
@@ -515,7 +510,6 @@
 
 #undef USE_ENERGY_SENSOR                        // Disable support for energy sensors
 #undef USE_SHUTTER                              // Disable support for shutter
-#undef USE_IR_REMOTE                            // Disable support for IR Remote
 #undef USE_ARMTRONIX_DIMMERS                    // Disable support for Armtronix Dimmers (+1k4 code)
 #undef USE_PS_16_DZ                             // Disable support for PS-16-DZ Dimmer (+2k code)
 #undef USE_SONOFF_IFAN                          // Disable support for Sonoff iFan02 and iFan03 (+2k code)
@@ -771,8 +765,6 @@
 #define USE_DHT                                  // Add support for DHT11, AM2301 (DHT21, DHT22, AM2302, AM2321) and SI7021 Temperature and Humidity sensor
 #define USE_MAX31855                             // Add support for MAX31855 K-Type thermocouple sensor using softSPI
 //#define USE_MAX31865                             // Add support for MAX31865 RTD sensors using softSPI
-#define USE_IR_REMOTE                            // Send IR remote commands using library IRremoteESP8266 and ArduinoJson (+4k code, 0k3 mem, 48 iram)
-  #define USE_IR_RECEIVE                         // Support for IR receiver (+5k5 code, 264 iram)
 #define USE_LMT01                                // Add support for TI LMT01 temperature sensor, count pulses on single GPIO (+0k5 code)
 //#define USE_WIEGAND                              // Add support for 24/26/32/34 bit RFID Wiegand interface (D0/D1) (+1k7 code)
 #define USE_SHIFT595                             // Add support for 74xx595 8-bit shift registers (+0k7 code)

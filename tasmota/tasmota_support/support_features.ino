@@ -75,15 +75,9 @@ constexpr uint32_t feature[] = {
 #if defined(USE_LIGHT) && defined(USE_WS2812) && defined(USE_WS2812_DMA)
   0x00010000 |  // xdrv_04_light.ino
 #endif
-#if defined(USE_IR_REMOTE) || defined(USE_IR_REMOTE_FULL)
-  0x00020000 |  // xdrv_05_irremote.ino
-#endif
-#ifdef USE_IR_HVAC
-  0x00040000 |  // xdrv_05_irremote.ino
-#endif
-#if defined(USE_IR_REMOTE) && defined(USE_IR_RECEIVE)
-  0x00080000 |  // xdrv_05_irremote.ino
-#endif
+//  0x00020000 |  // xdrv_05_irremote.ino USE_IR_REMOTE_FULL USE_IR_REMOTE - DELETED
+//  0x00040000 |  // xdrv_05_irremote.ino - USE_IR_HVAC - DELETED
+//  0x00080000 |  // USE_IR_REMOTE USE_IR_RECEIVE xdrv_05_irremote.ino  - DELETED
 #ifdef USE_DOMOTICZ
   0x00100000 |  // xdrv_07_domoticz.ino
 #endif

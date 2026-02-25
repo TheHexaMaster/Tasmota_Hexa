@@ -1620,14 +1620,6 @@ void CmndSetoptionBase(bool indexed) {
             TasmotaGlobal.restart_flag = 2;  // SetOption37 needs a reboot in most cases
           }
 #endif
-#if (defined(USE_IR_REMOTE) && defined(USE_IR_RECEIVE)) || defined(USE_IR_REMOTE_FULL)
-          if (P_IR_UNKNOW_THRESHOLD == pindex) {
-            IrReceiveUpdateThreshold();    // SetOption38
-          }
-          if (P_IR_TOLERANCE == pindex) {
-            IrReceiveUpdateTolerance();    // SetOption44
-          }
-#endif
 #ifdef ROTARY_V1
           if (P_ROTARY_MAX_STEP == pindex) {
             RotaryInitMaxSteps();          // SetOption43

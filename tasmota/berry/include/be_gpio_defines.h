@@ -133,8 +133,6 @@ const be_const_member_t lv_gpio_constants[] = {
     { "INPUT_PULLDOWN", INPUT_PULLDOWN },
     { "INPUT_PULLUP", INPUT_PULLUP },
     { "INTERRUPT", (int32_t) GPIO_INTERRUPT },
-    { "IRRECV", (int32_t) GPIO_IRRECV },
-    { "IRSEND", (int32_t) GPIO_IRSEND },
     { "KEY1", (int32_t) GPIO_KEY1 },
     { "KEY1_INV", (int32_t) GPIO_KEY1_INV },
     { "KEY1_INV_NP", (int32_t) GPIO_KEY1_INV_NP },

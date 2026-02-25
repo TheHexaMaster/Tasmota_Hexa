@@ -263,7 +263,6 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_I2C_SCL),        // I2C SCL
   AGPIO(GPIO_I2C_SDA),        // I2C SDA
   AGPIO(GPIO_WS2812),         // WS2812 Led string
-  AGPIO(GPIO_IRSEND),         // IR remote
   AGPIO(GPIO_SWT1),           // Switch
   AGPIO(GPIO_SWT1) +1,
   AGPIO(GPIO_SWT1) +2,
@@ -306,7 +305,6 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_PWM1_INV) +2,
   AGPIO(GPIO_PWM1_INV) +3,
   AGPIO(GPIO_PWM1_INV) +4,
-  AGPIO(GPIO_IRRECV),         // IR receive
   AGPIO(GPIO_LED1),           // Led
   AGPIO(GPIO_LED1) +1,
   AGPIO(GPIO_LED1) +2,

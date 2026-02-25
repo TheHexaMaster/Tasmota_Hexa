@@ -38,7 +38,6 @@ enum UserSelectablePins {
   GPIO_SSPI_MISO, GPIO_SSPI_MOSI, GPIO_SSPI_SCLK, GPIO_SSPI_CS, GPIO_SSPI_DC,  // Software SPI
   GPIO_BACKLIGHT,                      // Display backlight control
   GPIO_OLED_RESET,                     // OLED Display Reset
-  GPIO_IRSEND, GPIO_IRRECV,            // IR interface
   GPIO_RFSEND, GPIO_RFRECV,            // RF interface
   GPIO_DHT11, GPIO_DHT22, GPIO_SI7021, GPIO_DHT11_OUT,  // DHT11, DHT21, DHT22, AM2301, AM2302, AM2321
   GPIO_DSB, GPIO_DSB_OUT,              // DS18B20 or DS18S20
@@ -876,12 +875,6 @@ const uint16_t kGpioNiceList[] PROGMEM = {
  * Transmission sensors
 \*-------------------------------------------------------------------------------------------*/
 
-#if defined(USE_IR_REMOTE) || defined(USE_IR_REMOTE_FULL)
-  AGPIO(GPIO_IRSEND) + AGMAX(MAX_IRSEND),        // IR remote
-#if defined(USE_IR_RECEIVE) || defined(USE_IR_REMOTE_FULL)
-  AGPIO(GPIO_IRRECV),                            // IR receiver
-#endif
-#endif
 #ifdef USE_RC_SWITCH
   AGPIO(GPIO_RFSEND),                            // RF transmitter
   AGPIO(GPIO_RFRECV),                            // RF receiver
