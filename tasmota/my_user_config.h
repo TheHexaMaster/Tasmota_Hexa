@@ -933,9 +933,9 @@
 //  #define ME007_MAX_SENSOR_DISTANCE  800         // Set sensor max detection distance
 //  #define ME007_ENABLE_MEDIAN_FILTER             // Enables that distance measurements are filtered with an median filter of length 5
 //#define USE_DYP                                  // Add support for DYP ME-007 ultrasonic distance sensor, serial port version (+0k5 code)
-#define USE_SERIAL_BRIDGE                        // Add support for software Serial Bridge (+2k code)
+// #define USE_SERIAL_BRIDGE                        // Add support for software Serial Bridge (+2k code)
 //  #define SERIAL_BRIDGE_BUFFER_SIZE 256          // Serial Bridge receive buffer size (Default ESP8266 = 256, ESP32 = 800)
-#define USE_MODBUS_BRIDGE                        // Add support for software Modbus Bridge (+4.5k code)
+// #define USE_MODBUS_BRIDGE                        // Add support for software Modbus Bridge (+4.5k code)
 // #define USE_MODBUS_BRIDGE_TCP                    // Add support for software Modbus TCP Bridge (also enable Modbus TCP Bridge) (+2k code)
 // #define MODBUS_BRIDGE_TCP_DEFAULT_PORT 502       // Add support for software Modbus TCP Bridge (start the TCP bridge automatically at PORT 502)
 //#define USE_TCP_BRIDGE                           //  Add support for Serial to TCP bridge (+1.3k code)
@@ -1025,7 +1025,7 @@
   #define MAKE_SKY_BLUE_OPTION 0x7                 // MakeSkyBlue option: 0=minimal, 0x1=with serial debug, 0x2=with EnergyConfig On/Off, 0x4=with EnergyConfig register R/W
 
 // -- Low level interface devices -----------------
-#define USE_DHT                                  // Add support for DHT11, AM2301 (DHT21, DHT22, AM2302, AM2321) and SI7021 Temperature and Humidity sensor (1k6 code)
+// #define USE_DHT                                  // Add support for DHT11, AM2301 (DHT21, DHT22, AM2302, AM2321) and SI7021 Temperature and Humidity sensor (1k6 code)
 
 //#define USE_MAX31855                             // Add support for MAX31855/MAX6675 K-Type thermocouple sensor using softSPI
 //#define USE_MAX31865                             // Add support for MAX31865 RTD sensors using softSPI
@@ -1036,48 +1036,6 @@
 //#define USE_LMT01                                // Add support for TI LMT01 temperature sensor, count pulses on single GPIO (+0k5 code)
 //#define USE_WIEGAND                              // Add support for 24/26/32/34 bit RFID Wiegand interface (D0/D1) (+1k7 code)
 
-// -- IR Remote features - all protocols from IRremoteESP8266 --------------------------
-// IR Full Protocols mode is now activated through USE_IR_REMOTE_FULL
-//
-// Code impact of IR full protocols is +90k code, 3k mem
-
-// -- IR Remote features - subset of IR protocols --------------------------
-//#define USE_IR_REMOTE                            // Send IR remote commands using library IRremoteESP8266 (+4k3 code, 0k3 mem, 48 iram)
-  #define IR_SEND_INVERTED          false        // Invert the output. (default = false) e.g. LED is illuminated when GPIO is LOW rather than HIGH.
-                                                 // Setting inverted to something other than the default could easily destroy your IR LED if you are overdriving it.
-                                                 // Unless you REALLY know what you are doing, don't change this.
-  #define IR_SEND_USE_MODULATION    true         // Do we do frequency modulation during transmission? i.e. If not, assume a 100% duty cycle.
-
-  // ====> IR Full protocols are enabled with the line below
-  // #define USE_IR_REMOTE_FULL                     // Support all IR protocols from IRremoteESP8266
-  //
-  // WARNING: if you change any IR configuration, you need to clear Platform.io cache
-  //          currently the include change detection does not work for these parameters
-  //          This is not an issue if you compile with gitpod or pre-compiled binaries
-  //          since there is no cache of previously compiled libraries
-  // ====>
-  //
-  // You can also disable specific protocols in user_config_override
-  // Example: disable some HVAC protocols to reduce flash size
-  // #define DECODE_WHIRLPOOL_AC  false
-  // #define SEND_WHIRLPOOL_AC    false
-  // #define DECODE_SAMSUNG_AC    false
-  // #define SEND_SAMSUNG_AC      false
-  // ...
-
-  // When using 'USE_IR_REMOTE_FULL', parameters below
-  // (USE_IR_REMOTE, USE_IR_RECEIVE, USE_IR_HVAC...) are IGNORED.
-  // #define USE_IR_SEND_NEC                        // Support IRsend NEC protocol
-  // #define USE_IR_SEND_RC5                        // Support IRsend Philips RC5 protocol
-  // #define USE_IR_SEND_RC6                        // Support IRsend Philips RC6 protocol
-
-  // Enable IR devoder via GPIO `IR Recv` - always enabled if `USE_IR_REMOTE_FULL`
-  // #define USE_IR_RECEIVE                         // Support for IR receiver (+7k2 code, 264 iram)
-    #define IR_RCV_BUFFER_SIZE      100          // Max number of packets allowed in capture buffer (default 100 (*2 bytes ram))
-    #define IR_RCV_TIMEOUT          15           // Number of milli-Seconds of no-more-data before we consider a message ended (default 15)
-    #define IR_RCV_MIN_UNKNOWN_SIZE 6            // Set the smallest sized "UNKNOWN" message packets we actually care about (default 6, max 255)
-    #define IR_RCV_WHILE_SENDING    0            // Turns on receiver while sending messages, i.e. receive your own. This is unreliable and can cause IR timing issues
-    #define IR_RCV_TOLERANCE        25           // Base tolerance percentage for matching incoming IR messages (default 25, max 100)
 
 // -- SD Card support -----------------------------
   #define USE_SDCARD                               // mount SD Card, requires configured SPI pins and setting of `SDCard CS` gpio
