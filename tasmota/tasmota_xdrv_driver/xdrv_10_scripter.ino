@@ -3932,58 +3932,7 @@ _Pragma("GCC warning \"'EXT 1 wakeup' not supported using gpio mode\"")
           goto exit;
         }
 #endif
-#ifdef USE_ENERGY_SENSOR
-        if (!strncmp_XP(lp, XPSTR("enrg["), 5)) {
-          lp = GetNumericArgument(lp + 5, OPER_EQU, &fvar, gv);
-          while (*lp == ' ') lp++;
-          switch ((uint32_t)fvar) {
-            case 0:
-              fvar = Energy->total_sum;
-              break;
-            case 1:
-              fvar = Energy->voltage[0];
-              break;
-            case 2:
-              fvar = Energy->voltage[1];
-              break;
-            case 3:
-              fvar = Energy->voltage[2];
-              break;
-            case 4:
-              fvar = Energy->current[0];
-              break;
-            case 5:
-              fvar = Energy->current[1];
-              break;
-            case 6:
-              fvar = Energy->current[2];
-              break;
-            case 7:
-              fvar = Energy->active_power[0];
-              break;
-            case 8:
-              fvar = Energy->active_power[1];
-              break;
-            case 9:
-              fvar = Energy->active_power[2];
-              break;
-            case 10:
-              fvar = Energy->start_energy[0];
-              break;
-            case 11:
-              fvar = Energy->daily_sum;
-              break;
-            case 12:
-              fvar = Energy->yesterday_sum;
-              break;
 
-            default:
-              fvar = 99999;
-              break;
-          }
-          goto nfuncexit;
-        }
-#endif //USE_ENERGY_SENSOR
         if (!strncmp_XP(vname, XPSTR("ethdwn"), 6)) {
           fvar = TasmotaGlobal.global_state.eth_down;
           goto exit;

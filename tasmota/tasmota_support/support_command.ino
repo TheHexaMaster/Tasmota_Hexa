@@ -1141,15 +1141,6 @@ void CmndStatus(void)
     CmndStatusResponse(7);
   }
 
-#if defined(USE_ENERGY_SENSOR) && defined(USE_ENERGY_MARGIN_DETECTION)
-  if (TasmotaGlobal.energy_driver) {
-    // Status 9 - StatusPTH
-    if ((0 == payload) || (9 == payload)) {
-      EnergyMarginStatus();
-      CmndStatusResponse(9);
-    }
-  }
-#endif  // USE_ENERGY_MARGIN_DETECTION
 
   // Status 8 / 10 - StatusSNS
   if ((0 == payload) || (8 == payload) || (10 == payload)) {

@@ -183,9 +183,6 @@ BERRY_LOCAL const bntvmodule_t* const be_module_table[] = {
     &be_native_module(haspmota),
 #endif // USE_LVGL_HASPMOTA
 #endif // USE_LVGL
-#ifdef USE_ENERGY_SENSOR
-    &be_native_module(energy),
-#endif // USE_ENERGY_SENSOR
 #ifdef USE_WEBSERVER
     &be_native_module(webserver),
 #endif // USE_WEBSERVER
@@ -341,9 +338,6 @@ BERRY_LOCAL bclass_array be_class_table = {
     &be_native_class(Leds),
     &be_native_class(pixmat),
 #endif // USE_WS2812
-#ifdef USE_ENERGY_SENSOR
-    &be_native_class(energy_struct),
-#endif // USE_ENERGY_SENSOR
 
 #ifdef USE_LVGL
     &be_native_class(LVGL_glob),

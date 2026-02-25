@@ -649,18 +649,7 @@ void KNX_INIT(void)
   }
 #endif
 
-#if defined(USE_ENERGY_SENSOR)
-  // Any device with a Power Monitoring
-  if ( TasmotaGlobal.energy_driver != ENERGY_NONE ) {
-    device_param[KNX_ENERGY_POWER-1].show = true;
-    device_param[KNX_ENERGY_DAILY-1].show = true;
-    device_param[KNX_ENERGY_YESTERDAY-1].show = true;
-    device_param[KNX_ENERGY_TOTAL-1].show = true;
-    device_param[KNX_ENERGY_VOLTAGE-1].show = true;
-    device_param[KNX_ENERGY_CURRENT-1].show = true;
-    device_param[KNX_ENERGY_POWERFACTOR-1].show = true;
-  }
-#endif // USE_ENERGY_SENSOR
+
 
 #if defined(USE_RULES) || defined(USE_SCRIPT)
   device_param[KNX_SLOT1-1].show = true;
@@ -844,36 +833,7 @@ void KNX_CB_Action(message_t const &msg, void *arg)
         KNX_ANSWER_4BYTE_FLOAT(msg.received_on, Knx.last_hum);
         #endif // KNX_USE_DPT9
       }
-#if defined(USE_ENERGY_SENSOR)      
-      else if (chan->type == KNX_ENERGY_VOLTAGE) // Reply KNX_ENERGY_VOLTAGE
-      {
-        KNX_ANSWER_4BYTE_FLOAT(msg.received_on, Energy->voltage[0]);
-      }
-      else if (chan->type == KNX_ENERGY_CURRENT) // Reply KNX_ENERGY_CURRENT
-      {
-        KNX_ANSWER_4BYTE_FLOAT(msg.received_on, Energy->current[0]);
-      }
-      else if (chan->type == KNX_ENERGY_POWER) // Reply KNX_ENERGY_POWER
-      {
-        KNX_ANSWER_4BYTE_FLOAT(msg.received_on, Energy->active_power[0]);
-      }
-      else if (chan->type == KNX_ENERGY_POWERFACTOR) // Reply KNX_ENERGY_POWERFACTOR
-      {
-        KNX_ANSWER_4BYTE_FLOAT(msg.received_on, Energy->power_factor[0]);
-      }
-      else if (chan->type == KNX_ENERGY_YESTERDAY) // Reply KNX_ENERGY_YESTERDAY
-      {
-        KNX_ANSWER_4BYTE_INT(msg.received_on, round(1000.0 * Energy->yesterday_sum));
-      }
-      else if (chan->type == KNX_ENERGY_DAILY) // Reply KNX_ENERGY_DAILY
-      {
-        KNX_ANSWER_4BYTE_INT(msg.received_on, round(1000.0 * Energy->daily_sum));
-      }
-      else if (chan->type == KNX_ENERGY_TOTAL) // Reply KNX_ENERGY_TOTAL
-      {
-        KNX_ANSWER_4BYTE_INT(msg.received_on, round(1000.0 * Energy->total_sum));
-      }
-#endif // USE_ENERGY_SENSOR
+
 
 #if defined(USE_RULES) || defined(USE_SCRIPT)
 

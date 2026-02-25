@@ -214,9 +214,7 @@ typedef struct TUYA_STRUCT_tag {
   uint8_t send_heartbeat;             // trigger heartbeat when we can next send.
   uint8_t send_time;                  // trigger time send when we can in running mode.
 
-#ifdef USE_ENERGY_SENSOR
-  uint32_t lastPowerCheckTime;        // Time when last power was checked
-#endif // USE_ENERGY_SENSOR
+
   unsigned char buffer[TUYA_BUFFER_SIZE];      // Serial receive buffer
   int byte_counter;                   // Index in serial receive buffer
   uint32_t ignore_dimmer_cmd_timeout; // Time until which received dimmer commands should be ignored
@@ -1580,34 +1578,7 @@ void TuyaProcessRxedDP(uint8_t dpid, uint8_t type, uint8_t *data, int dpDataLen)
   //AddLog(LOG_LEVEL_DEBUG, PSTR("TYA: fnId=%d is set for dpId=%d"), fnId, dpid);
   switch(type) {
     case TUYA_TYPE_RAW: {
-#ifdef USE_ENERGY_SENSOR
-        if (tuya_energy_enabled && fnId == TUYA_MCU_FUNC_POWER_COMBINED) {
-        if (dpDataLen >= 8) {
-          // data is pTuya->buffer[dpidStart + 4];
-          uint16_t tmpVol = data[4 - 4] << 8 | data[5 - 4];
-          uint16_t tmpCur = data[7 - 4] << 8 | data[8 - 4];
-          uint16_t tmpPow = data[10 - 4] << 8 | data[11 - 4];
-/*          uint16_t tmpVol = pTuya->buffer[dpidStart + 4] << 8 | pTuya->buffer[dpidStart + 5];
-          uint16_t tmpCur = pTuya->buffer[dpidStart + 7] << 8 | pTuya->buffer[dpidStart + 8];
-          uint16_t tmpPow = pTuya->buffer[dpidStart + 10] << 8 | pTuya->buffer[dpidStart + 11];*/
-          Energy->voltage[0] = (float)tmpVol / 10;
-          Energy->current[0] = (float)tmpCur / 1000;
-          Energy->active_power[0] = (float)tmpPow;
 
-          AddLog(LOG_LEVEL_DEBUG, PSTR("TYA: fnId=%d Rx ID=%d Voltage=%d Current=%d Active_Power=%d"), fnId, dpid, tmpVol, tmpCur, tmpPow);
-
-          if (RtcTime.valid) {
-            if (pTuya->lastPowerCheckTime != 0 && Energy->active_power[0] > 0) {
-              Energy->kWhtoday[0] += Energy->active_power[0] * (float)(Rtc.utc_time - pTuya->lastPowerCheckTime) / 36.0;
-              EnergyUpdateToday();
-            }
-            pTuya->lastPowerCheckTime = Rtc.utc_time;
-          }
-        } else {
-          AddLog(LOG_LEVEL_DEBUG, PSTR("TYA: fnId=%d Rx ID=%d INV_LEN=%d"), fnId, dpid, dpDataLen);
-        }
-        }
-        #endif // USE_ENERGY_SENSOR
     } break;
 
     case TUYA_TYPE_BOOL: {  // Data Type 1
@@ -1729,30 +1700,7 @@ void TuyaProcessRxedDP(uint8_t dpid, uint8_t type, uint8_t *data, int dpDataLen)
           pTuya->Snapshot[dimIndex] = pTuya->Levels[dimIndex];
           }
         }
-  #ifdef USE_ENERGY_SENSOR
-        else if (tuya_energy_enabled && fnId == TUYA_MCU_FUNC_VOLTAGE) {
-          Energy->voltage[0] = (float)packetValue / 10;
-        AddLog(LOG_LEVEL_DEBUG, PSTR("TYA: fnId=%d Rx ID=%d Voltage=%d"), fnId, dpid, packetValue);
-        } else if (tuya_energy_enabled && fnId == TUYA_MCU_FUNC_CURRENT) {
-          Energy->current[0] = (float)packetValue / 1000;
-        AddLog(LOG_LEVEL_DEBUG, PSTR("TYA: fnId=%d Rx ID=%d Current=%d"), fnId, dpid, packetValue);
-        } else if (tuya_energy_enabled && fnId == TUYA_MCU_FUNC_POWER) {
-          Energy->active_power[0] = (float)packetValue / 10;
-        AddLog(LOG_LEVEL_DEBUG, PSTR("TYA: fnId=%d Rx ID=%d Active_Power=%d"), fnId, dpid, packetValue);
 
-          if (RtcTime.valid) {
-          if (pTuya->lastPowerCheckTime != 0 && Energy->active_power[0] > 0) {
-            Energy->kWhtoday[0] += Energy->active_power[0] * (float)(Rtc.utc_time - pTuya->lastPowerCheckTime) / 36.0;
-              EnergyUpdateToday();
-            }
-          pTuya->lastPowerCheckTime = Rtc.utc_time;
-          }
-        } else if (tuya_energy_enabled && fnId == TUYA_MCU_FUNC_POWER_TOTAL) {
-          Energy->import_active[0] = (float)packetValue / 100;
-        AddLog(LOG_LEVEL_DEBUG, PSTR("TYA: fnId=%d Rx ID=%d Total_Power=%d"), fnId, dpid, packetValue);
-          EnergyUpdateTotal();
-        }
-  #endif // USE_ENERGY_SENSOR
     } break;
 
     case TUYA_TYPE_STRING: {  // Data Type 3
@@ -2447,28 +2395,7 @@ void TuyaWebGetArg(void) {
  * Interface
 \*********************************************************************************************/
 
-#ifdef USE_ENERGY_SENSOR
 
-bool Xnrg32(uint32_t function)
-{
-  bool result = false;
-
-  if (pTuya && pTuya->active) {
-    if (FUNC_PRE_INIT == function) {
-      if (TuyaGetDpId(TUYA_MCU_FUNC_POWER) != 0 || TuyaGetDpId(TUYA_MCU_FUNC_POWER_COMBINED) != 0) {
-        if (TuyaGetDpId(TUYA_MCU_FUNC_CURRENT) == 0 && TuyaGetDpId(TUYA_MCU_FUNC_POWER_COMBINED) == 0) {
-          Energy->current_available = false;
-        }
-        if (TuyaGetDpId(TUYA_MCU_FUNC_VOLTAGE) == 0 && TuyaGetDpId(TUYA_MCU_FUNC_POWER_COMBINED) == 0) {
-          Energy->voltage_available = false;
-        }
-        TasmotaGlobal.energy_driver = XNRG_32;
-      }
-    }
-  }
-  return result;
-}
-#endif  // USE_ENERGY_SENSOR
 
 bool Xdrv16(uint32_t function) {
   bool result = false;

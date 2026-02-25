@@ -211,15 +211,7 @@ void ZeroCrossIsr(void) {
 }
 
 void ZeroCrossInit(uint32_t offset) {
-  if (PinUsed(GPIO_ZEROCROSS)) {
-    TasmotaGlobal.zc_offset = offset;
 
-    uint32_t gpio = Pin(GPIO_ZEROCROSS);
-    pinMode(gpio, INPUT_PULLUP);
-    attachInterrupt(gpio, ZeroCrossIsr, CHANGE);
-
-    AddLog(LOG_LEVEL_INFO, PSTR("ZCD: Activated"));  // Zero-cross detection activated
-  }
 }
 
 /********************************************************************************************/

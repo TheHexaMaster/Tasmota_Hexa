@@ -172,7 +172,7 @@ void ShellyProInit(void) {
   digitalWrite(pin_lan_reset, 1);
 
   AddLog(LOG_LEVEL_INFO, PSTR("HDW: Shelly Pro %d%s initialized"),
-    SPro.detected, (PinUsed(GPIO_ADE7953_CS))?"PM":"");
+    SPro.detected, "PM":"");
 
   SPro.init_done = true;
 }

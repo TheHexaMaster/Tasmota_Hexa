@@ -56,7 +56,6 @@
 #undef USE_PWM_DIMMER                           // Disable support for MJ-SD01/acenx/NTONPOWER PWM dimmers (+4k5 code)
 #undef USE_KEELOQ                               // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 #undef USE_SONOFF_D1                            // Disable support for Sonoff D1 Dimmer (+0k7 code)
-#undef USE_SHELLY_DIMMER                        // Disable support for Shelly Dimmer (+3k code)
 
 // -- Optional light modules ----------------------
 #define USE_LIGHT                                // Add Dimmer/Light support
@@ -119,8 +118,6 @@
 #define USE_SCD30                              // [I2cDriver29] Enable Sensiron SCd30 CO2 sensor (I2C address 0x61) (+3k3 code)
 //#define USE_SCD40                              // [I2cDriver62] Enable Sensiron SCd40 CO2 sensor (I2C address 0x62) (+3k5 code)
 //#define USE_SPS30                              // [I2cDriver30] Enable Sensiron SPS30 particle sensor (I2C address 0x69) (+1.7 code)
-//#define USE_ADE7880                            // [I2cDriver65] Enable ADE7880 Energy monitor as used on Shelly 3EM (I2C address 0x38) (+3k8)
-#define USE_ADE7953                            // [I2cDriver7] Enable ADE7953 Energy monitor as used on Shelly 2.5 (I2C address 0x38) (+1k5)
 #define USE_VL53L0X                            // [I2cDriver31] Enable VL53L0x time of flight sensor (I2C address 0x29) (+4k code)
 //#define USE_VL53L1X                            // [I2cDriver54] Enable VL53L1X time of flight sensor (I2C address 0x29) using Pololu VL53L1X library (+2k9 code)
 //#define USE_TOF10120                           // [I2cDriver57] Enable TOF10120 time of flight sensor (I2C address 0x52) (+0k6 code)
@@ -225,23 +222,6 @@
 //#define USE_TFMINIPLUS                           // Add suppoer for TFmini Plus (TFmini, TFmini-S) LiDAR modules via UART interface
 //#define USE_HRG15                                // Add support for Hydreon RG-15 Solid State Rain sensor (+1k5 code)
 
-#define USE_ENERGY_SENSOR                        // Add energy sensors (-14k code)
-#define USE_PZEM004T                             // Add support for PZEM004T Energy monitor (+2k code)
-#define USE_PZEM_AC                              // Add support for PZEM014,016 Energy monitor (+1k1 code)
-#define USE_PZEM_DC                              // Add support for PZEM003,017 Energy monitor (+1k1 code)
-#define USE_MCP39F501                            // Add support for MCP39F501 Energy monitor as used in Shelly 2 (+3k1 code)
-#define USE_SDM72                                // Add support for Eastron SDM72-Modbus energy monitor (+0k3 code)
-#define USE_SDM120                               // Add support for Eastron SDM120-Modbus energy monitor (+1k1 code)
-//#define USE_SDM230                               // Add support for Eastron SDM230-Modbus energy monitor (+?? code)
-#define USE_SDM630                               // Add support for Eastron SDM630-Modbus energy monitor (+0k6 code)
-#define USE_DDS2382                              // Add support for Hiking DDS2382 Modbus energy monitor (+0k6 code)
-#define USE_DDSU666                              // Add support for Chint DDSU666 Modbus energy monitor (+0k6 code)
-//#define USE_SOLAX_X1                             // Add support for Solax X1 series Modbus log info (+3k1 code)
-//#define USE_LE01MR                               // Add support for F&F LE-01MR modbus energy meter (+2k code)
-//#define USE_TELEINFO                             // Add support for French Energy Provider metering telemetry (+5k2 code, +168 RAM + SmartMeter LinkedList Values RAM)
-//#define USE_WE517                                // Add support for Orno WE517-Modbus energy monitor (+1k code)
-//#define USE_MODBUS_ENERGY                        // Add support for generic modbus energy monitor using a user file in rule space (+5k)
-
 #define USE_DHT                                  // Add support for DHT11, AM2301 (DHT21, DHT22, AM2302, AM2321) and SI7021 Temperature and Humidity sensor
 #define USE_MAX31855                             // Add support for MAX31855 K-Type thermocouple sensor using softSPI
 //#define USE_MAX31865                             // Add support for MAX31865 RTD sensors using softSPI
@@ -330,25 +310,7 @@
 #undef USE_PWM_DIMMER_REMOTE                     // Disbale support for remote switches to PWM Dimmer
 #undef USE_KEELOQ                                // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 #undef USE_SONOFF_D1                             // Disable support for Sonoff D1 Dimmer (+0k7 code)
-#undef USE_SHELLY_DIMMER                         // Disable support for Shelly Dimmer (+3k code)
 
-#undef USE_ENERGY_SENSOR                         // Disable energy sensors (-14k code)
-  #undef USE_PZEM004T                            // Disable PZEM004T energy sensor
-  #undef USE_PZEM_AC                             // Disable PZEM014,016 Energy monitor
-  #undef USE_PZEM_DC                             // Disable PZEM003,017 Energy monitor
-  #undef USE_MCP39F501                           // Disable MCP39F501 Energy monitor as used in Shelly 2
-  #undef USE_SDM72                               // Disable support for Eastron SDM72-Modbus energy meter
-  #undef USE_SDM120                              // Disable support for Eastron SDM120-Modbus energy meter
-  #undef USE_SDM230                              // Disable support for Eastron SDM230-Modbus energy monitor (+?? code)
-  #undef USE_SDM630                              // Disable support for Eastron SDM630-Modbus energy monitor (+0k6 code)
-  #undef USE_DDS2382                             // Disable support for Hiking DDS2382 Modbus energy monitor (+0k6 code)
-  #undef USE_DDSU666                             // Disable support for Chint DDSU666 Modbus energy monitor (+0k6 code)
-  #undef USE_SOLAX_X1                            // Disable support for Solax X1 series Modbus log info (+3k1 code)
-  #undef USE_LE01MR                              // Disable support for F&F LE-01MR Modbus energy meter (+2k code)
-  #undef USE_TELEINFO                            // Disable support for French Energy Provider metering telemetry
-  #undef USE_IEM3000                             // Disable support for Schneider Electric iEM3000-Modbus series energy monitor (+0k8 code)
-  #undef USE_WE517                               // Disable support for Orno WE517-Modbus energy monitor (+1k code)
-  #undef USE_MODBUS_ENERGY                       // Disable support for generic modbus energy monitor using a user file in rule space (+5k)
 #undef USE_BLE_ESP32                             // (ESP32 only) Disable support for native BLE on ESP32 - use new driver
 #undef USE_MI_ESP32                              // (ESP32 only) Disable support for ESP32 as a BLE-bridge (+9k2 mem, +292k flash)
 
@@ -465,7 +427,6 @@
 #undef USE_SONOFF_L1                             // Disable support for Sonoff L1 led control
 #undef USE_ELECTRIQ_MOODL                        // Disable support for ElectriQ iQ-wifiMOODL RGBW LED controller
 #undef USE_LIGHT_PALETTE                         // Disable support for color palette (+0k9 code)
-#undef USE_SHELLY_DIMMER                         // Disable support for Shelly Dimmer (+3k code)
 
 #undef USE_COUNTER                               // Disable counters
 #define USE_ADC_VCC                              // Display Vcc in Power status. Disable for use as Analog input on selected devices
@@ -500,25 +461,6 @@
 #undef USE_PROJECTOR_CTRL                        // Disable support for LCD/DLP Projector serial control interface
 #undef USE_LOX_O2                                // Disable support for LuminOx LOX O2 Sensor
 
-#undef USE_ENERGY_SENSOR                         // Disable energy sensors
-#undef USE_ADE7880                               // Disable ADE7880 Energy monitor as used on Shelly 3EM (I2C address 0x38) (+3k8)
-#undef USE_ADE7953                               // Disable ADE7953 Energy monitor as used on Shelly 2.5 (I2C address 0x38) (+1k5)
-#undef USE_PZEM004T                              // Disable PZEM004T energy sensor
-#undef USE_PZEM_AC                               // Disable PZEM014,016 Energy monitor
-#undef USE_PZEM_DC                               // Disable PZEM003,017 Energy monitor
-#undef USE_MCP39F501                             // Disable MCP39F501 Energy monitor as used in Shelly 2
-#undef USE_SDM72                                 // Disable support for Eastron SDM72-Modbus energy meter
-#undef USE_SDM120                                // Disable support for Eastron SDM120-Modbus energy meter
-#undef USE_SDM230                                // Disable support for Eastron SDM230-Modbus energy monitor (+?? code)
-#undef USE_SDM630                                // Disable support for Eastron SDM630-Modbus energy monitor (+0k6 code)
-#undef USE_DDS2382                               // Disable support for Hiking DDS2382 Modbus energy monitor (+0k6 code)
-#undef USE_DDSU666                               // Disable support for Chint DDSU666 Modbus energy monitor (+0k6 code)
-#undef USE_SOLAX_X1                              // Disable support for Solax X1 series Modbus log info (+3k1 code)
-#undef USE_LE01MR                                // Disable support for F&F LE-01MR Modbus energy meter (+2k code)
-#undef USE_TELEINFO                              // Disable support for French Energy Provider metering telemetry
-#undef USE_IEM3000                               // Disable support for Schneider Electric iEM3000-Modbus series energy monitor (+0k8 code)
-#undef USE_WE517                                 // Disable support for Orno WE517-Modbus energy monitor (+1k code)
-#undef USE_MODBUS_ENERGY                         // Disable support for generic modbus energy monitor using a user file in rule space (+5k)
 
 #undef USE_DHT                                   // Disable support for DHT11, AM2301 (DHT21, DHT22, AM2302, AM2321) and SI7021 Temperature and Humidity sensor
 #undef USE_MAX31855                              // Disable MAX31855 K-Type thermocouple sensor using softSPI
@@ -601,7 +543,6 @@
 #undef USE_PWM_DIMMER_REMOTE                     // Disbale support for remote switches to PWM Dimmer
 #undef USE_KEELOQ                                // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 #undef USE_SONOFF_D1                             // Disable support for Sonoff D1 Dimmer (+0k7 code)
-#undef USE_SHELLY_DIMMER                         // Disable support for Shelly Dimmer (+3k code)
 
 // -- Optional light modules ----------------------
 //#undef USE_LIGHT                                 // Also disable all Dimmer/Light support
@@ -655,25 +596,6 @@
 #undef USE_VINDRIKTNING                          // Disable support for IKEA VINDRIKTNING particle concentration sensor (+1k code)
 #undef USE_LOX_O2                                // Disable support for LuminOx LOX O2 Sensor
 
-#undef USE_ENERGY_SENSOR                         // Disable energy sensors
-#undef USE_PZEM004T                              // Disable PZEM004T energy sensor
-#undef USE_PZEM_AC                               // Disable PZEM014,016 Energy monitor
-#undef USE_PZEM_DC                               // Disable PZEM003,017 Energy monitor
-//#undef USE_MCP39F501                             // Disable MCP39F501 Energy monitor as used in Shelly 2
-#undef USE_SDM72                                 // Disable support for Eastron SDM72-Modbus energy meter
-#undef USE_SDM120                                // Disable support for Eastron SDM120-Modbus energy meter
-#undef USE_SDM230                                // Disable support for Eastron SDM230-Modbus energy monitor (+?? code)
-#undef USE_SDM630                                // Disable support for Eastron SDM630-Modbus energy monitor (+0k6 code)
-#undef USE_DDS2382                               // Disable support for Hiking DDS2382 Modbus energy monitor (+0k6 code)
-#undef USE_DDSU666                               // Disable support for Chint DDSU666 Modbus energy monitor (+0k6 code)
-#undef USE_SOLAX_X1                              // Disable support for Solax X1 series Modbus log info (+3k1 code)
-#undef USE_LE01MR                                // Disable support for F&F LE-01MR Modbus energy meter (+2k code)
-//#undef USE_BL09XX                                // Disable support for BL0940 Energy monitor as used in Blitzwolf SHP-10 (+1k6 code)
-#undef USE_TELEINFO                              // Disable support for French Energy Provider metering telemetry
-#undef USE_IEM3000                               // Disable support for Schneider Electric iEM3000-Modbus series energy monitor (+0k8 code)
-#undef USE_BL6523                                // Disable support for BL6523 based energy monitor (+7k code)
-#undef USE_WE517                                 // Disable support for Orno WE517-Modbus energy monitor (+1k code)
-#undef USE_MODBUS_ENERGY                         // Disable support for generic modbus energy monitor using a user file in rule space (+5k)
 
 #undef USE_DHT                                   // Disable support for DHT11, AM2301 (DHT21, DHT22, AM2302, AM2321) and SI7021 Temperature and Humidity sensor
 #undef USE_MAX31855                              // Disable MAX31855 K-Type thermocouple sensor using softSPI
@@ -767,7 +689,6 @@
 #undef USE_PWM_DIMMER_REMOTE                     // Disbale support for remote switches to PWM Dimmer
 #undef USE_KEELOQ                                // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 #undef USE_SONOFF_D1                             // Disable support for Sonoff D1 Dimmer (+0k7 code)
-#undef USE_SHELLY_DIMMER                         // Disable support for Shelly Dimmer (+3k code)
 
 // -- Optional light modules ----------------------
 #undef USE_LIGHT                                 // Disable support for lights
@@ -812,7 +733,6 @@
 #undef USE_VINDRIKTNING                          // Disable support for IKEA VINDRIKTNING particle concentration sensor (+0k6 code)
 #undef USE_LOX_O2                                // Disable support for LuminOx LOX O2 Sensor
 
-#undef USE_ENERGY_SENSOR                         // Disable energy sensors
 
 #undef USE_DHT                                   // Disable support for DHT11, AM2301 (DHT21, DHT22, AM2302, AM2321) and SI7021 Temperature and Humidity sensor
 #undef USE_MAX31855                              // Disable MAX31855 K-Type thermocouple sensor using softSPI

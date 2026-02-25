@@ -583,9 +583,6 @@
 //  #define USE_PWM_DIMMER_REMOTE                  // Add support for remote switches to PWM Dimmer (requires USE_DEVICE_GROUPS) (+0k6 code)
 //#define USE_KEELOQ                               // Add support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 // #define USE_SONOFF_D1                            // Add support for Sonoff D1 Dimmer (+0k7 code)
-// #define USE_SHELLY_DIMMER                        // Add support for Shelly Dimmer (+3k code)
-  // #define SHELLY_CMDS                            // Add command to send co-processor commands (+0k3 code)
-  // #define SHELLY_FW_UPGRADE                      // Add firmware upgrade option for co-processor (+3k4 code)
 //  #define SHELLY_VOLTAGE_MON                     // Add support for reading voltage and current measurment (-0k0 code)
 //#define USE_MAGIC_SWITCH                         // Add Sonoff MagicSwitch support as implemented in Sonoff Basic R4 (+612B flash, +64B IRAM for intr)
 //  #define MAGICSWITCH_MIN_PULSE  4000            // Overridable minimum pulse, also overridable by command MagicSwitchPulse (not saved to flash)
@@ -702,8 +699,6 @@
 //  #define USE_SCD30                              // [I2cDriver29] Enable Sensiron SCd30 CO2 sensor (I2C address 0x61) (+3k3 code)
 //  #define USE_SCD40                              // [I2cDriver62] Enable Sensiron SCd40/Scd41 CO2 sensor (I2C address 0x62) (+3k5 code)
 //  #define USE_SPS30                              // [I2cDriver30] Enable Sensiron SPS30 particle sensor (I2C address 0x69) (+1.7 code)
-//  #define USE_ADE7880                            // [I2cDriver65] Enable ADE7880 Energy monitor as used on Shelly 3EM (I2C address 0x38) (+3k8)
-//  #define USE_ADE7953                            // [I2cDriver7] Enable ADE7953 Energy monitor as used on Shelly 2.5 (I2C address 0x38) (+1k5)
 //  #define USE_VL53L0X                            // [I2cDriver31] Enable VL53L0x time of flight sensor (I2C address 0x29) (+4k code)
 //    #define VL53L0X_XSHUT_ADDRESS 0x78           //   VL53L0X base address when used with XSHUT control
 //  #define USE_VL53L1X                            // [I2cDriver54] Enable VL53L1X time of flight sensor (I2C address 0x29) using Pololu VL53L1X library (+2k9 code)
@@ -979,50 +974,6 @@
 //  #define DALI_POWER_OFF_NO_FADE                 // Power off immediatly without fading (+0k1 code)
 //  #define DALI_LIGHT_NO_READ_AFTER_WRITE         // Use no DTR read-after-write for smooth color transitions saving 55ms / channel (-0k1 code)
 
-// -- Power monitoring sensors --------------------
-// #define USE_ENERGY_SENSOR                        // Add support for Energy Monitors (+14k code)
-// #define USE_ENERGY_MARGIN_DETECTION              // Add support for Energy Margin detection (+1k6 code)
-  #define USE_ENERGY_POWER_LIMIT                 // Add additional support for Energy Power Limit detection (+1k2 code)
-// #define USE_ENERGY_DUMMY                         // Add support for dummy Energy monitor allowing user values (+0k7 code)
-// #define USE_HLW8012                              // Add support for HLW8012, BL0937 or HJL-01 Energy Monitor for Sonoff Pow and WolfBlitz
-// #define USE_CSE7766                              // Add support for CSE7766 Energy Monitor for Sonoff S31 and Pow R2
-// #define USE_PZEM004T                             // Add support for PZEM004T Energy monitor (+2k code)
-// #define USE_PZEM_AC                              // Add support for PZEM014,016 Energy monitor (+1k1 code)
-// #define USE_PZEM_DC                              // Add support for PZEM003,017 Energy monitor (+1k1 code)
-// #define USE_MCP39F501                            // Add support for MCP39F501 Energy monitor as used in Shelly 2 (+3k1 code)
-//#define USE_SDM72                                // Add support for Eastron SDM72-Modbus energy monitor (+0k3 code)
-  #define SDM72_SPEED          9600              // SDM72-Modbus RS485 serial speed (default: 9600 baud)
-  // #define SDM72_IMPEXP                            // Show additonal import/export active energy and power in MQTT and Web (+0k5 code)
-//#define USE_SDM120                               // Add support for Eastron SDM120-Modbus energy monitor (+1k1 code)
-  #define SDM120_SPEED         2400              // SDM120-Modbus RS485 serial speed (default: 2400 baud)
-//#define USE_SDM230                               // Add support for Eastron SDM230-Modbus energy monitor (+1k6 code)
-  #define SDM230_SPEED         9600              // SDM230-Modbus RS485 serial speed (default: 9600 baud)
-//  #define SDM230_MORE_REGS                        // read more registers (see xnrg_21_sdm230.ino, may cause timing issues (at your own risk, +0k4 code))
-//#define USE_SDM630                               // Add support for Eastron SDM630-Modbus energy monitor (+0k6 code)
-  #define SDM630_SPEED         9600              // SDM630-Modbus RS485 serial speed (default: 9600 baud)
-//  #define SDM630_IMPORT                          // Show import active energy in MQTT and Web (+0k3 code)
-//  #define SDM630_HIGH_UPDATE_RATE                //  SDM630-Modbus improved readout with higher update rate (+0k1 RAM)
-//#define USE_DDS2382                              // Add support for Hiking DDS2382 Modbus energy monitor (+0k6 code)
-  #define DDS2382_SPEED        9600              // Hiking DDS2382 Modbus RS485 serial speed (default: 9600 baud)
-//#define USE_DDSU666                              // Add support for Chint DDSU666 Modbus energy monitor (+0k6 code)
-  #define DDSU666_SPEED        9600              // Chint DDSU666 Modbus RS485 serial speed (default: 9600 baud)
-//#define USE_SOLAX_X1                             // Add support for Solax X1 series Modbus log info (+3k1 code)
-  #define SOLAXX1_SPEED        9600              // Solax X1 Modbus RS485 serial speed (default: 9600 baud)
-//  #define SOLAXX1_PV2                            // Solax X1 using second PV
-//#define USE_LE01MR                               // Add support for F&F LE-01MR Modbus energy monitor (+1k code)
-  #define LE01MR_SPEED         9600              // LE-01MR modbus baudrate (default: 9600)
-  #define LE01MR_ADDR          1                 // LE-01MR modbus address (default: 0x01)
-#define USE_BL09XX                               // Add support for various BL09XX Energy monitor as used in Blitzwolf SHP-10 or Sonoff Dual R3 v2 (+1k6 code)
-//#define USE_TELEINFO                             // Add support for Teleinfo via serial RX interface (+5k2 code, +168 RAM + SmartMeter LinkedList Values RAM)
-//#define USE_IEM3000                              // Add support for Schneider Electric iEM3000-Modbus series energy monitor (+0k8 code)
-  #define IEM3000_SPEED          19200           // iEM3000-Modbus RS485 serial speed (default: 19200 baud)
-  #define IEM3000_ADDR           1               // iEM3000-Modbus modbus address (default: 0x01)
-//  #define IEM3000_IEM3155                        // Compatibility fix for Iem3155 (changes Power and Energy total readout)
-//#define USE_WE517                                // Add support for Orno WE517-Modbus energy monitor (+1k code)
-//#define USE_MODBUS_ENERGY                        // Add support for generic modbus energy monitor using a user file in rule space (+5k)
-//#define USE_V9240                              // Add support for Vango Technologies V924x ultralow power, single-phase, power measurement (+12k)
-//#define USE_MAKE_SKY_BLUE                        // Add support for MakeSkyBlue - Solar Charge Controller interface
-  #define MAKE_SKY_BLUE_OPTION 0x7                 // MakeSkyBlue option: 0=minimal, 0x1=with serial debug, 0x2=with EnergyConfig On/Off, 0x4=with EnergyConfig register R/W
 
 // -- Low level interface devices -----------------
 // #define USE_DHT                                  // Add support for DHT11, AM2301 (DHT21, DHT22, AM2302, AM2321) and SI7021 Temperature and Humidity sensor (1k6 code)
@@ -1261,7 +1212,6 @@
   #define USE_BERRY_CRYPTO_HKDF_SHA256      // HKDF with HMAC SHA256, used in Matter protocol
   // #define USE_BERRY_CRYPTO_SPAKE2P_MATTER   // SPAKE2+ used in Matter 1.0, complete name is SPAKE2+-P256-SHA256-HKDF-SHA256-HMAC-SHA256
   #define USE_BERRY_CRYPTO_RSA              // RSA primitives including JWT RS256 (3.9KB flash)
-// #define USE_CSE7761                              // Add support for CSE7761 Energy monitor as used in Sonoff Dual R3
 
 // -- LVGL Graphics Library ---------------------------------
 #define USE_LVGL                                 // LVGL Engine, requires Berry (+382KB)

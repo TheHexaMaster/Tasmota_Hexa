@@ -16,7 +16,7 @@ Index | Define              | Driver   | Device   | Address(es) | Bus2 | Descrip
    4  | REMOVED             |          |          |             |      | USE_DISPLAY_SSD1306 - REMOVED
    5  | USE_DISPLAY_MATRIX  | xdsp_03  | HT16K33  | 0x70 - 0x77 |      | 8x8 led matrix
    6  | REMOVED             |          | SH1106   | 0x3C - 0x3D |      | USE_DISPLAY_SH1106 - REMOVED
-   7  | USE_ADE7953         | xnrg_07  | ADE7953  | 0x38        |      | Energy monitor
+   7x  | USE_ADE7953         | xnrg_07  | ADE7953  | 0x38        |      | Energy monitor - REMOVED
    8  | USE_SHT             | xsns_07  | SHT1X    | Any         |      | Temperature and Humidity sensor
    9  | USE_HTU             | xsns_08  | HTU21    | 0x40        | Yes  | Temperature and Humidity sensor
    9  | USE_HTU             | xsns_08  | SI7013   | 0x40        | Yes  | Temperature and Humidity sensor
@@ -103,7 +103,7 @@ Index | Define              | Driver   | Device   | Address(es) | Bus2 | Descrip
   62  | USE_SCD40           | xsns_92  | SCD40    | 0x62        |      | CO2 sensor Sensirion SCD40/SCD41
   63  | USE_HM330X          | xsns_93  | HM330X   | 0x40        |      | Particule sensor
   64  | USE_HDC2010         | xsns_94  | HDC2010  | 0x40        |      | Temperature and Humidity sensor
-  65  | USE_ADE7880         | xnrg_23  | ADE7880  | 0x38        |      | Energy monitor
+  65x  | USE_ADE7880         | xnrg_23  | ADE7880  | 0x38        |      | Energy monitor - DELETED
   66  | USE_PCF85363        | xsns_99  | PCF85363 | 0x51        |      | Real time clock
   67  | USE_DS3502          | xdrv_61  | DS3502   | 0x28 - 0x2B |      | Digital potentiometer
   68  | USE_HYT             | xsns_97  | HYTxxx   | 0x28        | Yes  | Temperature and Humidity sensor

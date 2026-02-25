@@ -315,8 +315,6 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_LED1_INV) +3,
   AGPIO(GPIO_MHZ_TXD),        // MH-Z19 Serial interface
   AGPIO(GPIO_MHZ_RXD),
-  AGPIO(GPIO_PZEM0XX_TX),     // PZEM0XX Serial interface
-  AGPIO(GPIO_PZEM004_RX),     // PZEM004T Serial interface
   AGPIO(GPIO_SAIR_TX),        // SenseAir Serial interface
   AGPIO(GPIO_SAIR_RX),        // SenseAir Serial interface
   AGPIO(GPIO_SPI_CS),         // SPI Chip Select
@@ -328,10 +326,6 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_SBR_RX),         // Serial Bridge Serial interface
   AGPIO(GPIO_SR04_TRIG),      // SR04 Tri/TXgger pin
   AGPIO(GPIO_SR04_ECHO),      // SR04 Ech/RXo pin
-  AGPIO(GPIO_SDM120_TX),      // SDM120 Serial interface
-  AGPIO(GPIO_SDM120_RX),      // SDM120 Serial interface
-  AGPIO(GPIO_SDM630_TX),      // SDM630 Serial interface
-  AGPIO(GPIO_SDM630_RX),      // SDM630 Serial interface
   AGPIO(GPIO_TM1638CLK),      // TM1638 Clock
   AGPIO(GPIO_TM1638DIO),      // TM1638 Data I/O
   AGPIO(GPIO_TM1638STB),      // TM1638 Strobe
@@ -351,8 +345,6 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_CNTR1_NP) +1,
   AGPIO(GPIO_CNTR1_NP) +2,
   AGPIO(GPIO_CNTR1_NP) +3,
-  AGPIO(GPIO_PZEM016_RX),     // PZEM-014,016 Serial Modbus interface
-  AGPIO(GPIO_PZEM017_RX),     // PZEM-003,017 Serial Modbus interface
   AGPIO(GPIO_MP3_DFR562),     // RB-DFR-562, DFPlayer Mini MP3 Player Serial interface
   AGPIO(GPIO_SDS0X1_TX),      // Nova Fitness SDS011 Serial interface
   AGPIO(GPIO_HX711_SCK),      // HX711 Load Cell clock
@@ -383,14 +375,6 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_KEY1_INV_NP) +1,
   AGPIO(GPIO_KEY1_INV_NP) +2,
   AGPIO(GPIO_KEY1_INV_NP) +3,
-  AGPIO(GPIO_NRG_SEL),        // HLW8012/HLJ-01 Sel output (1 = Voltage)
-  AGPIO(GPIO_NRG_SEL_INV),    // HLW8012/HLJ-01 Sel output (0 = Voltage)
-  AGPIO(GPIO_NRG_CF1),        // HLW8012/HLJ-01 CF1 voltage / current
-  AGPIO(GPIO_HLW_CF),         // HLW8012 CF power
-  AGPIO(GPIO_HJL_CF),         // HJL-01/BL0937 CF power
-  AGPIO(GPIO_MCP39F5_TX),     // MCP39F501 Serial interface (Shelly2)
-  AGPIO(GPIO_MCP39F5_RX),     // MCP39F501 Serial interface (Shelly2)
-  AGPIO(GPIO_MCP39F5_RST),    // MCP39F501 Reset (Shelly2)
   AGPIO(GPIO_PN532_TXD),      // PN532 HSU Tx
   AGPIO(GPIO_PN532_RXD),      // PN532 HSU Rx
   AGPIO(GPIO_SM16716_CLK),    // SM16716 CLOCK
@@ -398,8 +382,6 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_SM16716_SEL),    // SM16716 SELECT
   AGPIO(GPIO_DI),             // my92x1 PWM input
   AGPIO(GPIO_DCKI),           // my92x1 CLK input
-  AGPIO(GPIO_CSE7766_TX),     // CSE7766 Serial interface (S31 and Pow R2)
-  AGPIO(GPIO_CSE7766_RX),     // CSE7766 Serial interface (S31 and Pow R2)
   AGPIO(GPIO_ARIRFRCV),       // AriLux RF Receive input
   AGPIO(GPIO_TXD),            // Serial interface
   AGPIO(GPIO_RXD),            // Serial interface
@@ -409,15 +391,12 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_ROT1B) +1,       // Rotary B Pin
   AGPIO(GPIO_HRE_CLOCK),
   AGPIO(GPIO_HRE_DATA),
-  AGPIO(GPIO_ADE7953_IRQ),    // ADE7953 IRQ
   AGPIO(GPIO_LEDLNK),         // Link led
   AGPIO(GPIO_LEDLNK_INV),     // Inverted link led
   AGPIO(GPIO_ARIRFSEL),       // Arilux RF Receive input selected
   AGPIO(GPIO_BUZZER),         // Buzzer
   AGPIO(GPIO_BUZZER_INV),     // Inverted buzzer
   AGPIO(GPIO_OLED_RESET),     // OLED Display Reset
-  AGPIO(GPIO_SOLAXX1_TX),     // Solax Inverter tx pin
-  AGPIO(GPIO_SOLAXX1_RX),     // Solax Inverter rx pin
   AGPIO(GPIO_ZIGBEE_TX),      // Zigbee Serial interface
   AGPIO(GPIO_ZIGBEE_RX),      // Zigbee Serial interface
   AGPIO(GPIO_RDM6300_RX),
@@ -429,10 +408,6 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_A4988_MS1),      // A4988 microstep pin1
   AGPIO(GPIO_A4988_MS1) +1,   // A4988 microstep pin2
   AGPIO(GPIO_A4988_MS1) +2,   // A4988 microstep pin3
-  AGPIO(GPIO_DDS2382_TX),     // DDS2382 Serial interface
-  AGPIO(GPIO_DDS2382_RX),     // DDS2382 Serial interface
-  AGPIO(GPIO_DDSU666_TX),     // DDSU666 Serial interface
-  AGPIO(GPIO_DDSU666_RX),     // DDSU666 Serial interface
   AGPIO(GPIO_SM2135_CLK),     // SM2135 CLOCK
   AGPIO(GPIO_SM2135_DAT),     // SM2135 DATA
   AGPIO(GPIO_DEEPSLEEP),
@@ -449,8 +424,6 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_DHT11_OUT),      // Pseudo Single wire DHT11, DHT21, DHT22, AM2301, AM2302, AM2321
   AGPIO(GPIO_HM10_RX),        // GPS serial interface
   AGPIO(GPIO_HM10_TX),        // GPS serial interface
-  AGPIO(GPIO_LE01MR_RX),      // F7F LE-01MR energy meter rx pin
-  AGPIO(GPIO_LE01MR_TX),      // F7F LE-01MR energy meter tx pin
   AGPIO(GPIO_CC1101_GDO0),    // CC1101 pin for RX
   AGPIO(GPIO_CC1101_GDO2),    // CC1101 pin for RX
   AGPIO(GPIO_HRXL_RX),
@@ -460,14 +433,9 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_BOILER_OT_RX),
   AGPIO(GPIO_BOILER_OT_TX),
   AGPIO(GPIO_WINDMETER_SPEED),
-  AGPIO(GPIO_BL0940_RX),      // BL0940 Serial interface
   AGPIO(GPIO_TCP_TX),         // TCP Serial bridge
   AGPIO(GPIO_TCP_RX),         // TCP Serial bridge
-  AGPIO(GPIO_TELEINFO_RX),
-  AGPIO(GPIO_TELEINFO_ENABLE),
   AGPIO(GPIO_LMT01),          // LMT01, count pulses on GPIO
-  AGPIO(GPIO_IEM3000_TX),     // IEM3000 Serial interface
-  AGPIO(GPIO_IEM3000_RX),     // IEM3000 Serial interface
   AGPIO(GPIO_ZIGBEE_RST),     // Zigbee reset
   AGPIO(GPIO_DYP_RX)
 };

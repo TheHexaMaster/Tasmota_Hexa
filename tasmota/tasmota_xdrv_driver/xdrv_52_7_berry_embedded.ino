@@ -36,9 +36,7 @@ const char be_berry_init_code[] =
 #endif
   "import cb "
 
-#ifdef USE_ENERGY_SENSOR
-  "import energy "
-#endif
+
 
   // Instantiate tasmota object
   "tasmota = Tasmota() "

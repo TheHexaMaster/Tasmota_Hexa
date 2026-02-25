@@ -3340,7 +3340,7 @@ void HandleInformation(void) {
  * HandleUpgradeFirmware
 \*********************************************************************************************/
 
-#if defined(USE_ZIGBEE_EZSP) || defined(USE_TASMOTA_CLIENT) || defined(SHELLY_FW_UPGRADE) || defined(USE_RF_FLASH) || defined(USE_CCLOADER)
+#if defined(USE_ZIGBEE_EZSP) || defined(USE_TASMOTA_CLIENT) || defined(USE_RF_FLASH) || defined(USE_CCLOADER)
 #define USE_WEB_FW_UPGRADE
 #endif
 
@@ -3612,11 +3612,7 @@ void HandleUploadLoop(void) {
         BUploadInit(UPL_TASMOTACLIENT);
       }
 #endif  // USE_TASMOTA_CLIENT
-#ifdef SHELLY_FW_UPGRADE
-      else if (ShdPresent() && (0x00 == upload.buf[0]) && ((0x10 == upload.buf[1]) || (0x20 == upload.buf[1]))) {
-        BUploadInit(UPL_SHD);
-      }
-#endif  // SHELLY_FW_UPGRADE
+
 #ifdef USE_CCLOADER
       else if (CCLChipFound() && 0x02 == upload.buf[0]) { // the 0x02 is only an assumption!!
         BUploadInit(UPL_CCL);
@@ -3738,16 +3734,12 @@ void HandleUploadLoop(void) {
         error = TasmotaClient_Flash(data, BUpload.spi_hex_size);
       }
 #endif  // USE_TASMOTA_CLIENT
-#ifdef SHELLY_FW_UPGRADE
-      if (UPL_SHD == Web.upload_file_type) {
-        error = ShdFlash(data, BUpload.spi_hex_size);
-      }
-#endif  // SHELLY_FW_UPGRADE
+
 #ifdef USE_CCLOADER
       if (UPL_CCL == Web.upload_file_type) {
         error = CLLFlashFirmware(data, BUpload.spi_hex_size);
       }
-#endif  // SHELLY_FW_UPGRADE
+#endif  
 #ifdef USE_ZIGBEE_EZSP
       if (UPL_EFR32 == Web.upload_file_type) {
         BUpload.ready = true;  // So we know on upload success page if it needs to flash hex or do a normal restart

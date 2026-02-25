@@ -313,11 +313,9 @@ void TM1621PreInit(void) {
   Tm1621.device = TM1621_USER;
   uint32_t pin_tm1621_dat = Pin(GPIO_TM1621_DAT);
   if (5 == Pin(GPIO_TM1621_DAT)) {
-    if (25 == Pin(GPIO_CSE7761_RX, 1)) {
-      Tm1621.device = TM1621_POWCT;
-    } else {
+
       Tm1621.device = TM1621_THR316D;
-    }
+
   }
   else if (14 == Pin(GPIO_TM1621_DAT)) {
     Tm1621.device = TM1621_POWR316D;
@@ -467,24 +465,7 @@ void TM1621Show(void) {
     return;
   }
 
-#ifdef USE_ENERGY_SENSOR
-  if ((TM1621_POWR316D == Tm1621.device) ||
-      (TM1621_POWCT == Tm1621.device)) {
-    if (0 == Tm1621.display_rotate) {
-      ext_snprintf_P(Tm1621.row[0], sizeof(Tm1621.row[0]), PSTR("%1_f"), &Energy->voltage[0]);
-      ext_snprintf_P(Tm1621.row[1], sizeof(Tm1621.row[1]), PSTR("%1_f"), &Energy->current[0]);
-      Tm1621.voltage = true;
-      Tm1621.display_rotate = 1;
-    } else {
-      ext_snprintf_P(Tm1621.row[0], sizeof(Tm1621.row[0]), PSTR("%1_f"), &Energy->total[0]);
-      ext_snprintf_P(Tm1621.row[1], sizeof(Tm1621.row[1]), PSTR("%1_f"), &Energy->active_power[0]);
-      Tm1621.kwh = true;
-      Tm1621.display_rotate = 0;
-    }
-    TM1621SendRows();
-    return;
-  }
-#endif  // USE_ENERGY_SENSOR
+
 
   if (TM1621_THR316D == Tm1621.device) {
     if (!isnan(TasmotaGlobal.temperature_celsius)) {

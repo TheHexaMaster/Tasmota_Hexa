@@ -54,9 +54,7 @@
 
 #ifdef USE_MI_ESP32
 
-#ifdef USE_ENERGY_SENSOR
-// #define USE_MI_ESP32_ENERGY //prepare for some GUI extensions
-#endif
+
 
 #define XSNS_62                    62
 

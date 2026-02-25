@@ -94,7 +94,7 @@ void ShellyProInit(void) {
   digitalWrite(pin_lan_reset, 1);
 
   AddLog(LOG_LEVEL_INFO, PSTR("HDW: Shelly Pro %d%s initialized"),
-    TasmotaGlobal.devices_present, (PinUsed(GPIO_ADE7953_CS))?"PM":"");
+    TasmotaGlobal.devices_present, "PM":"");
 }
 
 void ShellyProPower(void) {

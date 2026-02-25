@@ -214,7 +214,6 @@ const char WIFI_HOSTNAME[] = WIFI_DEFAULT_HOSTNAME;    // Override by user_confi
 #undef USE_SONOFF_IFAN
 #undef USE_SONOFF_L1
 #undef USE_SONOFF_D1
-#undef USE_SHELLY_DIMMER
 #undef USE_RF_FLASH
 
 // Not ported (yet)
@@ -241,13 +240,6 @@ const char WIFI_HOSTNAME[] = WIFI_DEFAULT_HOSTNAME;    // Override by user_confi
 
 #ifndef USE_ZIGBEE
 #undef USE_ZIGBEE_EZSP                         // Disable Zigbee EZSP firmware flash
-#endif
-
-#ifndef USE_LIGHT
-#undef SHELLY_FW_UPGRADE                       // Disable Shelly Dimmer firmware flash when lights are disabled
-#endif
-#ifndef USE_SHELLY_DIMMER
-#undef SHELLY_FW_UPGRADE                       // Disable Shelly Dimmer firmware flash when Shelly Dimmer is disabled
 #endif
 
 #ifndef APP_INTERLOCK_MODE
