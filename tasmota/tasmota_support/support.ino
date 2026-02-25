@@ -1964,7 +1964,7 @@ void SetSerial(uint32_t baudrate, uint32_t serial_config) {
 void ClaimSerial(void) {
 #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
 #ifdef USE_USB_CDC_CONSOLE
-  if (!tasconsole_serial) {
+  if (!tasconsole_serial) { 
     return;              // USB console does not use serial
   }
 #endif  // USE_USB_CDC_CONSOLE

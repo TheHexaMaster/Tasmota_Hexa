@@ -373,47 +373,19 @@ static void InitTasConsole(uint32_t baudrate) {
 #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32P4
 #ifdef USE_USB_CDC_CONSOLE
 
-  bool is_connected_to_USB = false;
+  bool is_connected_to_USB = true;
   TasConsole.setRxBufferSize(INPUT_BUFFER_SIZE);
-  TasConsole.begin(115200);                 // Always start CDC to test plugged cable
+  TasConsole.begin(115200);                 // Always start CDC EVEN if no cable plugged - we skip serial 
+  is_connected_to_USB = true; 
 
-#if SOC_USB_SERIAL_JTAG_SUPPORTED  // Not S2
-  for (uint32_t i = 0; i < 5; i++) {        // Wait up to 250 ms
-    is_connected_to_USB = HWCDCSerial.isPlugged();
-    if (is_connected_to_USB) { break; }
-    delay(50);
-  }
-#else
-  is_connected_to_USB = true;               // S2
-#endif  // SOC_USB_SERIAL_JTAG_SUPPORTED
 
-  if (is_connected_to_USB) {
 #if !ARDUINO_USB_MODE
-    USB.begin();                            // Needs a serial console with DTR/DSR support
+  USB.begin();                            // Needs a serial console with DTR/DSR support
 #endif  // !ARDUINO_USB_MODE
-    TasConsole.println();
-    AddLog(LOG_LEVEL_INFO, PSTR("CMD: Using USB CDC"));
-    return;
-  }
-
-#ifdef HEXA_CDC_FALLBACK_DISABLED
-  // Keep USB CDC enabled even if no host is connected. Do NOT fall back to UART.
-  // This allows plugging the USB host later without switching the console.
-  AddLog(LOG_LEVEL_INFO, PSTR("CMD: USB CDC enabled, fallback to UART disabled (no host detected)"));
+  TasConsole.println();
+  AddLog(LOG_LEVEL_INFO, PSTR("CMD: Using USB CDC"));
   return;
-#endif  // HEXA_CDC_FALLBACK_DISABLED
 
-#if SOC_USB_SERIAL_JTAG_SUPPORTED  // Not S2
-  HWCDCSerial.~HWCDC();                     // Deinit CDC
-#endif  // SOC_USB_SERIAL_JTAG_SUPPORTED
-
-  // Fallback to UART
-  Serial.begin(baudrate);
-  Serial.println();
-  TasConsole = Serial;
-  tasconsole_serial = true;
-  AddLog(LOG_LEVEL_INFO, PSTR("CMD: Fall back to serial port, no SOF packet detected on USB port"));
-  return;
 #else   // !USE_USB_CDC_CONSOLE
 
   Serial.begin(baudrate);
