@@ -316,7 +316,6 @@ const char kSensorNames[] PROGMEM =
   D_SENSOR_PN532_TX "|" D_SENSOR_PN532_RX "|"
   D_SENSOR_SM16716_CLK "|" D_SENSOR_SM16716_DAT "|" D_SENSOR_SM16716_POWER "|"
   D_SENSOR_MY92X1_DI "|" D_SENSOR_MY92X1_DCKI "|"
-  D_SENSOR_CSE7766_TX "|" D_SENSOR_CSE7766_RX "|"
   D_SENSOR_ARIRFRCV "|" D_SENSOR_ARIRFSEL "|"
   D_SENSOR_TXD "|" D_SENSOR_RXD "|"
   D_SENSOR_ROTARY " A|" D_SENSOR_ROTARY " B|"
@@ -2147,9 +2146,9 @@ const mytmplt8266 kModules8266[TMP_MAXMODULE_8285] PROGMEM = {
   },
   {                     // SONOFF_POW_R2 - Sonoff Pow R2 (ESP8285 - CSE7766)
     GPI8_KEY1,          // GPIO00 Button
-    GPI8_CSE7766_TX,    // GPIO01 Serial RXD 4800 baud 8E1 CSE7766 energy sensor
+
     0,
-    GPI8_CSE7766_RX,    // GPIO03 Serial TXD
+
     0, 0,
                         // GPIO06 (SD_CLK   Flash)
                         // GPIO07 (SD_DATA0 Flash QIO/DIO/DOUT)

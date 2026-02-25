@@ -170,8 +170,6 @@ enum LegacyUserSelectablePins {
   GPI8_SM16716_SEL,    // SM16716 SELECT
   GPI8_DI,             // my92x1 PWM input
   GPI8_DCKI,           // my92x1 CLK input
-  GPI8_CSE7766_TX,     // CSE7766 Serial interface (S31 and Pow R2) - Not used anymore 20200121
-  GPI8_CSE7766_RX,     // CSE7766 Serial interface (S31 and Pow R2)
   GPI8_ARIRFRCV,       // AriLux RF Receive input
   GPI8_TXD,            // Serial interface
   GPI8_RXD,            // Serial interface
