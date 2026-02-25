@@ -19,11 +19,9 @@
 
 #ifdef USE_I2C
 
-#ifdef XFUNC_PTR_IN_ROM
-const uint8_t kI2cList[] PROGMEM = {
-#else
+
 const uint8_t kI2cList[] = {
-#endif
+
 
 #ifdef XI2C_01
   XI2C_01,
@@ -682,11 +680,9 @@ bool I2cEnabled(uint32_t i2c_index) {
 void I2cDriverState(void) {
   ResponseAppend_P(PSTR("\""));  // Use string for enable/disable signal
   for (uint32_t i = 0; i < sizeof(kI2cList); i++) {
-#ifdef XFUNC_PTR_IN_ROM
-    uint32_t i2c_driver_id = pgm_read_byte(kI2cList + i);
-#else
+
     uint32_t i2c_driver_id = kI2cList[i];
-#endif
+
     bool disabled = false;
     if (i2c_driver_id < MAX_I2C_DRIVERS) {
       if (i2c_driver_id < 96) {

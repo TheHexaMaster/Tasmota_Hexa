@@ -17,11 +17,9 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef XFUNC_PTR_IN_ROM
-bool (* const xdrv_func_ptr[])(uint32_t) PROGMEM = {   // Driver Function Pointers
-#else
+
 bool (* const xdrv_func_ptr[])(uint32_t) = {   // Driver Function Pointers
-#endif
+
 
 #ifdef XDRV_01
   &Xdrv01,
@@ -542,11 +540,9 @@ const uint8_t xdrv_present = sizeof(xdrv_func_ptr) / sizeof(xdrv_func_ptr[0]);  
  * Xdrv available list
 \*********************************************************************************************/
 
-#ifdef XFUNC_PTR_IN_ROM
-const uint8_t kXdrvList[] PROGMEM = {
-#else
+
 const uint8_t kXdrvList[] = {
-#endif
+
 
 #ifdef XDRV_01
   XDRV_01,
@@ -1072,11 +1068,9 @@ bool XdrvActive(uint32_t drv_index) {
 void XsnsDriverState(void) {
   ResponseAppend_P(PSTR(",\"Drivers\":\""));  // Use string for future enable/disable signal
   for (uint32_t i = 0; i < sizeof(kXdrvList); i++) {
-#ifdef XFUNC_PTR_IN_ROM
-    uint32_t driverid = pgm_read_byte(kXdrvList + i);
-#else
+
     uint32_t driverid = kXdrvList[i];
-#endif
+
     ResponseAppend_P(PSTR("%s%s%d"), (i) ? "," : "", (!XdrvActive(i)) ? "!" : "", driverid);
   }
   ResponseAppend_P(PSTR("\""));
@@ -1118,11 +1112,9 @@ void ShowFreeMem(const char *where) {
 
 bool XdrvCallDriver(uint32_t driver, uint32_t function) {
   for (uint32_t x = 0; x < xdrv_present; x++) {
-#ifdef XFUNC_PTR_IN_ROM
-    uint32_t listed = pgm_read_byte(kXdrvList + x);
-#else
+
     uint32_t listed = kXdrvList[x];
-#endif
+
     if (driver == listed) {
       return xdrv_func_ptr[x](function);
     }
@@ -1173,11 +1165,9 @@ bool XdrvCall(uint32_t function) {
 
 #ifdef DEBUG_COMMAND_HANG
     if (FUNC_COMMAND == function) { 
-#ifdef XFUNC_PTR_IN_ROM
-      uint32_t driverid = pgm_read_byte(kXdrvList + x);
-#else
+
       uint32_t driverid = kXdrvList[x];
-#endif
+
       sprintf(tstchr, "%d,", driverid);
       TasConsole.printf(tstchr);
     }
@@ -1187,11 +1177,9 @@ bool XdrvCall(uint32_t function) {
 
 #ifdef USE_WEBSERVER
     if (FUNC_WEB_SENSOR == function) { 
-#ifdef XFUNC_PTR_IN_ROM
-      uint32_t index = pgm_read_byte(kXdrvList + x);
-#else
+
       uint32_t index = kXdrvList[x];
-#endif
+
       if (52 == index) {        // Skip berry
         WSContentSeparator(3);  // Don't print separator on next WSContentSeparator(1)
       } else {
@@ -1201,11 +1189,9 @@ bool XdrvCall(uint32_t function) {
 #endif // USE_WEBSERVER
 
 #ifdef USE_PROFILE_FUNCTION
-#ifdef XFUNC_PTR_IN_ROM
-    uint32_t index = pgm_read_byte(kXdrvList + x);
-#else
+
     uint32_t index = kXdrvList[x];
-#endif
+
     PROFILE_FUNCTION("drv", index, function, profile_function_start);
 #endif  // USE_PROFILE_FUNCTION
 

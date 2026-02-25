@@ -21,12 +21,6 @@
 #define _TASMOTA_H_
 
 /*********************************************************************************************\
- * Performance ROM (PROGMEM) vs RAM (RODATA)
-\*********************************************************************************************/
-
-#define XFUNC_PTR_IN_ROM                    // Enable for keeping tables in ROM (PROGMEM) which seem to have access issues on some flash types
-
-/*********************************************************************************************\
  * Power Type
 \*********************************************************************************************/
 
@@ -38,12 +32,6 @@ const uint32_t POWER_SIZE = 32;             // Power (relay) bit count
  * Constants
 \*********************************************************************************************/
 
-#ifdef ESP8266
-const uint8_t MAX_RELAYS = 8;               // Max number of relays selectable on GPIO
-const uint8_t MAX_INTERLOCKS = 16;          // Max number of interlock groups (up to MAX_INTERLOCKS_SET)
-const uint8_t MAX_SWITCHES = 8;             // Max number of switches selectable on GPIO
-const uint8_t MAX_KEYS = 8;                 // Max number of keys or buttons selectable on GPIO
-#endif  // ESP8266
 #ifdef ESP32
 const uint8_t MAX_RELAYS = 32;              // Max number of relays selectable on GPIO
 const uint8_t MAX_INTERLOCKS = 16;          // Max number of interlock groups (up to MAX_INTERLOCKS_SET)
@@ -127,10 +115,7 @@ const uint8_t MAX_BUTTON_TEXT = 32;         // Max number of GUI button labels
 const uint8_t MAX_GROUP_TOPICS = 4;         // Max number of Group Topics
 const uint8_t MAX_DEV_GROUP_NAMES = 4;      // Max number of Device Group names
 
-#ifdef ESP8266
-const uint8_t MAX_ADCS = 1;                 // Max number of ESP8266 ADC pins
-const uint8_t MAX_SWITCHES_TXT = 8;         // Max number of switches user text
-#endif  // ESP8266
+
 #ifdef ESP32
   #if CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32C3
   const uint8_t MAX_ADCS = 5;               // Max number of ESP32-C3 ADC pins (ADC2 pins are unusable with Wifi enabled)
@@ -188,11 +173,7 @@ const uint32_t BOOT_LOOP_TIME = 10;         // Number of seconds to stop detecti
 const uint32_t POWER_CYCLE_TIME = 8;        // Number of seconds to reset power cycle boot loops
 const uint16_t SYSLOG_TIMER = 20;          // Seconds to restore syslog_level
 const uint16_t SERIALLOG_TIMER = 20;       // Seconds to disable SerialLog
-#ifdef ESP8266
-const uint8_t OTA_ATTEMPTS = 10;            // Number of times to try fetching the new firmware
-#else
 const uint8_t OTA_ATTEMPTS = 5;             // Number of times to try fetching the new firmware
-#endif  // ESP8266
 
 //const uint16_t INPUT_BUFFER_SIZE = 520;     // Max number of characters in Tasmota serial command buffer
 const uint16_t INPUT_BUFFER_SIZE = 800;     // Max number of characters in Tasmota serial command buffer
@@ -202,15 +183,8 @@ const uint16_t FLOATSZ = 16;                // Max number of characters in float
 const uint16_t CMDSZ = 24;                  // Max number of characters in command
 const uint16_t TOPSZ = 151;                 // Max number of characters in topic string
 
-#ifdef ESP8266
-  #ifdef PIO_FRAMEWORK_ARDUINO_MMU_CACHE16_IRAM48_SECHEAP_SHARED
-  const uint16_t LOG_BUFFER_SIZE = 6096;      // Max number of characters in logbuffer used by weblog, syslog and mqttlog
-  #else
-  const uint16_t LOG_BUFFER_SIZE = 4096;      // Max number of characters in logbuffer used by weblog, syslog and mqttlog
-  #endif  // PIO_FRAMEWORK_ARDUINO_MMU_CACHE16_IRAM48_SECHEAP_SHARED
-#else   // Not ESP8266
 const uint16_t LOG_BUFFER_SIZE = 6096;      // Max number of characters in logbuffer used by weblog, syslog and mqttlog
-#endif  // ESP8266
+
 const uint16_t MAX_LOGSZ = LOG_BUFFER_SIZE -96;  // Max number of characters in log line - may be overruled which will truncate log entry
 
 const uint8_t SENSOR_MAX_MISS = 5;          // Max number of missed sensor reads before deciding it's offline
@@ -331,14 +305,6 @@ const uint32_t LOOP_SLEEP_DELAY = 50;       // Lowest number of milliseconds to 
     #define WIFI_SENSITIVITY_54g  -750
     #define WIFI_SENSITIVITY_n    -700
   #endif
-#endif
-#ifdef ESP8266
-  #define MAX_TX_PWR_DBM_11b    200
-  #define MAX_TX_PWR_DBM_54g    170
-  #define MAX_TX_PWR_DBM_n      140
-  #define WIFI_SENSITIVITY_11b  -910
-  #define WIFI_SENSITIVITY_54g  -750
-  #define WIFI_SENSITIVITY_n    -720
 #endif
 
 #ifdef ESP32
@@ -479,10 +445,7 @@ enum SettingsTextIndex { SET_OTAURL,
                          SET_DEV_GROUP_NAME1, SET_DEV_GROUP_NAME2, SET_DEV_GROUP_NAME3, SET_DEV_GROUP_NAME4,  // MAX_DEV_GROUP_NAMES
                          SET_DEVICENAME,
                          SET_TELEGRAM_TOKEN, SET_TELEGRAM_CHATID,
-#ifdef ESP8266
-                         SET_ADC_PARAM1,
-                         SET_SWITCH_TXT1, SET_SWITCH_TXT2, SET_SWITCH_TXT3, SET_SWITCH_TXT4, SET_SWITCH_TXT5, SET_SWITCH_TXT6, SET_SWITCH_TXT7, SET_SWITCH_TXT8,  // MAX_SWITCHES_TXT
-#endif  // ESP8266
+
 #ifdef ESP32
                          SET_ADC_PARAM1, SET_ADC_PARAM2, SET_ADC_PARAM3, SET_ADC_PARAM4, SET_ADC_PARAM5, SET_ADC_PARAM6, SET_ADC_PARAM7, SET_ADC_PARAM8,  // MAX_ADCS
                          SET_SWITCH_TXT1, SET_SWITCH_TXT2, SET_SWITCH_TXT3, SET_SWITCH_TXT4, SET_SWITCH_TXT5, SET_SWITCH_TXT6, SET_SWITCH_TXT7, SET_SWITCH_TXT8,  // MAX_SWITCHES_TXT
@@ -548,16 +511,6 @@ enum TasmotaSerialConfig {
   TS_SERIAL_5O1, TS_SERIAL_6O1, TS_SERIAL_7O1, TS_SERIAL_8O1,
   TS_SERIAL_5O2, TS_SERIAL_6O2, TS_SERIAL_7O2, TS_SERIAL_8O2 };
 
-#ifdef ESP8266
-const SerConfu8 kTasmotaSerialConfig[] PROGMEM = {
-  SERIAL_5N1, SERIAL_6N1, SERIAL_7N1, SERIAL_8N1,
-  SERIAL_5N2, SERIAL_6N2, SERIAL_7N2, SERIAL_8N2,
-  SERIAL_5E1, SERIAL_6E1, SERIAL_7E1, SERIAL_8E1,
-  SERIAL_5E2, SERIAL_6E2, SERIAL_7E2, SERIAL_8E2,
-  SERIAL_5O1, SERIAL_6O1, SERIAL_7O1, SERIAL_8O1,
-  SERIAL_5O2, SERIAL_6O2, SERIAL_7O2, SERIAL_8O2
-};
-#endif  // ESP8266
 #ifdef ESP32
 const uint32_t kTasmotaSerialConfig[] PROGMEM = {
   SERIAL_5N1, SERIAL_6N1, SERIAL_7N1, SERIAL_8N1,

@@ -19,11 +19,7 @@
 
 #ifdef USE_ENERGY_SENSOR
 
-#ifdef XFUNC_PTR_IN_ROM
-bool (* const xnrg_func_ptr[])(uint32_t) PROGMEM = {   // Energy driver Function Pointers
-#else
 bool (* const xnrg_func_ptr[])(uint32_t) = {   // Energy driver Function Pointers
-#endif
 
 #ifdef XNRG_01
   &Xnrg01,
