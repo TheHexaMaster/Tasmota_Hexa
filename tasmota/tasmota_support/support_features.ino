@@ -24,9 +24,7 @@
 \*********************************************************************************************/
 
 constexpr uint32_t feature[] = {
-
 //  0x00000001 |  // xdrv_03_energy.ino USE_ENERGY_MARGIN_DETECTION - DELETED
-
 #ifdef USE_LIGHT
   0x00000002 |  // tasmota.ino, xdrv_04_light.ino
 #endif
@@ -111,9 +109,7 @@ constexpr uint32_t feature[] = {
 #ifdef USE_SMARTCONFIG
   0x40000000 |  // support.ino - removed with version 6.6.0.21
 #endif
-
 //  0x80000000 |  // xdrv_03_energy.ino USE_ENERGY_POWER_LIMIT - DELETED
-
   0,
 #ifdef USE_CONFIG_OVERRIDE
   0x00000001 |  // user_config(_override).h
@@ -221,11 +217,8 @@ constexpr uint32_t feature[] = {
 #if defined(USE_ADC_VCC) || defined(USE_ADC)
   0x00000002 |  // xsns_02_analog.ino
 #endif
-
-//   0x00000004 |  // xdrv_03_energy.ino USE_ENERGY_SENSOR - DELETED
-
+//  0x00000004 |  // xdrv_03_energy.ino USE_ENERGY_SENSOR - DELETED
 //  0x00000008 |  // xnrg_03_pzem004t.ino - USE_PZEM004T - DELETED
-
 #ifdef USE_DS18B20
   0x00000010 |  // xsns_05_ds18b20.ino - no more support since 6.6.0.18
 #endif
@@ -292,15 +285,11 @@ constexpr uint32_t feature[] = {
 #ifdef USE_SR04
   0x02000000 |  // xsns_22_sr04.ino
 #endif
-
 //  0x04000000 |  // xnrg_08_sdm120.ino - USE_SDM120 - DELETED
-
 #if defined(USE_I2C) && defined(USE_SI1145)
   0x08000000 |  // xsns_24_si1145.ino
 #endif
-
 //  0x10000000 |  // xnrg_10_sdm630.ino - USE_SDM630 - DELETED
-
 #if defined(USE_I2C) && defined(USE_LM75AD)
   0x20000000 |  // xsns_26_lm75ad.ino
 #endif
@@ -329,24 +318,17 @@ constexpr uint32_t feature[] = {
 #if defined(USE_I2C) && defined(USE_MCP230xx) && defined(USE_MCP230xx_DISPLAYOUTPUT)
   0x00000020 |  // xsns_29_mcp230xx.ino
 #endif
-
 //  0x00000040 |  // xnrg_01_hlw8012.ino -USE_ENERGY_SENSOR - USE_HLW8012 - DELETED
-
 //  0x00000080 |  // xnrg_02_cse7766.ino - USE_CSE7766 - DELETED
-
 //  0x00000100 |  // xnrg_04_mcp39f501.ino - USE_MCP39F501 - DELETED
-
 //  0x00000200 |  // xnrg_05_pzem_ac.ino - USE_PZEM_AC - DELETED
-
 #if defined(USE_I2C) && defined(USE_RTC_CHIPS) && defined(USE_DS3231)
   0x00000400 |  // xdrv_56_rtc_chips.ino
 #endif
 #ifdef USE_HX711
   0x00000800 |  // xsns_34_hx711.ino
 #endif
-
 //  0x00001000 |  // xnrg_06_pzem_dc.ino - USE_PZEM_DC - DELETED
-
 #if defined(USE_TX20_WIND_SENSOR) || defined(USE_TX23_WIND_SENSOR) || defined(USE_WS2300_WIND_SENSOR)
   0x00002000 |  // xsns_35_tx20.ino
 #endif
@@ -380,9 +362,7 @@ constexpr uint32_t feature[] = {
 #ifdef USE_HRE
   0x00800000 |  // xsns_43_hre.ino
 #endif
-
 //  0x01000000 |  // xnrg_07_ade7953.ino USE_ENERGY_SENSOR - USE_ADE7953 - DELETED
-
 #if defined(USE_I2C) && defined(USE_SPS30)
   0x02000000 |  // xsns_44_sps30.ino
 #endif
@@ -398,9 +378,7 @@ constexpr uint32_t feature[] = {
 #if defined(USE_I2C) && defined(USE_CHIRP)
   0x20000000 |  // xsns_48_chirp.ino
 #endif
-
 //  0x40000000 |  // xnrg_12_solaxX1.ino - USE_SOLAX_X1- DELETED
-
 #if defined(USE_I2C) && defined(USE_PAJ7620)
   0x80000000 |  // xsns_50_paj7620.ino
 #endif
@@ -423,9 +401,7 @@ constexpr uint32_t feature[] = {
 #ifdef USE_A4988_STEPPER
   0x00000020 |  // xdrv_25_A4988.ino
 #endif
-
 //  0x00000040 |  // xnrg_09_dds2382.ino - USE_DDS2382 - DELETED
-
 #if defined(USE_LIGHT) && defined(USE_SM2135)
   0x00000080 |  // xdrv_026_sm2135.ino
 #endif
@@ -435,9 +411,7 @@ constexpr uint32_t feature[] = {
 #if defined(USE_I2C) && defined(USE_PCF8574)
   0x00000200 |  // xdrv_028_pcf8574.ino
 #endif
-
 //  0x00000400 |  // xnrg_11_ddsu666.ino - USE_DDSU666- DELETED
-
 #ifdef USE_DEEPSLEEP
   0x00000800 |  // xdrv_029_deepsleep.ino
 #endif
@@ -486,9 +460,7 @@ constexpr uint32_t feature[] = {
 #ifdef USE_HM10
   0x04000000 |  // xsns_62_MI_HM10.ino
 #endif
-
 //  0x08000000 |  // xnrg_13_fif_le01mr.ino- USE_LE01MR - DELETED
-
 #if defined(USE_I2C) && (defined(USE_AHT1x) || defined(USE_AHT2x))
   0x10000000 |  // xsns_63_aht1x.ino
 #endif
@@ -544,9 +516,7 @@ constexpr uint32_t feature[] = {
 #if defined(USE_I2C) && defined(USE_MCP9808)
   0x00002000 |  // xsns_72_mcp9808.ino
 #endif
-
 //  0x00004000 |  // xnrg_14_bl09xx.ino - USE_BL0940 - USE_BL09XX - DELETED
-
 #ifdef USE_TELEGRAM
   0x00008000 |  // xdrv_40_telegram.ino
 #endif
@@ -556,18 +526,14 @@ constexpr uint32_t feature[] = {
 #ifdef USE_TCP_BRIDGE
   0x00020000 |  // xdrv_41_tcp_bridge.ino
 #endif
-
 //  0x00040000 |  // xnrg_15_teleinfo.ino - USE_TELEINFO - deleted
-
 #ifdef USE_LMT01
   0x00080000 |  // xsns_74_lmt01.ino
 #endif
 #ifdef USE_PROMETHEUS
   0x00100000 |  // xsns_75_prometheus.ino
 #endif
-
 //  0x00200000 |  // xnrg_16_iem3000.ino - USE_IEM3000 - DELETED
-
 #ifdef USE_DYP
   0x00400000 |  // xsns_76_dyp.ino
 #endif
@@ -583,9 +549,7 @@ constexpr uint32_t feature[] = {
 #ifdef USE_MIEL_HVAC
   0x04000000 |  // xdrv_44_miel_hvac.ino
 #endif
-
 //  0x08000000 |  // xnrg_17_ornowe517.ino - USE_WE517 - DELETED
-
 #if defined(USE_I2C) && defined(USE_EZOPH)
   0x10000000 |  // xsns_78_ezoph.ino
 #endif
@@ -635,9 +599,7 @@ constexpr uint32_t feature[] = {
 #ifdef USE_AS608
   0x00000800 |  // xsns_79_as608.ino
 #endif
-
 //  0x00001000 |  // xdrv_45_shelly_dimmer.ino - USE_SHELLY_DIMMER - DELETED
-
 #ifdef USE_RC522
   0x00002000 |  // xsns_80_mfrc522.ino
 #endif
@@ -687,9 +649,7 @@ constexpr uint32_t feature[] = {
 #if defined(USE_I2C) && defined(USE_TOF10120)
   0x10000000 |  // xsns_84_tof10120
 #endif
-
 //  0x20000000 |  // xnrg_18_sdm72.ino - USE_SDM72 - DELETED
-
 #if defined(USE_DISPLAY) && defined(USE_DISPLAY_TM1637)
   0x40000000 |
 #endif
@@ -703,18 +663,14 @@ constexpr uint32_t feature[] = {
 #ifdef USE_TFMINIPLUS
   0x00000002 |  // xsns_86_tfminiplus.ino
 #endif
-
 //  0x00000004 |  // xnrg_19_cse7761.ino USE_CSE7761 - DELETED
-
 #ifdef USE_BERRY
   0x00000008 |  // xdrv_52_9_berry.ino
 #endif
 #if defined(USE_I2C) && defined(USE_RTC_CHIPS) && defined(USE_BM8563)
   0x00000010 |  // xdrv_56_rtc_chips.ino
 #endif
-
 //  0x00000020 |  // xnrg_30_dummy.ino - USE_ENERGY_DUMMY - DELETED
-
 #if defined(USE_I2C) && defined(USE_AM2320)
   0x00000040 |  // xsns_88_am2320.ino
 #endif
@@ -757,18 +713,12 @@ constexpr uint32_t feature[] = {
 #ifdef USE_SHIFT595
   0x00080000 |  // xdrv_60_shift595.ino
 #endif
-
 //  0x00100000 |  // xnrg_21_sdm230.ino - USE_SDM230- deleted
-
 #ifdef USE_CM110x
   0x00200000 |  // xsns_95_cm110x.ino
 #endif
-
 //  0x00400000 |  // xnrg_22_bl6523.ino - USE_BL6523 - DELETED
-
-
 //  0x00800000 |  // xnrg_23_ade7880.ino - USE_ENERGY_SENSOR - USE_ADE7880 - DELETED
-
 #if defined(USE_I2C) && defined(USE_RTC_CHIPS) && defined(USE_PCF85363)
   0x01000000 |  // xdrv_56_rtc_chips.ino
 #endif
@@ -806,9 +756,7 @@ constexpr uint32_t feature[] = {
 #if defined(USE_I2C) && defined(USE_QMC5883L)
   0x00000008 |  // xsns_33_qmc5882l.ino
 #endif
-
 //  0x00000010 |  // xnrg_29_modbus.ino - USE_MODBUS_ENERGY - DELETED
-
 #if defined(USE_SPI) && defined(USE_SHELLY_PRO)
   0x00000020 |  // xdrv_88_esp32_shelly_pro.ino
 #endif
@@ -842,9 +790,7 @@ constexpr uint32_t feature[] = {
 #if defined(USE_I2C) && defined(USE_SEN5X)
   0x00008000 |  // xsns_103_sen5x.ino
 #endif
-
 //  0x00010000 |  // xnrg_24_biopdu.ino - USE_BIOPDU - DELETED
-
 #if (defined(USE_I2C) || defined(USE_SPI)) && defined(USE_MCP23XXX_DRV)
   0x00020000 |  // xdrv_67_mcp23xxx.ino
 #endif
@@ -933,9 +879,7 @@ constexpr uint32_t feature[] = {
 #ifdef USE_WIZMOTE
   0x00002000 |  // xdrv_77_wizmote.ino
 #endif
-
 //  0x00004000 |  // xnrg_25_v9240.ino - USE_V9240 - DELETED
-
 #ifdef USE_TELNET
   0x00008000 |  // xdrv_78_telnet.ino
 #endif
@@ -965,7 +909,7 @@ constexpr uint32_t feature[] = {
 //  0x20000000 |  //
 //  0x40000000 |  //
 //  0x80000000 |  //
-  0 };
+  0 }; 
 
 /*********************************************************************************************/
 
