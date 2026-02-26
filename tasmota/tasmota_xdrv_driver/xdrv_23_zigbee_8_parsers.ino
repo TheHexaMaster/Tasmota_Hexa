@@ -2241,34 +2241,6 @@ void ZCLFrame::autoResponder(const uint16_t *attr_list_ids, size_t attr_len) {
     switch (ccccaaaa) {
       case 0x00000004: attr.setStr(PSTR(USE_ZIGBEE_MANUFACTURER));                break;    // Manufacturer
       case 0x00000005: attr.setStr(PSTR(USE_ZIGBEE_MODELID));                     break;    // ModelId
-#ifdef USE_LIGHT
-      case 0x00060000: attr.setUInt(Light.power ? 1 : 0);                         break;    // Power
-      case 0x00080000: attr.setUInt(LightGetDimmer(0));                           break;    // Dimmer
-
-      case 0x03000000:  // Hue
-      case 0x03000001:  // Sat
-      case 0x03000003:  // X
-      case 0x03000004:  // Y
-      case 0x03000007:  // CT
-        {
-          uint16_t hue;
-          uint8_t  sat;
-          float XY[2];
-          LightGetHSB(&hue, &sat, nullptr);
-          LightGetXY(&XY[0], &XY[1]);
-          uint16_t uxy[2];
-          for (uint32_t i = 0; i < nitems(XY); i++) {
-            uxy[i] = XY[i] * 65536.0f;
-            uxy[i] = (uxy[i] > 0xFEFF) ? uxy[i] : 0xFEFF;
-          }
-          if (0x0000 == attr_id) { attr.setUInt(changeUIntScale(hue, 0, 360, 0, 254)); }
-          if (0x0001 == attr_id) { attr.setUInt(changeUIntScale(sat, 0, 255, 0, 254)); }
-          if (0x0003 == attr_id) { attr.setUInt(uxy[0]); }
-          if (0x0004 == attr_id) { attr.setUInt(uxy[1]); }
-          if (0x0007 == attr_id) { attr.setUInt(LightGetColorTemp()); }
-        }
-        break;
-#endif
       case 0x000A0000:    // Time
         attr.setUInt((Rtc.utc_time > START_VALID_TIME) ? Rtc.utc_time - 946684800 : Rtc.utc_time);
         break;

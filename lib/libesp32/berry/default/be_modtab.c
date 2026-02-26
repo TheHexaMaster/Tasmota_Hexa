@@ -55,8 +55,6 @@ be_extern_native_module(webfiles);
 be_extern_native_module(flash);
 be_extern_native_module(path);
 be_extern_native_module(unishox);
-be_extern_native_module(hue_ntv);
-be_extern_native_module(hue_bridge);
 be_extern_native_module(uuid);
 be_extern_native_module(animate);
 be_extern_native_module(partition_core);
@@ -86,14 +84,6 @@ be_extern_native_module(haspmota);
 #ifdef USE_MATTER_DEVICE
 be_extern_native_module(matter);
 #endif // USE_MATTER_DEVICE
-#ifdef USE_WS2812
-#ifdef USE_BERRY_ANIMATION
-be_extern_native_module(animation);
-#ifdef USE_BERRY_ANIMATION_DSL
-be_extern_native_module(animation_dsl);
-#endif // USE_BERRY_ANIMATION_DSL
-#endif // USE_BERRY_ANIMATION
-#endif // USE_WS2812
 
 /* user-defined modules declare start */
 
@@ -162,13 +152,6 @@ BERRY_LOCAL const bntvmodule_t* const be_module_table[] = {
 #ifdef USE_DISPLAY
     &be_native_module(display),
 #endif // USE_DISPLAY
-#ifdef USE_LIGHT
-    &be_native_module(light),
-#endif
-#if defined(USE_EMULATION) && defined(USE_EMULATION_HUE)
-    &be_native_module(hue_ntv),
-    &be_native_module(hue_bridge),
-#endif
 
     &be_native_module(uuid),
 #ifdef USE_UNISHOX_COMPRESSION
@@ -222,15 +205,6 @@ BERRY_LOCAL const bntvmodule_t* const be_module_table[] = {
 #ifdef USE_MATTER_DEVICE
     &be_native_module(matter),
 #endif // USE_MATTER_DEVICE
-#ifdef USE_WS2812
-#ifdef USE_BERRY_ANIMATION
-    &be_native_module(animation),
-#ifdef USE_BERRY_ANIMATION_DSL
-    &be_native_module(animation_dsl),
-#endif // USE_BERRY_ANIMATION_DSL
-#endif // USE_BERRY_ANIMATION
-#endif // USE_WS2812
-
 #endif // TASMOTA
     CUSTOM_NATIVE_MODULES
     /* user-defined modules register end */
@@ -309,9 +283,7 @@ BERRY_LOCAL bclass_array be_class_table = {
     &be_native_class(ctypes_bytes),
     &be_native_class(ctypes_bytes_dyn),
     &be_native_class(tasmota_log_reader),
-#ifdef USE_LIGHT
-    &be_native_class(light_state),
-#endif
+    
 #if defined(USE_ONEWIRE) || defined(USE_DS18x20)
     &be_native_class(OneWire),
 #endif
@@ -333,12 +305,6 @@ BERRY_LOCAL bclass_array be_class_table = {
 #ifdef USE_BERRY_TCPSERVER
     &be_native_class(tcpserver),
 #endif // USE_BERRY_TCPSERVER
-#if defined(USE_WS2812) && !defined(USE_WS2812_FORCE_NEOPIXELBUS)
-    &be_native_class(Leds_ntv),
-    &be_native_class(Leds),
-    &be_native_class(pixmat),
-#endif // USE_WS2812
-
 #ifdef USE_LVGL
     &be_native_class(LVGL_glob),
     

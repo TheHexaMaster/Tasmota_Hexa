@@ -210,19 +210,6 @@ void WizMoteResponse(void) {
         WizMote.delayed_index = WizMote.index;
         WizMote.index = 0;
         break;
-#ifdef USE_LIGHT
-      case 3:      // Moon
-      case 8:      // Bright up
-      case 9:      // Bright down
-        if (TasmotaGlobal.light_type) {          // Any light
-          char scmnd[16];
-          snprintf_P(scmnd, sizeof(scmnd), PSTR(D_CMND_DIMMER " %s"),
-            (3 == WizMote.index) ? "20" : (8 == WizMote.index) ? "+" : "-");
-          ExecuteCommand(scmnd, SRC_REMOTE);
-          WizMote.index = 0;
-        }
-        break;
-#endif  // USE_LIGHT
       default:
         WizMote.delayed_index = 0;
     }

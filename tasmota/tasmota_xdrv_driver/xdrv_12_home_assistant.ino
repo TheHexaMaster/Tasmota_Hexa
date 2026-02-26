@@ -250,9 +250,6 @@ void HassDiscoverMessage(void) {
   }
 
   bool TuyaMod = false;
-#ifdef USE_TUYA_MCU
-  TuyaMod = IsModuleTuya();
-#endif
   bool iFanMod = false;
 #ifdef ESP8266
   iFanMod = ((SONOFF_IFAN02 == TasmotaGlobal.module_type) || (SONOFF_IFAN03 == TasmotaGlobal.module_type));
@@ -286,21 +283,7 @@ void HassDiscoverMessage(void) {
   uint8_t light_idx = MAX_RELAYS_SET + 1;                      // Will store the starting position of the lights
   uint8_t light_subtype = 0;
   bool light_controller_isCTRGBLinked = false;
-#ifdef USE_LIGHT
-  light_subtype = Light.subtype;
-  if (light_subtype > LST_NONE) {
-    light_controller_isCTRGBLinked = light_controller.isCTRGBLinked();
-    if (!light_controller_isCTRGBLinked) {                     // One or two lights present
-      light_idx = TasmotaGlobal.devices_present - 2;
-    } else {
-      light_idx = TasmotaGlobal.devices_present - 1;
-    }
-  }
 
-  if ((Light.device > 0) && Settings->flag3.pwm_multi_channels) {  // How many relays are light devices?
-    light_idx = TasmotaGlobal.devices_present - light_subtype;
-  }
-#endif  // USE_LIGHT
 
   uint16_t Relay[MAX_RELAYS_SET] = { 0 };                      // Base array to store the relay type
   uint16_t Shutter[MAX_RELAYS_SET] = { 0 };                    // Array to store a temp list for shutters
@@ -463,9 +446,7 @@ void HAssAnnounceRelayLight(void)
   char stemp3[TOPSZ];
   char unique_id[30];
 
-#ifdef USE_LIGHT
-  bool LightControl = light_controller.isCTRGBLinked(); // SetOption37 - Color remapping for led channels, also provides an option for allowing independent handling of RGB and white channels
-#endif //USE_LIGHT
+
   bool PwmMulti = Settings->flag3.pwm_multi_channels;    // SetOption68 - Multi-channel PWM instead of a single light
   bool is_topic_light = false;                          // Switch HAss domain between Lights and Relays
   bool ind_light = false;                               // Controls Separated Lights when SetOption37 is >= 128
@@ -489,19 +470,8 @@ void HAssAnnounceRelayLight(void)
   FanMod = (SONOFF_IFAN02 == TasmotaGlobal.module_type || SONOFF_IFAN03 == TasmotaGlobal.module_type);
   if (SONOFF_DUAL == TasmotaGlobal.module_type) { valid_relay = 2; }
 #endif //ESP8266
-#ifdef USE_TUYA_MCU
-  TuyaMod = IsModuleTuya();
-#endif
 
-#ifdef USE_LIGHT
-  // If there is a special Light to be enabled and managed with SetOption68 or SetOption37 >= 128, Discovery calculates the maximum number of entities to be generated in advance
-  if (PwmMulti) { max_lights = Light.subtype; }
 
-  if (!LightControl) {
-    ind_light = true;
-    if (!PwmMulti) { max_lights = 2;}
-  }
-#endif //USE_LIGHT
 
 #ifdef USE_SHUTTER
   if (Settings->flag3.shutter_mode) {
@@ -521,11 +491,6 @@ void HAssAnnounceRelayLight(void)
   for (uint32_t i = 1; i <= MAX_RELAYS; i++)
   {
 
-#ifdef USE_TUYA_MCU
-  TuyaRel = TuyaGetDpId((TUYA_MCU_FUNC_REL1+ i-1) + TasmotaGlobal.active_device - 1);
-  TuyaRelInv = TuyaGetDpId((TUYA_MCU_FUNC_REL1_INV+ i-1) + TasmotaGlobal.active_device - 1);
-  TuyaDim = TuyaGetDpId((TUYA_MCU_FUNC_DIMMER) + TasmotaGlobal.active_device - 1);
-#endif //USE_TUYA_MCU
 
     TasmotaGlobal.masterlog_level = ShowTopic = 4; // Hide topic on clean and remove use weblog 4 to see it
 
@@ -550,16 +515,10 @@ void HAssAnnounceRelayLight(void)
 
     if (bitRead(shutter_mask, i-1)) {
       // suppress shutter relays
-#ifdef USE_LIGHT
-    } else if ((i < Light.device) && !RelayX) {
-      err_flag = true;
-      AddLog(LOG_LEVEL_ERROR, PSTR("%s"), kHAssError2);
-    } else {
-      if (Settings->flag.hass_discovery && (RelayX || (Light.device > 0) && (max_lights > 0)) && !err_flag )
-#else
+
     } else {
       if (Settings->flag.hass_discovery && RelayX )
-#endif //USE_LIGHT
+
       {                    // SetOption19 - Control Home Assistant automatic discovery (See SetOption59)
           char name[TOPSZ]; // friendlyname(33) + " " + index
           char value_template[33];
@@ -590,58 +549,6 @@ void HAssAnnounceRelayLight(void)
           }
           TryResponseAppend_P(HASS_DISCOVER_DEVICE_INFO_SHORT, unique_id, ESP_getChipId());
 
-  #ifdef USE_LIGHT
-        if (i >= Light.device) {
-          if (!RelayX || PwmMod || (TuyaDim > 0 && TuyaMod)) {
-            char *brightness_command_topic = stemp1;
-            strncpy_P(stemp3, Settings->flag.not_power_linked ? PSTR("last") : PSTR("brightness"), sizeof(stemp3)); // SetOption20 - Control power in relation to Dimmer/Color/Ct changes
-            char channel_num[9];
-            if (PwmMulti) { // SetOption68 - Multi-channel PWM instead of a single light
-              snprintf_P(channel_num, sizeof(channel_num), PSTR("Channel%d"), i);
-            } else {
-               if (!LightControl) { // SetOption37 >= 128 - Color remapping for led channels, also provides an option for allowing independent handling of RGB and white channels
-                snprintf_P(channel_num, sizeof(channel_num), PSTR("" D_CMND_DIMMER "%d"), dimmer);
-                dimmer ++;
-              } else {
-                snprintf_P(channel_num, sizeof(channel_num), PSTR("" D_CMND_DIMMER ""));
-              }
-            }
-            GetTopic_P(brightness_command_topic, CMND, TasmotaGlobal.mqtt_topic, channel_num);
-            TryResponseAppend_P(HASS_DISCOVER_BASE_LIGHT, brightness_command_topic, state_topic, stemp3, channel_num);
-          }
-          if ((ind_light && !PwmMulti) || LightControl) {
-
-            if (Light.subtype >= LST_RGB) {
-              char *clr_command_topic = stemp1;
-
-              GetTopic_P(clr_command_topic, CMND, TasmotaGlobal.mqtt_topic, D_CMND_HSBCOLOR);
-              TryResponseAppend_P(HASS_DISCOVER_LIGHT_HS_COLOR, clr_command_topic, state_topic);
-
-              char *effect_command_topic = stemp1;
-              GetTopic_P(effect_command_topic, CMND, TasmotaGlobal.mqtt_topic, D_CMND_SCHEME);
-              TryResponseAppend_P(HASS_DISCOVER_LIGHT_SCHEME, effect_command_topic, state_topic);
-            }
-            if (LST_RGBCW == Light.subtype) { ct_light = true; }
-          }
-
-          if ((!ind_light && ct_light) || (LST_COLDWARM == Light.subtype &&
-              !PwmMulti && LightControl)) {
-              char *color_temp_command_topic = stemp1;
-
-              GetTopic_P(color_temp_command_topic, CMND, TasmotaGlobal.mqtt_topic, D_CMND_COLORTEMPERATURE);
-              TryResponseAppend_P(HASS_DISCOVER_LIGHT_CT, color_temp_command_topic, state_topic, state_topic);
-              ct_light = false;
-          }
-          if (LST_RGBW == Light.subtype && !PwmMulti && LightControl) {
-              char *white_temp_command_topic = stemp1;
-
-              GetTopic_P(white_temp_command_topic, CMND, TasmotaGlobal.mqtt_topic, D_CMND_WHITE);
-              TryResponseAppend_P(HASS_DISCOVER_LIGHT_WHITE, white_temp_command_topic, state_topic);
-          }
-          ind_light = false;
-          max_lights--;
-        }
-  #endif  // USE_LIGHT
         TryResponseAppend_P(PSTR("}"));
       }
     }

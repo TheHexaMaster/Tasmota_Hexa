@@ -154,9 +154,6 @@ void Senseair250ms(void)
           break;
         case IR_SPACE_CO2:
           senseair_co2 = value;
-#ifdef USE_LIGHT
-          LightSetSignal(CO2_LOW, CO2_HIGH, senseair_co2);
-#endif  // USE_LIGHT
           break;
         case IR_SPACE_TEMP:
           senseair_temperature = ConvertTemp((float)value / 100);

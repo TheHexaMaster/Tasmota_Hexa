@@ -1665,50 +1665,5 @@ be_local_closure(class_Leds_set_bri,   /* name */
     })
   )
 );
-/*******************************************************************/
-
-
-/********************************************************************
-** Solidified class: Leds
-********************************************************************/
-extern const bclass be_class_Leds_ntv;
-be_local_class(Leds,
-    4,
-    &be_class_Leds_ntv,
-    be_nested_map(30,
-    ( (struct bmapnode*) &(const bmapnode[]) {
-        { be_const_key(clear_to, 28), be_const_closure(class_Leds_clear_to_closure) },
-        { be_const_key(leds, -1), be_const_var(1) },
-        { be_const_key(push_pixels_buffer_argb, 7), be_const_closure(class_Leds_push_pixels_buffer_argb_closure) },
-        { be_const_key(get_animate, 22), be_const_closure(class_Leds_get_animate_closure) },
-        { be_const_key(ctor, -1), be_const_closure(class_Leds_ctor_closure) },
-        { be_const_key(pixel_offset, -1), be_const_closure(class_Leds_pixel_offset_closure) },
-        { be_const_key(bri, -1), be_const_var(2) },
-        { be_const_key(set_gamma, 21), be_const_closure(class_Leds_set_gamma_closure) },
-        { be_const_key(get_pixel_color, -1), be_const_closure(class_Leds_get_pixel_color_closure) },
-        { be_const_key(length, -1), be_const_closure(class_Leds_length_closure) },
-        { be_const_key(is_dirty, -1), be_const_closure(class_Leds_is_dirty_closure) },
-        { be_const_key(can_show, -1), be_const_closure(class_Leds_can_show_closure) },
-        { be_const_key(to_gamma, -1), be_const_closure(class_Leds_to_gamma_closure) },
-        { be_const_key(dirty, 4), be_const_closure(class_Leds_dirty_closure) },
-        { be_const_key(clear, -1), be_const_closure(class_Leds_clear_closure) },
-        { be_const_key(pixel_size, 26), be_const_closure(class_Leds_pixel_size_closure) },
-        { be_const_key(show, 18), be_const_closure(class_Leds_show_closure) },
-        { be_const_key(pixels_buffer, 11), be_const_closure(class_Leds_pixels_buffer_closure) },
-        { be_const_key(set_pixel_color, -1), be_const_closure(class_Leds_set_pixel_color_closure) },
-        { be_const_key(create_segment, -1), be_const_closure(class_Leds_create_segment_closure) },
-        { be_const_key(animate, -1), be_const_var(3) },
-        { be_const_key(can_show_wait, -1), be_const_closure(class_Leds_can_show_wait_closure) },
-        { be_const_key(pixel_count, -1), be_const_closure(class_Leds_pixel_count_closure) },
-        { be_const_key(get_gamma, -1), be_const_closure(class_Leds_get_gamma_closure) },
-        { be_const_key(gamma, 6), be_const_var(0) },
-        { be_const_key(get_bri, 2), be_const_closure(class_Leds_get_bri_closure) },
-        { be_const_key(init, 1), be_const_closure(class_Leds_init_closure) },
-        { be_const_key(set_animate, -1), be_const_closure(class_Leds_set_animate_closure) },
-        { be_const_key(begin, -1), be_const_closure(class_Leds_begin_closure) },
-        { be_const_key(set_bri, -1), be_const_closure(class_Leds_set_bri_closure) },
-    })),
-    (bstring*) &be_const_str_Leds
-);
 /********************************************************************/
 /* End of solidification */

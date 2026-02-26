@@ -264,9 +264,6 @@ void CM11EverySecond(void)
 
       if (CM11CheckAndApplyFilter(ppm,cm11_drift)) {
         cm11_retry = CM1107_RETRY_COUNT;
-#ifdef USE_LIGHT
-        LightSetSignal(CO2_LOW, CO2_HIGH, cm11_last_ppm);
-#endif  // USE_LIGHT
 
         if (!cm11_drift) {  // Measuring is stable.
           if (cm11_abc_must_apply) {

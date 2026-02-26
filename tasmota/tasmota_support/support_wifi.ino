@@ -144,9 +144,6 @@ void WifiConfig(uint8_t type)
 {
   if (!Wifi.config_type) {
     if ((WIFI_RETRY == type) || (WIFI_WAIT == type)) { return; }
-#ifdef USE_EMULATION
-    UdpDisconnect();
-#endif  // USE_EMULATION
     WiFi.disconnect();                       // Solve possible Wifi hangs
     delay(100);
     Wifi.config_type = type;
@@ -310,9 +307,6 @@ void WiFiSetSleepMode(void)
  * - Optionally waits for connection result based on settings
  */
 void WifiBegin(uint8_t flag, uint8_t channel) {
-#ifdef USE_EMULATION
-  UdpDisconnect();
-#endif  // USE_EMULATION
 
   WiFi.persistent(false);   // Solve possible wifi init errors (re-add at 6.2.1.16 #4044, #4083)
 #if defined(USE_IPV6) && defined(ESP32)
@@ -1536,10 +1530,6 @@ void WifiShutdown(bool option) {
   // option = true  - Disconnect with SDK wifi calibrate sector erase when WIFI_FORCE_RF_CAL_ERASE enabled
   delay(100);                 // Allow time for message xfer - disabled v6.1.0b
 
-#ifdef USE_EMULATION
-  UdpDisconnect();
-  delay(100);                 // Flush anything in the network buffers.
-#endif  // USE_EMULATION
 
   if (Settings->flag.mqtt_enabled) {  // SetOption3 - Enable MQTT
     MqttDisconnect();

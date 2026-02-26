@@ -482,12 +482,6 @@ bool RulesRuleMatch(uint8_t rule_set, String &event, String &rule, bool stop_all
     }
 #endif  // USE_SUNRISE
 #endif  // USE_TIMERS
-#if defined(USE_LIGHT)
-    char scolor[LIGHT_COLOR_SIZE];
-    if (rule_param.startsWith(F("%COLOR%"))) {
-      rule_param = LightGetColor(scolor);
-    }
-#endif  // USE_LIGHT
 // #ifdef USE_ZIGBEE
 //     if (rule_param.startsWith(F("%ZBDEVICE%"))) {
 //       snprintf_P(stemp, sizeof(stemp), PSTR("0x%04X"), Z_GetLastDevice());
@@ -805,10 +799,6 @@ bool RuleSetProcess(uint8_t rule_set, String &event_saved)
       RulesVarReplace(commands, F("%SUNSET%"), String(SunMinutes(1)));
 #endif  // USE_SUNRISE
 #endif  // USE_TIMERS
-#if defined(USE_LIGHT)
-      char scolor[LIGHT_COLOR_SIZE];
-      RulesVarReplace(commands, F("%COLOR%"), LightGetColor(scolor));
-#endif  // USE_LIGHT
 #ifdef USE_ZIGBEE
       snprintf_P(stemp, sizeof(stemp), PSTR("0x%04X"), Z_GetLastDevice());
       RulesVarReplace(commands, F("%ZBDEVICE%"), String(stemp));

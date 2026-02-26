@@ -56,9 +56,6 @@ void TasDiscoverMessage(void) {
   }
 
   bool TuyaMod = false;
-#ifdef USE_TUYA_MCU
-  TuyaMod = IsModuleTuya();
-#endif
   bool iFanMod = false;
 #ifdef ESP8266
   iFanMod = ((SONOFF_IFAN02 == TasmotaGlobal.module_type) || (SONOFF_IFAN03 == TasmotaGlobal.module_type));
@@ -98,21 +95,7 @@ void TasDiscoverMessage(void) {
   uint8_t light_idx = MAX_RELAYS_SET + 1;                      // Will store the starting position of the lights
   uint8_t light_subtype = 0;
   bool light_controller_isCTRGBLinked = false;
-#ifdef USE_LIGHT
-  light_subtype = Light.subtype;
-  if (light_subtype > LST_NONE) {
-    light_controller_isCTRGBLinked = light_controller.isCTRGBLinked();
-    if (!light_controller_isCTRGBLinked) {                     // One or two lights present
-      light_idx = TasmotaGlobal.devices_present - 2;
-    } else {
-      light_idx = TasmotaGlobal.devices_present - 1;
-    }
-  }
 
-  if ((Light.device > 0) && Settings->flag3.pwm_multi_channels) {  // How many relays are light devices?
-    light_idx = TasmotaGlobal.devices_present - light_subtype;
-  }
-#endif  // USE_LIGHT
 
   uint16_t Relay[MAX_RELAYS_SET] = { 0 };                      // Base array to store the relay type
   uint16_t Shutter[MAX_RELAYS_SET] = { 0 };                    // Array to store a temp list for shutters

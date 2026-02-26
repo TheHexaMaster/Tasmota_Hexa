@@ -207,17 +207,11 @@ const char WIFI_HOSTNAME[] = WIFI_DEFAULT_HOSTNAME;    // Override by user_confi
 #endif  // SOC_HP_I2C_NUM
 
 // Hardware has no ESP32
-#undef USE_EXS_DIMMER
-#undef USE_ARMTRONIX_DIMMERS
 #undef USE_SONOFF_RF
 #undef USE_SONOFF_SC
 #undef USE_SONOFF_IFAN
-#undef USE_SONOFF_L1
-#undef USE_SONOFF_D1
 #undef USE_RF_FLASH
 
-// Not ported (yet)
-#undef USE_PS_16_DZ
 
 #undef USE_HM10                     // Disable support for HM-10 as a BLE-bridge as an alternative is using the internal ESP32 BLE
 #undef USE_KEELOQ                   // Disable support for Jarolift rollers by Keeloq algorithm as it's library cc1101 is not compatible with ESP32
@@ -333,8 +327,6 @@ const char WIFI_HOSTNAME[] = WIFI_DEFAULT_HOSTNAME;    // Override by user_confi
 #endif
 
 #ifndef USE_DEVICE_GROUPS
-#undef USE_PWM_DIMMER_REMOTE
-#undef USE_DGR_LIGHT_SEQUENCE
 #endif  // USE_DEVICE_GROUPS
 
 #ifndef DOMOTICZ_UPDATE_TIMER

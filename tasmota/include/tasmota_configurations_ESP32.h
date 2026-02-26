@@ -64,9 +64,6 @@
 #undef USE_GPIO_VIEWER                           // Enable GPIO Viewer to see realtime GPIO states (+5k6 code)
 #undef USE_ENHANCED_GUI_WIFI_SCAN                // Disable wifi scan output with BSSID (+0k5 code)
 #undef USE_WEBSEND_RESPONSE                      // Disable command WebSend response message (+1k code)
-#undef USE_EMULATION                             // Disable Wemo or Hue emulation
-#undef USE_EMULATION_HUE                         // Disable Hue Bridge emulation for Alexa (+14k code, +2k mem common)
-#undef USE_EMULATION_WEMO                        // Disable Belkin WeMo emulation for Alexa (+6k code, +2k mem common)
 #undef USE_CUSTOM                                // Disable Custom features
 #undef USE_DISCOVERY                             // Disable Discovery services for both MQTT and web server
 #undef USE_TIMERS                                // Disable support for up to 16 timers
@@ -82,24 +79,15 @@
 #undef USE_SONOFF_RF                             // Disable support for Sonoff Rf Bridge (+3k2 code)
   #undef USE_RF_FLASH                            // Disable support for flashing the EFM8BB1 chip on the Sonoff RF Bridge. C2CK must be connected to GPIO4, C2D to GPIO5 on the PCB
 #undef USE_SONOFF_SC                             // Disable support for Sonoff Sc (+1k1 code)
-#undef USE_TUYA_MCU                              // Disable support for Tuya Serial MCU
-#undef USE_ARMTRONIX_DIMMERS                     // Disable support for Armtronix Dimmers (+1k4 code)
-#undef USE_PS_16_DZ                              // Disable support for PS-16-DZ Dimmer and Sonoff L1 (+2k code)
 #undef USE_SONOFF_IFAN                           // Disable support for Sonoff iFan02 and iFan03 (+2k code)
 #undef USE_BUZZER                                // Disable support for a buzzer (+0k6 code)
-#undef USE_ARILUX_RF                             // Disable support for Arilux RF remote controller
 #undef USE_SHUTTER                               // Disable Shutter support for up to 4 shutter with different motortypes (+6k code)
 #undef USE_DEEPSLEEP                             // Disable support for deepsleep (+1k code)
-#undef USE_EXS_DIMMER                            // Disable support for EX-Store WiFi Dimmer
 #undef USE_HOTPLUG                               // Disable support for HotPlug
 #undef USE_DEVICE_GROUPS                         // Disable support for device groups (+3k5 code)
-#undef USE_PWM_DIMMER                            // Disable support for MJ-SD01/acenx/NTONPOWER PWM dimmers (+4k5 code)
-#undef USE_PWM_DIMMER_REMOTE                     // Disbale support for remote switches to PWM Dimmer
 #undef USE_KEELOQ                                // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
-#undef USE_SONOFF_D1                             // Disable support for Sonoff D1 Dimmer (+0k7 code)
 
 // -- Optional light modules ----------------------
-#undef USE_LIGHT                                 // Disable support for lights
 
 #undef USE_COUNTER                               // Disable counters
 #define USE_ADC_VCC                              // Display Vcc in Power status. Disable for use as Analog input on selected devices
@@ -218,18 +206,11 @@
 #undef ROTARY_V1
 #undef USE_ADC
 #undef USE_AC_ZERO_CROSS_DIMMER
-#undef USE_PWM_DIMMER
-#undef USE_PWM_DIMMER_REMOTE
-#undef USE_TUYA_MCU
-#undef USE_EMULATION_HUE
-#undef USE_EMULATION_WEMO
 #undef USE_BUZZER
-#undef USE_ARILUX_RF
 #undef USE_DS18x20
 #undef USE_BMP
 #undef USE_DHT
 #undef USE_BH1750
-#undef USE_WS2812
 #undef USE_SHUTTER
 #undef USE_DEVICE_GROUPS
 //#undef USE_BERRY                                 // Disable Berry scripting language
@@ -325,28 +306,13 @@
 
 #define ROTARY_V1                                // Add support for Rotary Encoder as used in MI Desk Lamp
 
-#define USE_TUYA_MCU                             // Add support for Tuya Serial MCU
-#ifndef TUYA_DIMMER_ID
-  #define TUYA_DIMMER_ID       0                 // Default dimmer Id
-#endif
-#undef USE_ARMTRONIX_DIMMERS                    // Disable support for Armtronix Dimmers (+1k4 code)
-//#undef USE_PS_16_DZ                             // Disable support for PS-16-DZ Dimmer (+2k code)
 #undef USE_SONOFF_IFAN                          // Disable support for Sonoff iFan02 and iFan03 (+2k code)
 #define USE_BUZZER                               // Add support for a buzzer (+0k6 code)
-//#undef USE_ARILUX_RF                            // Disable support for Arilux RF remote controller (+0k8 code, 252 iram (non 2.3.0))
 //#define USE_DEEPSLEEP                            // Add support for deepsleep (+1k code)
-#undef USE_EXS_DIMMER                           // Disable support for EX-Store WiFi Dimmer
 //#define USE_HOTPLUG                              // Add support for sensor HotPlug
 //#undef USE_DEVICE_GROUPS                        // Disable support for device groups (+5k6 code)
-#undef USE_PWM_DIMMER                           // Disable support for MJ-SD01/acenx/NTONPOWER PWM dimmers (+4k5 code)
 #undef USE_KEELOQ                               // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
-#undef USE_SONOFF_D1                            // Disable support for Sonoff D1 Dimmer (+0k7 code)
 
-#define USE_LIGHT_PALETTE                        // Add support for color palette (+0k9 code)
-#undef USE_EMULATION_WEMO
-//#undef USE_EMULATION_HUE
-
-#define USE_WS2812
 
 #define USE_DS18x20                              // Add support for DS18x20 sensors with id sort, single scan and read retry (+1k3 code)
 
@@ -503,15 +469,10 @@
 #define USE_ENHANCED_GUI_WIFI_SCAN
 
 #undef USE_SHUTTER                              // Disable support for shutter
-#undef USE_ARMTRONIX_DIMMERS                    // Disable support for Armtronix Dimmers (+1k4 code)
-#undef USE_PS_16_DZ                             // Disable support for PS-16-DZ Dimmer (+2k code)
 #undef USE_SONOFF_IFAN                          // Disable support for Sonoff iFan02 and iFan03 (+2k code)
 //#define USE_BUZZER                               // Add support for a buzzer (+0k6 code)
-#undef USE_ARILUX_RF                            // Disable support for Arilux RF remote controller (+0k8 code, 252 iram (non 2.3.0))
 //#define USE_DEEPSLEEP                            // Add support for deepsleep (+1k code)
-#undef USE_EXS_DIMMER                           // Disable support for EX-Store WiFi Dimmer
 #undef USE_KEELOQ                               // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
-#undef USE_SONOFF_D1                            // Disable support for Sonoff D1 Dimmer (+0k7 code)
 
 #define USE_I2C                                  // I2C using library wire (+10k code, 0k2 mem, 124 iram)
 #define USE_SPI                                // Hardware SPI using GPIO12(MISO), GPIO13(MOSI) and GPIO14(CLK) in addition to two user selectable GPIOs(CS and DC)
@@ -565,24 +526,13 @@
 
 #define ROTARY_V1                                // Add support for Rotary Encoder as used in MI Desk Lamp
 
-#define USE_TUYA_MCU                             // Add support for Tuya Serial MCU
-#ifndef TUYA_DIMMER_ID
-  #define TUYA_DIMMER_ID       0                 // Default dimmer Id
-#endif
-#undef USE_ARMTRONIX_DIMMERS                    // Disable support for Armtronix Dimmers (+1k4 code)
-//#undef USE_PS_16_DZ                             // Disable support for PS-16-DZ Dimmer (+2k code)
 #undef USE_SONOFF_IFAN                          // Disable support for Sonoff iFan02 and iFan03 (+2k code)
 #define USE_BUZZER                               // Add support for a buzzer (+0k6 code)
-//#undef USE_ARILUX_RF                            // Disable support for Arilux RF remote controller (+0k8 code, 252 iram (non 2.3.0))
 #define USE_DEEPSLEEP                            // Add support for deepsleep (+1k code)
-#undef USE_EXS_DIMMER                           // Disable support for EX-Store WiFi Dimmer
 //#define USE_HOTPLUG                              // Add support for sensor HotPlug
 //#undef USE_DEVICE_GROUPS                        // Disable support for device groups (+5k6 code)
-//#undef USE_PWM_DIMMER                           // Disable support for MJ-SD01/acenx/NTONPOWER PWM dimmers (+4k5 code)
 #undef USE_KEELOQ                               // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
-#undef USE_SONOFF_D1                            // Disable support for Sonoff D1 Dimmer (+0k7 code)
 
-#define USE_LIGHT_PALETTE                        // Add support for color palette (+0k9 code)
 #ifdef CONFIG_IDF_TARGET_ESP32C3
 #define USE_MAGIC_SWITCH                         // Add Sonoff MagicSwitch support as implemented in Sonoff Basic R4
 #endif
@@ -754,7 +704,6 @@
 #define USE_HRE                                  // Add support for Badger HR-E Water Meter (+1k4 code)
 //#define USE_A4988_STEPPER                        // Add support for A4988/DRV8825 stepper-motor-driver-circuit (+10k5 code)
 //#define USE_THERMOSTAT                           // Add support for Thermostat
-#define USE_BP1658CJ                             // Add support for BP1658CJ 5 channel led controller as used in Orein OS0100411267 Bulb
 #define USE_ETHERNET                             // Add support for ethernet (+20k code)
 #define USE_DISPLAY_TM1621_SONOFF                // Add support for TM1621 display driver used by Sonoff POWR3xxD and THR3xxD
 #define USE_LOX_O2                               // Add support for LuminOx LOX O2 Sensor (+0k8 code)

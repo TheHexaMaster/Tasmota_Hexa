@@ -260,7 +260,6 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_DSB),            // Single wire DS18B20 or DS18S20
   AGPIO(GPIO_I2C_SCL),        // I2C SCL
   AGPIO(GPIO_I2C_SDA),        // I2C SDA
-  AGPIO(GPIO_WS2812),         // WS2812 Led string
   AGPIO(GPIO_SWT1),           // Switch
   AGPIO(GPIO_SWT1) +1,
   AGPIO(GPIO_SWT1) +2,
@@ -350,8 +349,6 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_TX2X_TXD_BLACK), // TX20/TX23 Transmission Pin
   AGPIO(GPIO_RFSEND),         // RF transmitter
   AGPIO(GPIO_RFRECV),         // RF receiver
-  AGPIO(GPIO_TUYA_TX),        // Tuya Serial interface
-  AGPIO(GPIO_TUYA_RX),        // Tuya Serial interface
   AGPIO(GPIO_MGC3130_XFER),
   AGPIO(GPIO_MGC3130_RESET),
   AGPIO(GPIO_SSPI_MISO),      // Software SPI Master Input Client Output
@@ -375,12 +372,6 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_KEY1_INV_NP) +3,
   AGPIO(GPIO_PN532_TXD),      // PN532 HSU Tx
   AGPIO(GPIO_PN532_RXD),      // PN532 HSU Rx
-  AGPIO(GPIO_SM16716_CLK),    // SM16716 CLOCK
-  AGPIO(GPIO_SM16716_DAT),    // SM16716 DATA
-  AGPIO(GPIO_SM16716_SEL),    // SM16716 SELECT
-  AGPIO(GPIO_DI),             // my92x1 PWM input
-  AGPIO(GPIO_DCKI),           // my92x1 CLK input
-  AGPIO(GPIO_ARIRFRCV),       // AriLux RF Receive input
   AGPIO(GPIO_TXD),            // Serial interface
   AGPIO(GPIO_RXD),            // Serial interface
   AGPIO(GPIO_ROT1A),          // Rotary A Pin
@@ -391,7 +382,6 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_HRE_DATA),
   AGPIO(GPIO_LEDLNK),         // Link led
   AGPIO(GPIO_LEDLNK_INV),     // Inverted link led
-  AGPIO(GPIO_ARIRFSEL),       // Arilux RF Receive input selected
   AGPIO(GPIO_BUZZER),         // Buzzer
   AGPIO(GPIO_BUZZER_INV),     // Inverted buzzer
   AGPIO(GPIO_OLED_RESET),     // OLED Display Reset
@@ -406,10 +396,7 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_A4988_MS1),      // A4988 microstep pin1
   AGPIO(GPIO_A4988_MS1) +1,   // A4988 microstep pin2
   AGPIO(GPIO_A4988_MS1) +2,   // A4988 microstep pin3
-  AGPIO(GPIO_SM2135_CLK),     // SM2135 CLOCK
-  AGPIO(GPIO_SM2135_DAT),     // SM2135 DATA
   AGPIO(GPIO_DEEPSLEEP),
-  AGPIO(GPIO_EXS_ENABLE),     // EXS MCU Enable
   AGPIO(GPIO_TASMOTACLIENT_TXD),     // Tasmota Client TX
   AGPIO(GPIO_TASMOTACLIENT_RXD),     // Tasmota Client RX
   AGPIO(GPIO_TASMOTACLIENT_RST),     // Tasmota Client Reset
@@ -425,7 +412,6 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_CC1101_GDO0),    // CC1101 pin for RX
   AGPIO(GPIO_CC1101_GDO2),    // CC1101 pin for RX
   AGPIO(GPIO_HRXL_RX),
-  AGPIO(GPIO_ELECTRIQ_MOODL_TX),
   AGPIO(GPIO_AS3935),         // AS3935 IRQ Pin
   AGPIO(GPIO_PMS5003_TX),     // Plantower PMS5003 Serial interface
   AGPIO(GPIO_BOILER_OT_RX),

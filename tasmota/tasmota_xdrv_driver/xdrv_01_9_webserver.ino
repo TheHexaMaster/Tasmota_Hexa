@@ -1354,18 +1354,6 @@ void WebGetDeviceCounts(void) {
   Web.buttons_non_light_non_shutter = TasmotaGlobal.devices_present;
   Web.light_shutter_button_mask = 0;       // Bitmask for each light and/or shutter button
 
-#ifdef USE_LIGHT
-  // Chk for reduced toggle buttons used by lights
-  if (TasmotaGlobal.light_type) {
-    // Find and skip light buttons
-    uint32_t light_device = LightDevice();
-    uint32_t light_devices = LightDevices();
-    for (uint32_t button_idx = light_device; button_idx < (light_device + light_devices); button_idx++) {
-      Web.buttons_non_light_non_shutter--;
-      Web.light_shutter_button_mask |= (1 << (button_idx -1));  // Set button bit in bitmask
-    }
-  }
-#endif  // USE_LIGHT
 
 #ifdef USE_SHUTTER
   // Chk for reduced toggle buttons used by shutters
@@ -1383,23 +1371,6 @@ void WebGetDeviceCounts(void) {
 //  AddLog(LOG_LEVEL_DEBUG, PSTR("HTP: DP %d, BNLNS %d, SB %08X"), TasmotaGlobal.devices_present, Web.buttons_non_light_non_shutter, Web.light_shutter_button_mask);
 }
 
-#ifdef USE_LIGHT
-/*-------------------------------------------------------------------------------------------*/
-
-void WebSliderColdWarm(void) {
-  Web.slider[0] = LightGetColorTemp();
-  WSContentSend_P(PSTR("<tr>"));
-  WSContentSend_P(HTTP_MSG_SLIDER_GRADIENT,  // Cold Warm
-    2, 100,
-    PSTR("a"),       // a - Unique HTML id
-    PSTR("#eff"), PSTR("#f81"),  // 6500k in RGB (White) to 2500k in RGB (Warm Yellow)
-    1,               // sl1 - used for slider updates
-    153, 500,        // Range color temperature
-    Web.slider[0],
-    't', 0);         // t0 - Value id releated to lc("t0", value) and WebGetArg("t0", tmp, sizeof(tmp));
-  WSContentSend_P(PSTR("</tr>"));
-}
-#endif  // USE_LIGHT
 
 /*-------------------------------------------------------------------------------------------*/
 
@@ -1549,150 +1520,6 @@ void HandleRoot(void) {
     }
 #endif  // USE_SHUTTER
 
-#ifdef USE_LIGHT
-    if (TasmotaGlobal.light_type) {        // Any light - Show light button and slider(s)
-      uint32_t light_device = LightDevice();
-      uint32_t light_devices = LightDevices();
-      uint32_t button_idx = light_device;
-
-      WSContentSend_P(HTTP_TABLE100);      // "<table style='width:100%%'>"
-
-      uint8_t light_subtype = TasmotaGlobal.light_type &7;
-      if (!Settings->flag3.pwm_multi_channels) {  // SetOption68 0 - Enable multi-channels PWM instead of Color PWM
-        bool split_white = ((LST_RGBW <= light_subtype) && (light_devices > 1) && (Settings->param[P_RGB_REMAP] & 128));  // Only on RGBW or RGBCW and SetOption37 128
-
-        if ((LST_COLDWARM == light_subtype) || ((LST_RGBCW == light_subtype) && !split_white)) {
-          WebSliderColdWarm();
-        }
-
-        if (light_subtype > 2) {           // No W or CW
-          uint16_t hue;
-          uint8_t sat;
-          LightGetHSB(&hue, &sat, nullptr);
-
-          Web.slider[1] = hue;
-          WSContentSend_P(PSTR("<tr>"));
-          WSContentSend_P(HTTP_MSG_SLIDER_GRADIENT,  // Hue
-            2, 100,
-            PSTR("b"),       // b - Unique HTML id
-            PSTR("#800"), PSTR("#f00 5%,#ff0 20%,#0f0 35%,#0ff 50%,#00f 65%,#f0f 80%,#f00 95%,#800"),  // Hue colors
-            2,               // sl2 - Unique range HTML id - Used as source for Saturation end color and slider updates
-            0, 359,          // Range valid Hue
-            Web.slider[1],
-            'h', 0);         // h0 - Value id
-          WSContentSend_P(PSTR("</tr>"));
-
-          uint8_t dcolor = changeUIntScale(Settings->light_dimmer, 0, 100, 0, 255);
-          char scolor[8];
-          snprintf_P(scolor, sizeof(scolor), PSTR("#%02X%02X%02X"), dcolor, dcolor, dcolor);  // Saturation start color from Black to White
-          uint8_t red, green, blue;
-          HsToRgb(hue, 255, &red, &green, &blue);
-          snprintf_P(stemp, sizeof(stemp), PSTR("#%02X%02X%02X"), red, green, blue);  // Saturation end color
-
-          Web.slider[2] = changeUIntScale(sat, 0, 255, 0, 100);
-          WSContentSend_P(PSTR("<tr>"));
-          WSContentSend_P(HTTP_MSG_SLIDER_GRADIENT,  // Saturation
-            2, 100,
-            PSTR("s"),       // s - Unique HTML id related to eb('s').style.background='linear-gradient(to right,rgb('+sl+'%%,'+sl+'%%,'+sl+'%%),hsl('+eb('sl2').value+',100%%,50%%))';
-            scolor, stemp,   // Brightness to max current color
-            3,               // sl3 - Unique range HTML id - Used for slider updates
-            0, 100,          // Range 0 to 100%
-            Web.slider[2],
-            'n', 0);         // n0 - Value id
-          WSContentSend_P(PSTR("</tr>"));
-        }
-
-        bool set_button = ((button_idx <= MAX_BUTTON_TEXT) && strlen(GetWebButton(button_idx -1)));
-        char first[2];
-        snprintf_P(first, sizeof(first), PSTR("%s"), PSTR(D_BUTTON_TOGGLE));
-        char butt_txt[4];
-        snprintf_P(butt_txt, sizeof(butt_txt), PSTR("%s"), (set_button) ? HtmlEscape(GetWebButton(button_idx -1)).c_str() : first);
-        char number[8];
-        WSContentSend_P(PSTR("<tr>"));
-        WSContentSend_P(HTTP_DEVICE_CONTROL, 15, button_idx, button_idx,
-          butt_txt,
-          (set_button) ? "" : itoa(button_idx, number, 10));
-        button_idx++;
-
-        Web.slider[3] = Settings->light_dimmer;
-        WSContentSend_P(HTTP_MSG_SLIDER_GRADIENT,  // Brightness - Black to White
-          1, 85,
-          PSTR("c"),         // c - Unique HTML id
-          PSTR("#000"), PSTR("#fff"),    // Black to White
-          4,                 // sl4 - Unique range HTML id - Used as source for Saturation begin color and slider updates
-          Settings->flag3.slider_dimmer_stay_on, 100,  // Range 0/1 to 100% (SetOption77 - Do not power off if slider moved to far left)
-          Web.slider[3],
-          'd', 0);           // d0 - Value id is related to lc("d0", value) and WebGetArg("d0", tmp, sizeof(tmp));
-        WSContentSend_P(PSTR("</tr>"));
-
-        if (split_white) {   // SetOption37 128
-          if (LST_RGBCW == light_subtype) {
-            WebSliderColdWarm();
-          }
-
-          uint32_t width = 100;
-          WSContentSend_P(PSTR("<tr>"));
-
-          if (button_idx < (light_device + light_devices)) {
-            bool set_button = ((button_idx <= MAX_BUTTON_TEXT) && strlen(GetWebButton(button_idx -1)));
-            char first[2];
-            snprintf_P(first, sizeof(first), PSTR("%s"), PSTR(D_BUTTON_TOGGLE));
-            char butt_txt[4];
-            snprintf_P(butt_txt, sizeof(butt_txt), PSTR("%s"), (set_button) ? HtmlEscape(GetWebButton(button_idx -1)).c_str() : first);
-            char number[8];
-            WSContentSend_P(HTTP_DEVICE_CONTROL, 15, button_idx, button_idx,
-              butt_txt,
-              (set_button) ? "" : itoa(button_idx, number, 10));
-            button_idx++;
-            width = 85;
-          }
-
-          Web.slider[4] = LightGetDimmer(2);
-          WSContentSend_P(HTTP_MSG_SLIDER_GRADIENT,  // White brightness - Black to White
-            (100 == width) ? 2 : 1, width,
-            PSTR("f"),       // f - Unique HTML id
-            PSTR("#000"), PSTR("#fff"),    // Black to White
-            5,               // sl5 - Unique range HTML id - Used for slider updates
-            Settings->flag3.slider_dimmer_stay_on, 100,  // Range 0/1 to 100% (SetOption77 - Do not power off if slider moved to far left)
-            Web.slider[4],
-            'w', 0);         // w0 - Value id is related to lc("w0", value) and WebGetArg("w0", tmp, sizeof(tmp));
-          WSContentSend_P(PSTR("</tr>"));
-        }
-      } else {  // Settings->flag3.pwm_multi_channels - SetOption68 1 - Enable multi-channels PWM instead of Color PWM
-        stemp[0] = 'e'; stemp[1] = '0'; stemp[2] = '\0';  // e0
-        for (uint32_t i = 0; i < light_devices; i++) {
-          bool set_button = ((button_idx <= MAX_BUTTON_TEXT) && strlen(GetWebButton(button_idx -1)));
-          char first[2];
-          snprintf_P(first, sizeof(first), PSTR("%s"), PSTR(D_BUTTON_TOGGLE));
-          char butt_txt[4];
-          snprintf_P(butt_txt, sizeof(butt_txt), PSTR("%s"),
-            (set_button) ? HtmlEscape(GetWebButton(button_idx -1)).c_str() : first);
-          char number[8];
-          WSContentSend_P(PSTR("<tr>"));
-          WSContentSend_P(HTTP_DEVICE_CONTROL, 15, button_idx, button_idx,
-            butt_txt,
-            (set_button) ? "" : itoa(button_idx, number, 10));
-          button_idx++;
-
-          stemp[1]++;        // e1 to e5 - Make unique ids
-          Web.slider[i] = changeUIntScale(Settings->light_color[i], 0, 255, 0, 100);
-
-          WSContentSend_P(HTTP_MSG_SLIDER_GRADIENT,  // Channel brightness - Black to White
-            1, 85,
-            stemp,           // e1 to e5 - Unique HTML id
-            PSTR("#000"), PSTR("#fff"),  // Black to White
-            i+1,             // sl1 to sl5 - Unique range HTML id - Used for slider updates
-            1, 100,          // Range 1 to 100%
-            Web.slider[i],
-            'e', i+1);       // e1 to e5 - Value id
-
-          WSContentSend_P(PSTR("</tr>"));
-        }
-      }  // Settings->flag3.pwm_multi_channels
-      WSContentSend_P(PSTR("</table>"));
-    }
-#endif // USE_LIGHT
-
   }
 
   // Init buttons 
@@ -1815,43 +1642,7 @@ bool HandleRootStatusRefresh(void) {
     }
 #endif  // USE_SONOFF_IFAN
   }
-#ifdef USE_LIGHT
-  WebGetArg(PSTR("d0"), tmp, sizeof(tmp));  // 0 - 100 Dimmer value
-  if (strlen(tmp)) {
-    snprintf_P(svalue, sizeof(svalue), PSTR(D_CMND_DIMMER " %s"), tmp);
-    ExecuteWebCommand(svalue);
-  }
-  WebGetArg(PSTR("w0"), tmp, sizeof(tmp));  // 0 - 100 White value
-  if (strlen(tmp)) {
-    snprintf_P(svalue, sizeof(svalue), PSTR(D_CMND_WHITE " %s"), tmp);
-    ExecuteWebCommand(svalue);
-  }
-  uint32_t light_device = LightDevice();    // Channel number offset
-  uint32_t light_devices = LightDevices();  // Number of channels
-  for (uint32_t j = 0; j < light_devices; j++) {
-    snprintf_P(webindex, sizeof(webindex), PSTR("e%d"), j +1);
-    WebGetArg(webindex, tmp, sizeof(tmp));  // 0 - 100 percent
-    if (strlen(tmp)) {
-      snprintf_P(svalue, sizeof(svalue), PSTR(D_CMND_CHANNEL "%d %s"), j +light_device, tmp);
-      ExecuteWebCommand(svalue);
-    }
-  }
-  WebGetArg(PSTR("t0"), tmp, sizeof(tmp));  // 153 - 500 Color temperature
-  if (strlen(tmp)) {
-    snprintf_P(svalue, sizeof(svalue), PSTR(D_CMND_COLORTEMPERATURE " %s"), tmp);
-    ExecuteWebCommand(svalue);
-  }
-  WebGetArg(PSTR("h0"), tmp, sizeof(tmp));  // 0 - 359 Hue value
-  if (strlen(tmp)) {
-    snprintf_P(svalue, sizeof(svalue), PSTR(D_CMND_HSBCOLOR  "1 %s"), tmp);
-    ExecuteWebCommand(svalue);
-  }
-  WebGetArg(PSTR("n0"), tmp, sizeof(tmp));  // 0 - 99 Saturation value
-  if (strlen(tmp)) {
-    snprintf_P(svalue, sizeof(svalue), PSTR(D_CMND_HSBCOLOR  "2 %s"), tmp);
-    ExecuteWebCommand(svalue);
-  }
-#endif  // USE_LIGHT
+
 #ifdef USE_SHUTTER
   for (uint32_t j = 1; j <= TasmotaGlobal.shutters_present; j++) {
     uint8_t percent;
@@ -1935,52 +1726,6 @@ bool HandleRootStatusRefresh(void) {
   }
 #endif  // USE_SHUTTER
 
-#ifdef USE_LIGHT
-  uint16_t hue;
-  uint8_t sat;
-  bool hue_bri_change = false;
-  int current_value = -1;
-  for (uint32_t i = 0; i < LST_MAX; i++) {
-    if (Web.slider[i] != -1) {
-      if (!Settings->flag3.pwm_multi_channels) {  // SetOption68 0 - Enable multi-channels PWM instead of Color PWM
-        if (0 == i) {                // Cold / Warm
-          current_value = LightGetColorTemp();
-        }
-        else if (1 == i) {           // Hue
-          LightGetHSB(&hue, &sat, nullptr);
-          current_value = hue;
-        }
-        else if (2 == i) {           // Saturation
-          current_value = changeUIntScale(sat, 0, 255, 0, 100);
-        }
-        else if (3 == i) {           // Dimmer - Color
-          current_value = Settings->light_dimmer;
-        }
-        else if (4 == i) {           // Dimmer2 - White
-          current_value = LightGetDimmer(2);
-        }
-      } else {
-        current_value = changeUIntScale(Settings->light_color[i], 0, 255, 0, 100);
-      }
-      if (current_value != Web.slider[i]) {
-        if ((1 == i) || (3 == i)) {  // Hue or Dimmer change needs Saturation slider gradient update
-          hue_bri_change = true;
-        }
-        if (WebUpdateSliderTime()) {
-          Web.slider[i] = current_value;
-        }
-        if (!msg_exec_javascript) {
-          WSContentSend_P(HTTP_MSG_EXEC_JAVASCRIPT);  // "<img style='display:none;' src onerror=\""
-          msg_exec_javascript = true;
-        }
-        WSContentSend_P(PSTR("eb('sl%d').value='%d';"), i +1, current_value);
-      }
-    }
-  }
-  if (hue_bri_change) {
-    WSContentSend_P(PSTR("lc('h',99,0);"));  // Update Saturation slider color gradient when command color/dimmer is executed
-  }
-#endif  // USE_LIGHT
 
   if (msg_exec_javascript) {
     WSContentSend_P(PSTR("\">"));
@@ -2571,9 +2316,6 @@ void HandleWifiConfiguration(void) {
       if (Webserver->hasArg(F("scan"))) { limitScannedNetworks = false; }
 
       AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_WIFI "Scanning..."));
-#ifdef USE_EMULATION
-      UdpDisconnect();
-#endif  // USE_EMULATION
       int n = WiFi.scanNetworks(true);
       while(n<0){
         delay(50); // some magic number - maybe non optimal
@@ -2898,29 +2640,6 @@ void HandleOtherConfiguration(void) {
       SettingsTextEscaped(SET_FRIENDLYNAME1 + i).c_str());
   }
 
-#ifdef USE_EMULATION
-#if defined(USE_EMULATION_WEMO) || defined(USE_EMULATION_HUE)
-  WSContentSend_P(PSTR("<p></p>"));  // Keep close to Friendlynames so do not use <br>
-  WSContentSend_P(HTTP_FIELDSET_LEGEND, PSTR(D_EMULATION));
-  WSContentSend_P(PSTR("<p>"));      // Keep close to Friendlynames so do not use <br>
-  for (uint32_t i = 0; i < EMUL_MAX; i++) {
-#ifndef USE_EMULATION_WEMO
-    if (i == EMUL_WEMO) { i++; }
-#endif
-#ifndef USE_EMULATION_HUE
-    if (i == EMUL_HUE) { i++; }
-#endif
-    if (i < EMUL_MAX) {
-      WSContentSend_P(PSTR("<label><input id='r%d' name='b2' type='radio' value='%d'%s><b>%s</b> %s</label><br>"),  // Different id only used for labels
-        i, i,
-        (i == Settings->flag2.emulation) ? PSTR(" checked") : "",
-        GetTextIndexed(stemp, sizeof(stemp), i, kEmulationOptions),
-        (i == EMUL_NONE) ? "" : (i == EMUL_WEMO) ? PSTR(D_SINGLE_DEVICE) : PSTR(D_MULTI_DEVICE));
-    }
-  }
-  WSContentSend_P(PSTR("</p></fieldset>"));
-#endif  // USE_EMULATION_WEMO || USE_EMULATION_HUE
-#endif  // USE_EMULATION
 
   WSContentSend_P(HTTP_FORM_END);
   WSContentSpaceButton(BUTTON_CONFIGURATION);
@@ -2945,11 +2664,6 @@ void OtherSaveSettings(void) {
     cmnd += AddWebCommand(cmnd2, webindex, PSTR("\""));
   }
 
-#ifdef USE_EMULATION
-#if defined(USE_EMULATION_WEMO) || defined(USE_EMULATION_HUE)
-  cmnd += AddWebCommand(PSTR(D_CMND_EMULATION), PSTR("b2"), PSTR("0"));
-#endif  // USE_EMULATION_WEMO || USE_EMULATION_HUE
-#endif  // USE_EMULATION
 
   String tmpl = Webserver->arg(F("t1"));    // {"NAME":"12345678901234","GPIO":[255,255,255,255,255,255,255,255,255,255,255,255,255],"FLAG":255,"BASE":255,"CMND":"SO123 1;SO99 0"}
   if (tmpl.length() && (tmpl.length() < MQTT_MAX_PACKET_SIZE)) {
@@ -3219,15 +2933,8 @@ void HandleInformation(void) {
     WSContentSend_P(PSTR("}1" D_MQTT "}2" D_DISABLED));
   }
 
-#if defined(USE_EMULATION) || defined(USE_DISCOVERY)
+#if defined(USE_DISCOVERY)
   WSContentSeparatorIFat();
-#endif  // USE_EMULATION or USE_DISCOVERY
-#ifdef USE_EMULATION
-  WSContentSend_P(PSTR("}1" D_EMULATION "}2%s"), 
-    GetTextIndexed(stopic, sizeof(stopic), Settings->flag2.emulation, kEmulationOptions));
-#endif  // USE_EMULATION
-
-#ifdef USE_DISCOVERY
   WSContentSend_P(PSTR("}1" D_MDNS_DISCOVERY "}2%s"), 
     (Settings->flag3.mdns_enabled) ? D_ENABLED : D_DISABLED);  // SetOption55 - Control mDNS service
   if (Settings->flag3.mdns_enabled) {  // SetOption55 - Control mDNS service
@@ -4014,14 +3721,6 @@ void HandleNotFound(void) {
   if (CaptivePortal()) { return; }  // If captive portal redirect instead of displaying the error page.
 #endif  // NO_CAPTIVE_PORTAL
 
-#ifdef USE_EMULATION
-#ifdef USE_EMULATION_HUE
-  String path = Webserver->uri();
-  if ((EMUL_HUE == Settings->flag2.emulation) && (path.startsWith(F("/api")))) {
-    HandleHueApi(&path);
-  } else
-#endif  // USE_EMULATION_HUE
-#endif  // USE_EMULATION
   {
     WSContentBegin(404, CT_PLAIN);
     WSContentSend_P(PSTR(D_FILE_NOT_FOUND "\n\nURI: %s\nMethod: %s\nArguments: %d\n"), Webserver->uri().c_str(), (Webserver->method() == HTTP_GET) ? PSTR("GET") : PSTR("POST"), Webserver->args());
@@ -4232,9 +3931,6 @@ const char kWebCmndStatus[] PROGMEM = D_JSON_DONE "|" D_JSON_WRONG_PARAMETERS "|
 const char kWebCommands[] PROGMEM = "|"  // No prefix
   D_CMND_WEBLOG "|"
   D_CMND_WEBTIME "|"
-#ifdef USE_EMULATION
-  D_CMND_EMULATION "|"
-#endif
 #ifdef USE_SENDMAIL
   D_CMND_SENDMAIL "|"
 #endif
@@ -4254,9 +3950,6 @@ const char kWebCommands[] PROGMEM = "|"  // No prefix
 void (* const WebCommand[])(void) PROGMEM = {
   &CmndWeblog,
   &CmndWebTime,
-#ifdef USE_EMULATION
-  &CmndEmulation,
-#endif
 #ifdef USE_SENDMAIL
   &CmndSendmail,
 #endif
@@ -4294,28 +3987,6 @@ void CmndWebTime(void) {
     datetime.substring(Settings->web_time_start, Settings->web_time_end).c_str());
 }
 
-#ifdef USE_EMULATION
-/*-------------------------------------------------------------------------------------------*/
-
-void CmndEmulation(void) {
-#if defined(USE_EMULATION_WEMO) || defined(USE_EMULATION_HUE)
-#if defined(USE_EMULATION_WEMO) && defined(USE_EMULATION_HUE)
-  if ((XdrvMailbox.payload >= EMUL_NONE) && (XdrvMailbox.payload < EMUL_MAX)) {
-#else
-#ifndef USE_EMULATION_WEMO
-  if ((EMUL_NONE == XdrvMailbox.payload) || (EMUL_HUE == XdrvMailbox.payload)) {
-#endif
-#ifndef USE_EMULATION_HUE
-  if ((EMUL_NONE == XdrvMailbox.payload) || (EMUL_WEMO == XdrvMailbox.payload)) {
-#endif
-#endif
-    Settings->flag2.emulation = XdrvMailbox.payload;
-    TasmotaGlobal.restart_flag = 2;
-  }
-#endif
-  ResponseCmndNumber(Settings->flag2.emulation);
-}
-#endif  // USE_EMULATION
 
 #ifdef USE_SENDMAIL
 /*-------------------------------------------------------------------------------------------*/
@@ -4701,9 +4372,6 @@ bool Xdrv01(uint32_t function) {
 #ifdef USE_WEBRUN
       WebRunLoop();
 #endif // #ifdef USE_WEBRUN
-#ifdef USE_EMULATION
-      if (Settings->flag2.emulation) { PollUdp(); }
-#endif  // USE_EMULATION
       break;
     case FUNC_EVERY_SECOND:
       if (Web.initial_config) {

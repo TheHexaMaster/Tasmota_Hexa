@@ -785,9 +785,7 @@ int32_t UpdateDevicesPresent(int32_t change) {
 
 void DevicesPresentNonDisplayOrLight(uint32_t &devices_claimed) {
   uint32_t display_and_lights = 0;
-#ifdef USE_LIGHT
-  display_and_lights += LightDevices();               // Skip light(s)
-#endif  // USE_LIGHT
+
 #ifdef USE_DISPLAY
   display_and_lights += DisplayDevices();             // Skip display
 #endif  // USE_DISPLAY
@@ -1229,13 +1227,7 @@ void AllowInterrupts(bool state) {
   if (!state) {  // Stop interrupts
     XdrvXsnsCall(FUNC_INTERRUPT_STOP);
 
-#ifdef USE_EMULATION
-    UdpDisconnect();
-#endif  // USE_EMULATION
   } else {       // Start interrupts
-#ifdef USE_EMULATION
-    UdpConnect();
-#endif  // USE_EMULATION
 
     XdrvXsnsCall(FUNC_INTERRUPT_START);
   }

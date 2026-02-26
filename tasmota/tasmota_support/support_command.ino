@@ -1601,12 +1601,7 @@ void CmndSetoptionBase(bool indexed) {
         }
         if ((XdrvMailbox.payload >= param_low) && (XdrvMailbox.payload <= param_high)) {
           Settings->param[pindex] = XdrvMailbox.payload;
-#ifdef USE_LIGHT
-          if (P_RGB_REMAP == pindex) {
-            LightUpdateColorMapping();
-            TasmotaGlobal.restart_flag = 2;  // SetOption37 needs a reboot in most cases
-          }
-#endif
+
 #ifdef ROTARY_V1
           if (P_ROTARY_MAX_STEP == pindex) {
             RotaryInitMaxSteps();          // SetOption43
@@ -1674,11 +1669,7 @@ void CmndSetoptionBase(bool indexed) {
           else if (4 == ptype) {           // SetOption82 .. 113
             bitWrite(Settings->flag4.data, pindex, XdrvMailbox.payload);
             switch (pindex) {
-#ifdef USE_LIGHT
-              case 0:                      // SetOption 82 - (Alexa) Reduced CT range for Alexa (1)
-                setAlexaCTRange();
-                break;
-#endif
+
               case 3:                      // SetOption85 - Enable Device Groups
               case 6:                      // SetOption88 - PWM Dimmer Buttons control remote devices
               case 15:                     // SetOption97 - Set Baud rate for TuyaMCU serial communication (0 = 9600 or 1 = 115200)
@@ -1689,11 +1680,6 @@ void CmndSetoptionBase(bool indexed) {
               case 25:                     // SetOption107 - Virtual CT Channel - signals whether the hardware white is cold CW (true) or warm WW (false)
                 TasmotaGlobal.restart_flag = 2;
                 break;
-#ifdef USE_PWM_DIMMER
-              case 5:                      // SetOption87 - (PWM Dimmer) Turn red LED on (1) when powered off
-                TasmotaGlobal.restore_powered_off_led_counter = 1;
-                break;
-#endif  // USE_PWM_DIMMER
             }
           }
           else if (5 == ptype) {           // SetOption114 .. 145
@@ -2790,13 +2776,7 @@ void CmndLedState(void) {
 
 void CmndLedMask(void) {
   if (XdrvMailbox.data_len > 0) {
-#ifdef USE_PWM_DIMMER
-    PWMDimmerSetBrightnessLeds(0);
-#endif  // USE_PWM_DIMMER
     Settings->ledmask = XdrvMailbox.payload;
-#ifdef USE_PWM_DIMMER
-    PWMDimmerSetBrightnessLeds(-1);
-#endif  // USE_PWM_DIMMER
   }
   char stemp1[TOPSZ];
   snprintf_P(stemp1, sizeof(stemp1), PSTR("%d (0x%04X)"), Settings->ledmask, Settings->ledmask);

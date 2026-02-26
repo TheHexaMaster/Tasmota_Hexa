@@ -484,11 +484,7 @@ void SetLedPowerIdx(uint32_t led, uint32_t state)
     }
     uint16_t pwm = 0;
     if (bitRead(Settings->ledpwm_mask, led)) {
-#ifdef USE_LIGHT
-      pwm = changeUIntScale(ledGamma10(state ? Settings->ledpwm_on : Settings->ledpwm_off), 0, 1023, 0, Settings->pwm_range); // gamma corrected
-#else //USE_LIGHT
       pwm = changeUIntScale((uint16_t)(state ? Settings->ledpwm_on : Settings->ledpwm_off), 0, 255, 0, Settings->pwm_range); // linear
-#endif //USE_LIGHT
       if (analogAttach(Pin(GPIO_LED1, led)) >= 0)
         analogWrite(Pin(GPIO_LED1, led), bitRead(TasmotaGlobal.led_inverted, led) ? Settings->pwm_range - pwm : pwm);
     } else {
@@ -546,9 +542,6 @@ void SetLedLink(uint32_t state) {
 #ifdef USE_BUZZER
   BuzzerSetStateToLed(state);
 #endif // USE_BUZZER
-#ifdef USE_PWM_DIMMER
-  if (Settings->flag4.powered_off_led) TasmotaGlobal.restore_powered_off_led_counter = 3;
-#endif  // USE_PWM_DIMMER
 }
 
 void DebugLed(uint32_t mode) {
@@ -634,17 +627,10 @@ bool SendKey(uint32_t key, uint32_t device, uint32_t state)
     Response_P(PSTR("{\"%s%d\":{\"State\":%d}}"), (key) ? PSTR("Switch") : PSTR("Button"), device, state);
     result = XdrvRulesProcess(0);
   }
-#ifdef USE_PWM_DIMMER
-  if (PWM_DIMMER != TasmotaGlobal.module_type || (!result && !Settings->flag3.mqtt_buttons)) {
-#endif  // USE_PWM_DIMMER
   int32_t payload_save = XdrvMailbox.payload;
   XdrvMailbox.payload = device_save << 24 | key << 16 | state << 8 | device;
   XdrvCall(FUNC_ANY_KEY);
   XdrvMailbox.payload = payload_save;
-#ifdef USE_PWM_DIMMER
-    if (PWM_DIMMER == TasmotaGlobal.module_type) result = true;
-  }
-#endif  // USE_PWM_DIMMER
   return result;
 }
 
@@ -831,11 +817,7 @@ void MqttShowState(void)
 #endif // USE_BERRY
 
   for (uint32_t i = 1; i <= TasmotaGlobal.devices_present; i++) {
-#ifdef USE_LIGHT
-    if ((LightDevice()) && (i >= LightDevice())) {
-      if (i == LightDevice())  { ResponseLightState(1); }    // call it only once
-    } else {
-#endif
+
       ResponseAppend_P(PSTR(",\"%s\":\"%s\""), GetPowerDevice(stemp1, i, sizeof(stemp1), Settings->flag.device_index_enable),  // SetOption26 - Switch between POWER or POWER1
                                                GetStateText(bitRead(TasmotaGlobal.power, i-1)));
 #ifdef USE_SONOFF_IFAN
@@ -844,9 +826,6 @@ void MqttShowState(void)
         break;
       }
 #endif  // USE_SONOFF_IFAN
-#ifdef USE_LIGHT
-    }
-#endif
   }
 
   if (TasmotaGlobal.pwm_present) {
@@ -1832,11 +1811,6 @@ void GpioInit(void)
         ButtonInvertFlag(mpin - AGPIO(GPIO_KEY1_INV_NP));  //  0 .. 3
         mpin -= (AGPIO(GPIO_KEY1_INV_NP) - AGPIO(GPIO_KEY1));
       }
-      else if ((mpin >= AGPIO(GPIO_OPTION_E)) && (mpin < (AGPIO(GPIO_OPTION_E) + MAX_OPTIONS_E))) {
-        TasmotaGlobal.emulated_module_type = pgm_read_byte(kModuleEmulationList + (mpin - AGPIO(GPIO_OPTION_E)));
-        SetModuleType();
-        mpin = GPIO_NONE;
-      }
       else if ((mpin >= AGPIO(GPIO_SWT1_PD)) && (mpin < (AGPIO(GPIO_SWT1_PD) + MAX_SWITCHES))) {
         SwitchPulldownFlag(mpin - AGPIO(GPIO_SWT1_PD));
         mpin -= (AGPIO(GPIO_SWT1_PD) - AGPIO(GPIO_SWT1));
@@ -2015,23 +1989,12 @@ void GpioInit(void)
 
   for (uint32_t i = 0; i < MAX_LEDS; i++) {
     if (PinUsed(GPIO_LED1, i)) {
-#ifdef USE_ARILUX_RF
-      if ((3 == i) && (TasmotaGlobal.leds_present < 2) && !PinUsed(GPIO_ARIRFSEL)) {
-        SetPin(Pin(GPIO_LED1, i), AGPIO(GPIO_ARIRFSEL));  // Legacy support where LED4 was Arilux RF enable
-      } else {
-#endif
         TasmotaGlobal.leds_present++;
         DigitalWrite(GPIO_LED1, i, bitRead(TasmotaGlobal.led_inverted, i));
-#ifdef USE_ARILUX_RF
-      }
-#endif
     }
   }
   DigitalWrite(GPIO_LEDLNK, 0, TasmotaGlobal.ledlnk_inverted);
 
-#ifdef USE_PWM_DIMMER
-  if (PWM_DIMMER == TasmotaGlobal.module_type && PinUsed(GPIO_REL1)) { TasmotaGlobal.devices_present--; }
-#endif  // USE_PWM_DIMMER
 
   SetLedPower(Settings->ledstate &8);
   SetLedLink(Settings->ledstate &8);

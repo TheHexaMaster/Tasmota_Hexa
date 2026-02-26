@@ -41,7 +41,6 @@ enum UserSelectablePins {
   GPIO_RFSEND, GPIO_RFRECV,            // RF interface
   GPIO_DHT11, GPIO_DHT22, GPIO_SI7021, GPIO_DHT11_OUT,  // DHT11, DHT21, DHT22, AM2301, AM2302, AM2321
   GPIO_DSB, GPIO_DSB_OUT,              // DS18B20 or DS18S20
-  GPIO_WS2812,                         // WS2812 Led string
   GPIO_MHZ_TXD, GPIO_MHZ_RXD,          // MH-Z19 Serial interface
   GPIO_SAIR_TX, GPIO_SAIR_RX,          // SenseAir Serial interface
   GPIO_PMS5003_TX, GPIO_PMS5003_RX,    // Plantower PMS5003 Serial interface
@@ -52,15 +51,11 @@ enum UserSelectablePins {
   GPIO_MP3_DFR562,                     // RB-DFR-562, DFPlayer Mini MP3 Player
   GPIO_HX711_SCK, GPIO_HX711_DAT,      // HX711 Load Cell interface
   GPIO_TX2X_TXD_BLACK,                 // TX20/TX23 Transmission Pin
-  GPIO_TUYA_TX, GPIO_TUYA_RX,          // Tuya Serial interface
   GPIO_MGC3130_XFER, GPIO_MGC3130_RESET,  // MGC3130 interface
   GPIO_RF_SENSOR,                      // Rf receiver with sensor decoding
   GPIO_AZ_TXD, GPIO_AZ_RXD,            // AZ-Instrument 7798 Serial interface
   GPIO_MAX31855CS, GPIO_MAX31855CLK, GPIO_MAX31855DO,  // MAX31855 Serial interface
   GPIO_PN532_TXD, GPIO_PN532_RXD,      // PN532 NFC Serial interface
-  GPIO_SM16716_CLK, GPIO_SM16716_DAT, GPIO_SM16716_SEL,  // SM16716 SELECT
-  GPIO_DI, GPIO_DCKI,                  // my92x1 PWM controller
-  GPIO_ARIRFRCV, GPIO_ARIRFSEL,        // Arilux RF Receive input
   GPIO_TXD, GPIO_RXD,                  // Serial interface
   GPIO_ROT1A, GPIO_ROT1B,              // Rotary switch
   GPIO_ADC_JOY,                        // Analog joystick
@@ -71,9 +66,7 @@ enum UserSelectablePins {
   GPIO_IBEACON_TX, GPIO_IBEACON_RX,    // HM17 IBEACON Serial interface
   GPIO_A4988_DIR, GPIO_A4988_STP, GPIO_A4988_ENA, GPIO_A4988_MS1,  // A4988 interface
   GPIO_OUTPUT_HI, GPIO_OUTPUT_LO,      // Fixed output state
-  GPIO_SM2135_CLK, GPIO_SM2135_DAT,    // SM2135 PWM controller
   GPIO_DEEPSLEEP,                      // Kill switch for deepsleep
-  GPIO_EXS_ENABLE,                     // EXS MCU Enable
   GPIO_TASMOTACLIENT_TXD, GPIO_TASMOTACLIENT_RXD,      // Client Serial interface
   GPIO_TASMOTACLIENT_RST, GPIO_TASMOTACLIENT_RST_INV,  // Client Reset
   GPIO_HPMA_RX, GPIO_HPMA_TX,          // Honeywell HPMA115S0 Serial interface
@@ -81,7 +74,6 @@ enum UserSelectablePins {
   GPIO_HM10_RX, GPIO_HM10_TX,          // HM10-BLE-Mijia-bridge Serial interface
   GPIO_CC1101_GDO0, GPIO_CC1101_GDO2,  // CC1101 Serial interface
   GPIO_HRXL_RX,                        // Data from MaxBotix HRXL sonar range sensor
-  GPIO_ELECTRIQ_MOODL_TX,              // ElectriQ iQ-wifiMOODL Serial TX
   GPIO_AS3935,                         // Franklin Lightning Sensor
   GPIO_ADC_INPUT,                      // Analog input
   GPIO_ADC_TEMP,                       // Analog Thermistor
@@ -111,7 +103,6 @@ enum UserSelectablePins {
   GPIO_MIEL_HVAC_TX, GPIO_MIEL_HVAC_RX,  // Mitsubishi Electric HVAC
   GPIO_AS608_TX, GPIO_AS608_RX,        // Serial interface AS608 / R503
   GPIO_RC522_RST,                      // RC522 reset
-  GPIO_P9813_CLK, GPIO_P9813_DAT,      // P9813 Clock and Data
   GPIO_OPTION_A,                       // Specific device options to be served in code
   GPIO_FTC532,                         // FTC532 touch ctrlr serial input
   GPIO_RC522_CS,
@@ -162,15 +153,12 @@ enum UserSelectablePins {
   GPIO_MS01,                           // Sonoff MS01 Moisture Sensor 1wire interface
   GPIO_SDIO_CMD, GPIO_SDIO_CLK, GPIO_SDIO_D0, GPIO_SDIO_D1, GPIO_SDIO_D2, GPIO_SDIO_D3, // SD Card SDIO interface, including 1-bit and 4-bit modes
   GPIO_FLOWRATEMETER_IN,               // Flowrate Meter
-  GPIO_BP5758D_CLK, GPIO_BP5758D_DAT,  // BP5758D PWM controller
-  GPIO_SM2335_CLK, GPIO_SM2335_DAT,    // SM2335 PWM controller
   GPIO_MP3_DFR562_BUSY,                // RB-DFR-562, DFPlayer Mini MP3 Player busy flag
   GPIO_TM1621_CS, GPIO_TM1621_WR, GPIO_TM1621_RD, GPIO_TM1621_DAT,  // Sonoff POWR3xxD and THR3xxD LCD display
   GPIO_REL1_BI, GPIO_REL1_BI_INV,      // 8 x Relays bistable
   GPIO_I2S_MCLK,
   GPIO_MBR_TX, GPIO_MBR_RX,            // Modbus Bridge Serial interface
   GPIO_DALI_RX, GPIO_DALI_TX,          // DALI
-  GPIO_BP1658CJ_CLK, GPIO_BP1658CJ_DAT,// BP1658CJ
   GPIO_DINGTIAN_CLK, GPIO_DINGTIAN_SDI, GPIO_DINGTIAN_Q7, GPIO_DINGTIAN_PL, GPIO_DINGTIAN_RCK,  // Dingtian relay board - 595's & 165's pins
   GPIO_LD2410_TX, GPIO_LD2410_RX,      // HLK-LD2410
   GPIO_MBR_TX_ENA,                      // Modbus Bridge Serial Transmit Enable
@@ -266,11 +254,7 @@ enum SupportedEmulationModules {
   SONOFF_IFAN03, EXS_DIMMER, PWM_DIMMER, SONOFF_D1, SONOFF_ZB_BRIDGE,
   MAXMODULE_EMULATION };
 
-#define MAX_OPTIONS_E  1                   // Increase if more emulated modules are supported from kModuleEmulationList
 
-const uint8_t kModuleEmulationList[] PROGMEM = {
-  PWM_DIMMER                               // (v10.1.0.4)  - Option_E1 - (Light) USE_PWM_DIMMER support
-};
 #endif  // ESP32
 
 // Text in webpage Module Parameters and commands GPIOS and GPIO
@@ -500,10 +484,7 @@ const char kSensorNamesFixed[] PROGMEM =
 #define MAX_A4988_MSS            3
 #define MAX_WEBCAM_DATA          8
 #define MAX_WEBCAM_HSD           3
-#define MAX_SM2135_DAT          10
-#define MAX_SM2335_DAT          16
 #define MAX_DSB                  4
-#define MAX_BP1658CJ_DAT        16
 #define MAX_DINGTIAN_SHIFT       4
 #define MAX_MAGIC_SWITCH_MODES   2
 #define MAX_TWAI                 SOC_TWAI_CONTROLLER_NUM
@@ -513,9 +494,6 @@ const char kSensorNamesFixed[] PROGMEM =
 const uint16_t kGpioNiceList[] PROGMEM = {
   GPIO_NONE,                                     // Not used
   AGPIO(GPIO_OPTION_A) + AGMAX(MAX_OPTIONS_A),   // Device specific options
-#ifdef ESP32
-  AGPIO(GPIO_OPTION_E) + AGMAX(MAX_OPTIONS_E),   // Device module emulation
-#endif
   AGPIO(GPIO_KEY1) + AGMAX(MAX_KEYS),            // Buttons
   AGPIO(GPIO_KEY1_NP) + AGMAX(MAX_KEYS),
 #ifdef ESP32
@@ -765,60 +743,6 @@ const uint16_t kGpioNiceList[] PROGMEM = {
 #ifdef USE_LMT01
   AGPIO(GPIO_LMT01),                             // LMT01, count pulses on GPIO
 #endif
-
-/*-------------------------------------------------------------------------------------------*\
- * Light
-\*-------------------------------------------------------------------------------------------*/
-
-#ifdef USE_LIGHT
-#ifdef USE_WS2812
-#if (USE_WS2812_HARDWARE == NEO_HW_P9813)
-  AGPIO(GPIO_P9813_CLK),                         // P9813 CLOCK
-  AGPIO(GPIO_P9813_DAT),                         // P9813 DATA
-#else
-  AGPIO(GPIO_WS2812) + AGMAX(MAX_RMT),           // WS2812 Led string, using RMT on ESP32
-#endif  // NEO_HW_P9813
-#endif
-#ifdef USE_ARILUX_RF
-  AGPIO(GPIO_ARIRFRCV),                          // AriLux RF Receive input
-  AGPIO(GPIO_ARIRFSEL),                          // Arilux RF Receive input selected
-#endif
-#ifdef USE_MY92X1
-  AGPIO(GPIO_DI),                                // my92x1 PWM input
-  AGPIO(GPIO_DCKI),                              // my92x1 CLK input
-#endif  // USE_MY92X1
-#ifdef USE_SM16716
-  AGPIO(GPIO_SM16716_CLK),                       // SM16716 CLOCK
-  AGPIO(GPIO_SM16716_DAT),                       // SM16716 DATA
-  AGPIO(GPIO_SM16716_SEL),                       // SM16716 SELECT
-#endif  // USE_SM16716
-#ifdef USE_SM2135
-  AGPIO(GPIO_SM2135_CLK),                        // SM2135 CLOCK
-  AGPIO(GPIO_SM2135_DAT) + AGMAX(MAX_SM2135_DAT),  // SM2135 DATA
-#endif  // USE_SM2135
-#ifdef USE_SM2335
-  AGPIO(GPIO_SM2335_CLK),                        // SM2335 CLOCK
-  AGPIO(GPIO_SM2335_DAT) + AGMAX(MAX_SM2335_DAT),  // SM2335 DATA
-#endif  // USE_SM2335
-#ifdef USE_BP1658CJ
-  AGPIO(GPIO_BP1658CJ_CLK),                      // BP1658CJ CLOCK
-  AGPIO(GPIO_BP1658CJ_DAT) + AGMAX(MAX_BP1658CJ_DAT), // BP1658CJ DATA
-#endif  // USE_BP1658CJ
-#ifdef USE_BP5758D
-  AGPIO(GPIO_BP5758D_CLK),                       // BP5758D CLOCK
-  AGPIO(GPIO_BP5758D_DAT),                       // BP5758D DATA
-#endif  // USE_BP5758D
-#ifdef USE_TUYA_MCU
-  AGPIO(GPIO_TUYA_TX),                           // Tuya Serial interface
-  AGPIO(GPIO_TUYA_RX),                           // Tuya Serial interface
-#endif
-#ifdef USE_EXS_DIMMER
-  AGPIO(GPIO_EXS_ENABLE),                        // EXS MCU Enable
-#endif
-#ifdef USE_ELECTRIQ_MOODL
-  AGPIO(GPIO_ELECTRIQ_MOODL_TX),
-#endif
-#endif  // USE_LIGHT
 
 #ifdef USE_DALI
   AGPIO(GPIO_DALI_TX),                           // DALI TX
@@ -1455,14 +1379,8 @@ const uint8_t kModuleNiceList[] PROGMEM = {
   SONOFF_T11,
   SONOFF_T12,
   SONOFF_T13,
-#ifdef USE_SONOFF_D1
-  SONOFF_D1,           // Sonoff D1
-#endif
   SONOFF_LED,          // Sonoff Light Devices
   SONOFF_BN,
-#ifdef USE_SONOFF_L1
-  SONOFF_L1,
-#endif
   SONOFF_B1,           // Sonoff Light Bulbs
   SLAMPHER,
 #ifdef USE_SONOFF_SC
@@ -1507,21 +1425,6 @@ const uint8_t kModuleNiceList[] PROGMEM = {
   OBI2,
   MANZOKU_EU_4,
   ESP_SWITCH,          // Switch Devices
-#ifdef USE_TUYA_MCU
-  TUYA_DIMMER,         // Dimmer Devices
-#endif
-#ifdef USE_ARMTRONIX_DIMMERS
-  ARMTRONIX_DIMMERS,
-#endif
-#ifdef USE_PS_16_DZ
-  PS_16_DZ,
-#endif
-#ifdef USE_EXS_DIMMER
-  EXS_DIMMER,
-#endif
-#ifdef USE_PWM_DIMMER
-  PWM_DIMMER,
-#endif
   H801,                // Light Devices
   MAGICHOME,
   ARILUX_LC01,

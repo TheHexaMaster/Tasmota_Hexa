@@ -85,13 +85,6 @@ const char be_berry_init_code[] =
   // auto-import gpio
   "import gpio "
 
-#ifdef USE_LIGHT
-  "import light "
-#endif // USE_LIGHT
-
-#if defined(USE_EMULATION) && defined(USE_EMULATION_HUE)
-  "import hue_bridge "
-#endif
 
   "do import tapp end "     // we don't need to keep `tapp` in the global namespace
 

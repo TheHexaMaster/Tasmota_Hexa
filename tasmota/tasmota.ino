@@ -335,10 +335,6 @@ struct TasmotaGlobal_t {
   uint8_t shutters_present;                 // Number of actual define shutters
   uint8_t discovery_counter;                // Delayed discovery counter
   uint8_t power_on_delay;                   // Delay relay power on to reduce power surge (SetOption47)
-#ifdef USE_PWM_DIMMER
-  uint8_t restore_powered_off_led_counter;  // Seconds before powered-off LED (LEDLink) is restored
-  uint8_t pwm_dimmer_led_bri;               // Adjusted brightness LED level
-#endif  // USE_PWM_DIMMER
 
   String mqtt_data;                         // Buffer filled by Response functions
   char version[16];                         // Composed version string like 255.255.255.255
@@ -546,16 +542,8 @@ void setup(void) {
   TasmotaGlobal.stop_flash_rotate = Settings->flag.stop_flash_rotate;  // SetOption12 - Switch between dynamic or fixed slot flash save location
   TasmotaGlobal.save_data_counter = Settings->save_data;
   TasmotaGlobal.sleep = Settings->sleep;
-#ifndef USE_EMULATION
+
   Settings->flag2.emulation = 0;
-#else   // No USE_EMULATION
-#ifndef USE_EMULATION_WEMO
-  if (EMUL_WEMO == Settings->flag2.emulation) { Settings->flag2.emulation = 0; }
-#endif  // USE_EMULATION_WEMO
-#ifndef USE_EMULATION_HUE
-  if (EMUL_HUE == Settings->flag2.emulation) { Settings->flag2.emulation = 0; }
-#endif  // USE_EMULATION_HUE
-#endif  // USE_EMULATION
 
 //  AddLog(LOG_LEVEL_INFO, PSTR("DBG: TasmotaGlobal size %d, data %100_H"), sizeof(TasmotaGlobal), (uint8_t*)&TasmotaGlobal);
 

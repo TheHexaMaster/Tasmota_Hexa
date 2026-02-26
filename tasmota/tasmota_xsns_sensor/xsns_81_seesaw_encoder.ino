@@ -151,10 +151,6 @@ struct SeesawEncoder : public SeesawDevice {
            address, position, button, speed_ok, len_ok, pin_ok);
 #endif
 
-#if defined(SEESAW_ENCODER_LIKE_ROTARY) && defined(USE_LIGHT)
-    // Initialize rotary settings if needed
-    InitRotarySettings();
-#endif // SEESAW_ENCODER_LIKE_ROTARY && USE_LIGHT
   }
 
   virtual void Read() override {
@@ -195,12 +191,6 @@ struct SeesawEncoder : public SeesawDevice {
     if (timeout) {
       timeout--;
       if (!timeout) {
-#ifdef USE_LIGHT
-        if (!Settings->flag4.rotary_uses_rules) {  // SetOption98 - Use rules instead of light control
-          ResponseLightState(0);
-          MqttPublishPrefixTopicRulesProcess_P(RESULT_OR_STAT, PSTR(D_CMND_STATE));
-        }
-#endif  // USE_LIGHT
       }
     }
 
@@ -269,49 +259,6 @@ struct SeesawEncoder : public SeesawDevice {
       rotation_occurred = false;
     }
 
-#ifdef USE_LIGHT
-    // Light control (only first 2 encoders detected)
-    // Mirrors support_rotary.ino lines 227-254 (inline logic matching GPIO rotary behavior)
-    if (device_index < 2 && !Settings->flag4.rotary_uses_rules) {  // SetOption98 - Use rules instead of light control
-      // Check if second encoder exists
-      // Matches support_rotary.ino line 228: bool second_rotary = (Encoder[1].pinb >= 0);
-      bool second_encoder = (SeesawMgr.GetTypeCount(SEESAW_TYPE_ENCODER) > 1);
-
-      if (device_index == 0) {  // First encoder (lines 229-247 in support_rotary.ino)
-        if (button_pressed) {
-          // Color or CT control
-          if (second_encoder) {
-            // With second encoder: control color only
-            LightColorOffset(current_delta * Rotary.color_increment);
-          } else {
-            // Without second encoder: try CT, fallback to color
-            if (!LightColorTempOffset(current_delta * Rotary.ct_increment)) {
-              LightColorOffset(current_delta * Rotary.color_increment);
-            }
-          }
-        } else {
-          // Dimmer RGBCW or RGB only if second rotary
-          uint32_t dimmer_index = second_encoder ? 1 : 0;
-          if (!Settings->flag4.rotary_poweron_dimlow || TasmotaGlobal.power) {  // SetOption113
-            LightDimmerOffset(dimmer_index, current_delta * Rotary.dimmer_increment);
-          } else {
-            if (current_delta > 0) {  // Only power on if rotary increase
-              LightDimmerOffset(dimmer_index, -LightGetDimmer(dimmer_index) + ROTARY_START_DIM);
-            }
-          }
-        }
-      } else {  // Second encoder (lines 248-254 in support_rotary.ino)
-        if (button_pressed) {
-          // Color Temperature
-          LightColorTempOffset(current_delta * Rotary.ct_increment);
-        } else {
-          // Dimmer CW
-          LightDimmerOffset(2, current_delta * Rotary.dimmer_increment);
-        }
-      }
-      return;  // Skip rules processing for light control mode
-    }
-#endif  // USE_LIGHT
 #endif  // SEESAW_ENCODER_LIKE_ROTARY
 
     // Trigger rules (when not in direct light control mode)
@@ -428,16 +375,6 @@ private:
     return !(gpio_value & ((uint32_t)1 << SEESAW_ENCODER_BUTTON_PIN));
   }
 
-#if defined(SEESAW_ENCODER_LIKE_ROTARY) && defined(USE_LIGHT)
-  void InitRotarySettings() {
-    #ifdef ROTARY_V1
-    if (Rotary.present) { return; }  // GPIO rotaries already initialized their settings
-    #endif
-
-    // No GPIO Rotary present, initialize for Seesaw Encoders
-    RotaryInitMaxSteps();
-  }
-#endif  // SEESAW_ENCODER_LIKE_ROTARY && USE_LIGHT
 
   int32_t position;
   int32_t previous_position;

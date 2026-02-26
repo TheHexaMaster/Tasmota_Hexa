@@ -490,49 +490,6 @@ int DaliQueryExtendedVersionNumber(uint32_t adr, uint32_t device_type) {
   return DaliSendWaitResponse(adr | DALI_SELECTOR_BIT, 255); // DALI_xxx_QUERY_EXTENDED_VERSION_NUMBER
 }
 
-#ifdef USE_LIGHT
-uint32_t DaliQueryRGBWAF(uint32_t adr) {
-  // https://www.dali-alliance.org/tech-notes/device-type-discovery.html
-  uint32_t rgbwaf_channels = 0;
-
-  adr |= DALI_SELECTOR_BIT;                    // Enable Selector bit
-  int dt = DaliSendWaitResponse(adr, DALI_102_QUERY_DEVICE_TYPE);
-  // If the device does not implement any part 2xx device type then the response will be 254;
-  // If the device implements one part 2xx device type then the response will be the device type number;
-  // If the device implements multiple part 2xx device types then the response will be MASK (0xff).
-  // In all other cases returns NO (no response).
-  if (255 == dt) {                             // DALI-2
-    int next_dt;
-    do {
-      next_dt = DaliSendWaitResponse(adr, DALI_102_QUERY_NEXT_DEVICE_TYPE);
-      // DALI2: If directly preceded by DALI_102_QUERY_DEVICE_TYPE and more than one device type is supported, returns the first and lowest device type number.
-      // DALI2: If directly preceded by DALI_102_QUERY_NEXT_DEVICE_TYPE and not all device types have been reported, returns the next lowest device type number.
-      // DALI2: If directly preceded by DALI_102_QUERY_NEXT_DEVICE_TYPE and all device types have been reported, returns 254.
-      // In all other cases returns NO (no response).
-      if (DALI_209_DEVICE_TYPE == next_dt) {
-        dt = DALI_209_DEVICE_TYPE;
-      }
-    } while ((next_dt >= 0) && (next_dt != 254));
-  }
-  if (dt < 0) {                                // DALI version-1
-    if (DaliQueryExtendedVersionNumber(adr, DALI_209_DEVICE_TYPE) >= 0) {  // Color device
-      dt = DALI_209_DEVICE_TYPE;
-    }
-  }
-  if (DALI_209_DEVICE_TYPE == dt) {
-    uint32_t retry = 3;
-    while (retry--) {
-      DaliSendData(DALI_102_ENABLE_DEVICE_TYPE_X, DALI_209_DEVICE_TYPE);  // Enable Extended command
-      int colour_type = DaliSendWaitResponse(adr, DALI_209_QUERY_COLOUR_TYPE_FEATURES);
-      if (colour_type >= 0) { 
-        rgbwaf_channels = (colour_type >> 5) & 0x07;  // RGBWAF channels in bits 5..7
-        break;
-      }
-    }
-  }
-  return rgbwaf_channels;
-}
-#endif  // USE_LIGHT
 
 /*-------------------------------------------------------------------------------------------*/
 
@@ -671,12 +628,6 @@ uint32_t DaliCommission(uint32_t init_arg, uint32_t max_count) {
   DaliSendData(DALI_102_TERMINATE, 0x00);      // Terminate the DALI_102_INITIALISE command
 
   uint32_t address = DALI_BROADCAST_DP;
-#ifdef USE_LIGHT
-  DaliInitLight();
-  if (Settings->sbflag1.dali_light) {          // DaliLight 1
-    address = DaliTarget2Address(Dali->Settings.target);
-  }
-#endif  // USE_LIGHT
   DaliSendData(address, Dali->power[0]);       // Restore lights
   return cnt;
 }
@@ -717,53 +668,6 @@ void ResponseDali(uint32_t index) {
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
-#ifdef USE_LIGHT
-bool DaliLoopSync(uint32_t channels) {
-  // Sync local light settings with DALI bus data
-  if (!Dali->allow_light ||
-      !Settings->sbflag1.dali_light ||         // DaliLight 1
-      (DaliTarget2Address(Dali->Settings.target) != Dali->address)) {
-    return false;
-  }
-
-  if (Settings->save_data) {
-    // Postpone save_data during fast color changes which results in exception 0 on ESP8266
-    TasmotaGlobal.save_data_counter = 4;
-  }
-
-  uint32_t rgb = 1;                            // RGB channel(s) present but not sure if powered ON
-  uint32_t waf = (channels > 3) ? 1 : 0;
-  for (uint32_t i = 0; i < channels; i++) {
-    if (Dali->color[i] > 0) { 
-      if (i < 3) {
-        rgb = 2;                               // At least one RGB channel is powered ON
-      } else {
-        waf = 2;                               // At least one WAF (CCT) channel is powered ON
-      }
-    }
-  }
-  if ((2 == rgb) || (2 == waf)) {
-    uint8_t color[LST_MAX] = {};               // Init as 0
-    for (uint32_t i = 0; i < channels; i++) {
-      if (i < 3) {
-        color[i] = (2 == rgb) ? Dali->color[i] : Light.current_color[i];
-      } else {
-        color[i] = (2 == waf) ? Dali->color[i] : Light.current_color[i];
-      }
-    }
-    Dali->light_sync = millis();               // Block local loop
-    light_controller.changeChannels(color, 1);
-    LightSetScheme(LS_POWER);
-  }
-  Dali->light_sync = millis();                 // Block local loop
-  ExecuteCommandPower(LightDevice(), (2 == rgb) ? 9 : 8, SRC_SWITCH);
-  if (waf && (Settings->param[P_RGB_REMAP] & 128)) {  // SetOption37 128)
-    Dali->light_sync = millis();               // Block local loop
-    ExecuteCommandPower(LightDevice() +1, (2 == waf) ? 9 : 8, SRC_SWITCH);
-  }
-  return true;
-}
-#endif  // USE_LIGHT
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
@@ -786,36 +690,9 @@ void DaliLoop(void) {
     Dali->address = (frame.data >> 8) &0xFF;
     Dali->command = frame.data &0xFF;
 
-#ifdef USE_LIGHT
-    if (DALI_102_SET_DTR0 == Dali->address) { Dali->dtr[0] = Dali->command; }       // Might be Red / White
-    else if (DALI_102_SET_DTR1 == Dali->address) { Dali->dtr[1] = Dali->command; }  // Might be Green / Amber
-    else if (DALI_102_SET_DTR2 == Dali->address) { Dali->dtr[2] = Dali->command; }  // Might be Blue
-    else if (DALI_209_SET_TEMPORARY_RGB_DIMLEVEL == Dali->command) { 
-      Dali->color[0] = Dali->dtr[0];           // Red
-      Dali->color[1] = Dali->dtr[1];           // Green
-      Dali->color[2] = Dali->dtr[2];           // Blue
-    }
-    else if (DALI_209_SET_TEMPORARY_WAF_DIMLEVEL == Dali->command) { 
-      Dali->color[3] = Dali->dtr[0];           // Cold White
-      Dali->color[4] = Dali->dtr[1];           // Warm White (Amber)
-    }
-    else if (DALI_209_ACTIVATE == Dali->command) {
-      uint32_t channels = Dali->Settings.light_type -8;
-      if ((Dali->target_rgbwaf > 0) && (channels > 0)) {  // Color control
-        Dali->address &= 0xFE;                 // Reset DALI_SELECTOR_BIT set
-        DaliLoopSync(channels);                // Sync local light settings with DALI bus data
-      }
-    } else
-#endif  // USE_LIGHT
     if (!(Dali->address & DALI_SELECTOR_BIT)) {  // Address = DAPC command
       uint32_t index = DaliSaveState(Dali->address, Dali->command);  // Update dimmer and power
       bool show_response = true;
-#ifdef USE_LIGHT
-      Dali->color[0] = Dali->command;          // Contains "dimmer" value 0..254
-      if (DaliLoopSync(1)) {                   // Sync local light settings with DALI bus data
-        show_response = false;
-      }
-#endif  // USE_LIGHT
       if (show_response) {
         ResponseDali(index);
         MqttPublishPrefixTopicRulesProcess_P(RESULT_OR_TELE, PSTR(D_PRFX_DALI));
@@ -834,100 +711,7 @@ void DaliEverySecond(void) {
   }
 }
 
-/*********************************************************************************************\
- * DALI Control Device - Controller  / Transmitter
- *
- * Implements Tasmota light POWER, DIMMER and Color Control if `DaliLight 1`
-\*********************************************************************************************/
 
-#ifdef USE_LIGHT
-bool DaliSetChannels(void) {
-  if (Settings->sbflag1.dali_light) {          // DaliLight 1
-    Settings->light_fade = 0;                  // Use Dali fading
-    Settings->light_correction = 0;            // Use Dali light correction
-    if (Dali->light_sync) {                    // Block local loop
-      uint32_t light_sync = Dali->light_sync;
-      Dali->light_sync = 0;
-      if (TimePassedSince(light_sync) < 200) { // Time it can take to call DaliSetChannels() from Dali received data
-        return true;
-      }
-    }
-    uint8_t *cur_col = (uint8_t*)XdrvMailbox.data;
-    // cur_col[0] = Red, cur_col[1] = Green, cur_col[2] = Blue, cur_col[3] = Cold = White, cur_col[4] = Warm = Amber
-    for (uint32_t i = 0; i < 5; i++) {
-      if (255 == cur_col[i]) { cur_col[i] = 254; }  // Max Dali value
-    }
-    uint32_t adr = DaliTarget2Address(Dali->Settings.target);
-    uint32_t channels = Dali->Settings.light_type -8;
-    if ((Dali->target_rgbwaf > 0) && (channels > 0)) {  // Color control
-      adr |= DALI_SELECTOR_BIT;                // Enable Selector bit
-
-#ifdef DALI_POWER_OFF_NO_FADE
-      uint32_t power_on = 0;
-      for (uint32_t i = 0; i < channels; i++) {
-        power_on += cur_col[i];
-      }
-      if (!power_on) {
-        DaliSendData(adr, DALI_102_OFF);       // Power off without fade
-        return true;
-      }
-#endif  // DALI_POWER_OFF_NO_FADE
-
-#ifdef DALI_LIGHT_NO_READ_AFTER_WRITE
-      // This takes 310ms for 3 channels but might send bad data as no DTR read-after-write
-      DaliSendData(DALI_102_SET_DTR0, 0x7F);           // Linked Channel control
-      DaliSendData(DALI_102_ENABLE_DEVICE_TYPE_X, DALI_209_DEVICE_TYPE);  // Enable Extended command
-      DaliSendData(adr, DALI_209_SET_TEMPORARY_RGBWAF_CONTROL);
-
-      DaliSendData(DALI_102_SET_DTR0, cur_col[0]);     // DALI Red
-      DaliSendData(DALI_102_SET_DTR1, (channels > 1) ? cur_col[1] : 255);  // DALI Green
-      DaliSendData(DALI_102_SET_DTR2, (channels > 2) ? cur_col[2] : 255);  // DALI Blue
-      DaliSendData(DALI_102_ENABLE_DEVICE_TYPE_X, DALI_209_DEVICE_TYPE);  // Enable Extended command
-      DaliSendData(adr, DALI_209_SET_TEMPORARY_RGB_DIMLEVEL);
-
-      if (channels > 3) {
-        DaliSendData(DALI_102_SET_DTR0, cur_col[3]);   // DALI White
-        DaliSendData(DALI_102_SET_DTR1, (channels > 4) ?  cur_col[4] : 255); // DALI Amber
-        DaliSendData(DALI_102_SET_DTR2, 255);          // DALI Freecolour - no change
-        DaliSendData(DALI_102_ENABLE_DEVICE_TYPE_X, DALI_209_DEVICE_TYPE);  // Enable Extended command
-        DaliSendData(adr, DALI_209_SET_TEMPORARY_WAF_DIMLEVEL);
-      }
-#else
-      // This takes 480ms for 3 channels but might send nothing if DTR read-after-write fails
-      if (!DaliSetDTR(0, adr, 0x7F)) { return true; }  // Linked Channel control
-      DaliSendData(DALI_102_ENABLE_DEVICE_TYPE_X, DALI_209_DEVICE_TYPE);  // Enable Extended command
-      DaliSendData(adr, DALI_209_SET_TEMPORARY_RGBWAF_CONTROL);
-
-      if (!DaliSetDTR(0, adr, cur_col[0])) { return true; }  // DALI Red
-      if (!DaliSetDTR(1, adr, (channels > 1) ? cur_col[1] : 255)) { return true; }  // DALI Green
-      if (!DaliSetDTR(2, adr, (channels > 2) ? cur_col[2] : 255)) { return true; }  // DALI Blue
-      DaliSendData(DALI_102_ENABLE_DEVICE_TYPE_X, DALI_209_DEVICE_TYPE);  // Enable Extended command
-      DaliSendData(adr, DALI_209_SET_TEMPORARY_RGB_DIMLEVEL);
-
-      if (channels > 3) {
-        if (!DaliSetDTR(0, adr, cur_col[3])) { return true; }  // DALI While
-        if (!DaliSetDTR(1, adr, (channels > 4) ? cur_col[4] : 255)) { return true; }  // DALI Amber
-        if (!DaliSetDTR(2, adr, 255)) { return true; }         // DALI Freecolour - no change
-        DaliSendData(DALI_102_ENABLE_DEVICE_TYPE_X, DALI_209_DEVICE_TYPE);  // Enable Extended command
-        DaliSendData(adr, DALI_209_SET_TEMPORARY_WAF_DIMLEVEL);
-      }
-#endif  // DALI_LIGHT_NO_READ_AFTER_WRITE
-      DaliSendData(DALI_102_ENABLE_DEVICE_TYPE_X, DALI_209_DEVICE_TYPE);  // Enable Extended command
-      DaliSendData(adr, DALI_209_ACTIVATE);
-      return true;
-    }
-
-#ifdef DALI_POWER_OFF_NO_FADE
-    if (!cur_col[0]) {
-      DaliSendData(adr | DALI_SELECTOR_BIT, DALI_102_OFF);  // Power off without fade
-      return true;
-    }
-#endif  // DALI_POWER_OFF_NO_FADE
-    DaliSendData(adr, cur_col[0]);             // DAPC command - dim level
-  }
-  return true;
-}
-#endif  // USE_LIGHT
 
 /*********************************************************************************************\
  * DALI Tasmota init
@@ -977,30 +761,8 @@ bool DaliInit(uint32_t function) {
   if (!Dali->allow_light) {
     Settings->sbflag1.dali_light = false;      // No light control possible
   }
-#ifdef USE_LIGHT
-  if (!Settings->sbflag1.dali_light) {         // DaliLight 0
-    return false;
-  }
 
-  Settings->light_fade = 0;                    // Use Dali fading instead
-  Settings->light_correction = 0;              // Use Dali light correction
-  Settings->flag3.pwm_multi_channels = 0;      // SetOption68 0 - Enable multi-channels PWM instead of Color PWM
-  UpdateDevicesPresent(1);
-
-  TasmotaGlobal.light_type = LT_W;             // Single channel
-  Dali->target_rgbwaf = DaliQueryRGBWAF(DaliTarget2Address(Dali->Settings.target));
-  if (Dali->target_rgbwaf > 1) {
-    TasmotaGlobal.light_type = Dali->Settings.light_type;
-    if ((TasmotaGlobal.light_type >= LT_RGBW) &&  // RGBW or RGBCW
-        (Settings->param[P_RGB_REMAP] & 128)) {   // SetOption37 128
-      UpdateDevicesPresent(1);                   // We manage RGB and W separately, hence adding a device
-    }
-  }
-
-  return true;
-#else
   return false;
-#endif  // USE_LIGHT
 }
 
 /*********************************************************************************************\
@@ -1009,16 +771,10 @@ bool DaliInit(uint32_t function) {
 
 const char kDALICommands[] PROGMEM = D_PRFX_DALI "|"  // Prefix
   "|" D_CMND_POWER "|" D_CMND_DIMMER
-#ifdef USE_LIGHT
-  "|Light|Target|Channels"
-#endif  // USE_LIGHT
   "|Send|Query|Scan|Group|GroupSliders|BS|Gear";
 
 void (* const DALICommand[])(void) PROGMEM = {
   &CmndDali, &CmndDaliPower, &CmndDaliDimmer,
-#ifdef USE_LIGHT
-  &CmndDaliLight, &CmndDaliTarget, &CmndDaliChannels,
-#endif  // USE_LIGHT
   &CmndDaliSend, &CmndDaliQuery, &CmndDaliScan, &CmndDaliGroup, &CmndDaliGroupSliders, &CmndDaliBroadcastSlider, &CmndDaliGear };
 
 bool DaliJsonParse(void) {
@@ -1505,54 +1261,6 @@ void CmndDaliGroupSliders(void) {
   ResponseCmndNumber(Settings->mbflag2.dali_group_sliders);
 }
 
-#ifdef USE_LIGHT
-/*-------------------------------------------------------------------------------------------*/
-
-void CmndDaliLight(void) {
-  // DaliLight 0  - Disable light controls
-  // DaliLight 1  - Enable light controls
-  if (Dali->allow_light && (XdrvMailbox.data_len > 0)) {
-    Settings->sbflag1.dali_light = XdrvMailbox.payload &1;  // DaliLight 0/1
-    TasmotaGlobal.restart_flag = 2;            // Restart to update GUI
-  }
-  ResponseCmndStateText(Settings->sbflag1.dali_light);  // DaliLight 0/1
-}
-
-/*-------------------------------------------------------------------------------------------*/
-
-void CmndDaliTarget(void) {
-  // DaliTarget          - Set transmit target
-  // DaliTarget 0        - Set target to broadcast address
-  // DaliTarget 1..64    - Set target to short address
-  // DaliTarget 101..116 - Set target to group address
-  if (Dali->allow_light) {
-    if (((XdrvMailbox.payload >= 1) && (XdrvMailbox.payload <= 64)) ||
-        ((XdrvMailbox.payload >= 101) && (XdrvMailbox.payload <= 116)) ||
-        (XdrvMailbox.payload == 0)) {
-      Dali->Settings.target = XdrvMailbox.payload;
-      TasmotaGlobal.restart_flag = 2;            // Restart to update GUI
-    }
-    Dali->target_rgbwaf = DaliQueryRGBWAF(DaliTarget2Address(Dali->Settings.target));
-  }
-  ResponseCmndNumber(Dali->Settings.target);
-}
-
-/*-------------------------------------------------------------------------------------------*/
-
-void CmndDaliChannels(void) {
-  // DaliChannels    - Show amount of color channels
-  // DaliChannels 1  - Set amount of color channels to R
-  // DaliChannels 2  - Set amount of color channels to RG
-  // DaliChannels 3  - Set amount of color channels to RGB
-  // DaliChannels 4  - Set amount of color channels to RGBW
-  // DaliChannels 5  - Set amount of color channels to RGBWC
-  if (Dali->allow_light && ((XdrvMailbox.payload >= 1) && (XdrvMailbox.payload <= 5))) {
-    Dali->Settings.light_type = XdrvMailbox.payload + 8;
-    TasmotaGlobal.restart_flag = 2;            // Restart to update GUI
-  }
-  ResponseCmndNumber(Dali->Settings.light_type -8);
-}
-#endif  // USE_LIGHT
 
 /*********************************************************************************************\
  * Presentation
@@ -1665,11 +1373,6 @@ bool Xdrv75(uint32_t function) {
       case FUNC_SAVE_SETTINGS:
         DaliSettingsSave();
         break;
-#ifdef USE_LIGHT
-      case FUNC_SET_CHANNELS:
-        result = DaliSetChannels();
-        break;
-#endif  // USE_LIGHT
       case FUNC_JSON_APPEND:
         ResponseAppend_P(PSTR(","));
         ResponseAppendDali(0);

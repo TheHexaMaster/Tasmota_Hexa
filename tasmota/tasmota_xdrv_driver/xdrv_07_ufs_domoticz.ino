@@ -532,41 +532,6 @@ bool DomoticzMqttData(void) {
     XdrvMailbox.data_len = position > 99 ? 3 : (position > 9 ? 2 : 1);
   } else
 #endif // USE_SHUTTER
-#ifdef USE_LIGHT
-  if (iscolordimmer && 10 == nvalue) {  // Color_SetColor
-    // https://www.domoticz.com/wiki/Domoticz_API/JSON_URL%27s#Set_a_light_to_a_certain_color_or_color_temperature
-    JsonParserObject color = domoticz[PSTR("Color")].getObject();
-    // JsonObject& color = domoticz["Color"];
-    uint32_t level = nvalue = domoticz.getUInt(PSTR("svalue1"), 0);
-    uint32_t r = color.getUInt(PSTR("r"), 0) * level / 100;
-    uint32_t g = color.getUInt(PSTR("g"), 0) * level / 100;
-    uint32_t b = color.getUInt(PSTR("b"), 0) * level / 100;
-    uint32_t cw = color.getUInt(PSTR("cw"), 0) * level / 100;
-    uint32_t ww = color.getUInt(PSTR("ww"), 0) * level / 100;
-    uint32_t m = color.getUInt(PSTR("m"), 0);
-    uint32_t t = color.getUInt(PSTR("t"), 0);
-    if (2 == m) {  // White with color temperature. Valid fields: t
-      snprintf_P(XdrvMailbox.topic, XdrvMailbox.index, PSTR("/" D_CMND_BACKLOG));
-      snprintf_P(XdrvMailbox.data, XdrvMailbox.data_len, PSTR(D_CMND_COLORTEMPERATURE " %d;" D_CMND_DIMMER " %d"), changeUIntScale(t, 0, 255, CT_MIN, CT_MAX), level);
-    } else {
-      snprintf_P(XdrvMailbox.topic, XdrvMailbox.index, PSTR("/" D_CMND_COLOR));
-      snprintf_P(XdrvMailbox.data, XdrvMailbox.data_len, PSTR("%02x%02x%02x%02x%02x"), r, g, b, cw, ww);
-    }
-  }
-  else if ((!iscolordimmer && 2 == nvalue) ||  // gswitch_sSetLevel
-            (iscolordimmer && 15 == nvalue)) {  // Color_SetBrightnessLevel
-    if (domoticz[PSTR("svalue1")]) {
-      nvalue = domoticz.getUInt(PSTR("svalue1"), 0);
-    } else {
-      return true;  // Invalid data
-    }
-    if (TasmotaGlobal.light_type && (Settings->light_dimmer == nvalue) && ((TasmotaGlobal.power >> relay_index) &1)) {
-      return true;  // State already set
-    }
-    snprintf_P(XdrvMailbox.topic, XdrvMailbox.index, PSTR("/" D_CMND_DIMMER));
-    snprintf_P(XdrvMailbox.data, XdrvMailbox.data_len, PSTR("%d"), nvalue);
-  } else
-#endif  // USE_LIGHT
   if (1 == nvalue || 0 == nvalue) {
     if (((TasmotaGlobal.power >> relay_index) &1) == (power_t)nvalue) {
       return true;  // Stop loop

@@ -1144,9 +1144,6 @@ void MqttReconnect(void) {
     return;
   }
 
-#ifdef USE_EMULATION
-  UdpDisconnect();
-#endif  // USE_EMULATION
 
   Mqtt.connected = false;
   Mqtt.retry_counter = Settings->mqtt_retry * Mqtt.retry_counter_delay;

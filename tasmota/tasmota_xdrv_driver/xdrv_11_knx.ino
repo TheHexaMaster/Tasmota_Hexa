@@ -664,13 +664,7 @@ void KNX_INIT(void)
   device_param[KNX_SCENE-1].show = true;
 #endif // USE_RULES
 
-#ifdef USE_LIGHT
-  if (Light.subtype > LST_NONE) {
-    device_param[KNX_DIMMER-1].show = true;
-    if ((LST_RGB == Light.subtype) || (LST_RGBW == Light.subtype))
-      device_param[KNX_COLOUR-1].show = true;
-  }
-#endif // USE_LIGHT
+
 
   // Delete from KNX settings all configuration is not anymore related to this device
   if (KNX_CONFIG_NOT_MATCH()) {
@@ -713,15 +707,7 @@ void KNX_CB_Action(message_t const &msg, void *arg)
     // VALUE
     uint8_t tempvar = knx.data_to_1byte_uint(msg.data);
     dtostrfd(tempvar,0,tempchar);
-#ifdef USE_LIGHT
-  } else if (chan->type == KNX_DIMMER) {
-    // VALUE
-    uint8_t tempvar = changeUIntScale(knx.data_to_1byte_uint(msg.data),0, 255, 0, 100);
-    dtostrfd(tempvar,0,tempchar);
-  } else if (chan->type == KNX_COLOUR) {
-    // VALUE
-    snprintf_P(tempchar, sizeof(tempchar), (Light.subtype == LST_RGB) ? PSTR("%02X%02X%02X"):PSTR("%02X%02X%02X%02X"), msg.data[1], msg.data[2], msg.data[3]);
-#endif // USE_LIGHT
+
   } else {
     // VALUE
     float tempvar = knx.data_to_4byte_float(msg.data);
@@ -786,32 +772,7 @@ void KNX_CB_Action(message_t const &msg, void *arg)
         }
       }
 #endif // USE_RULES
-#ifdef USE_LIGHT
-      else if (chan->type == KNX_DIMMER)  // KNX RX DIMMER SLOT (write command)
-      {
-        if (!Knx.toggle_inhibit) {
-          char command[25];
-          // Value received
-          snprintf_P(command, sizeof(command), PSTR("Dimmer %s"), tempchar);
-          ExecuteCommand(command, SRC_KNX);
-          if (Settings->flag.knx_enable_enhancement) {
-            Knx.toggle_inhibit = TOGGLE_INHIBIT_TIME;
-          }
-        }
-      }
-      else if (chan->type == KNX_COLOUR)  // KNX RX COLOUR_RGB/RGBW SLOT (write command)
-      {
-        if (!Knx.toggle_inhibit) {
-          char command[25];
-          // Value received
-          snprintf_P(command, sizeof(command), PSTR("Color #%s"), tempchar);
-          ExecuteCommand(command, SRC_KNX);
-          if (Settings->flag.knx_enable_enhancement) {
-            Knx.toggle_inhibit = TOGGLE_INHIBIT_TIME;
-          }
-        }
-      }
-#endif // USE_LIGHT
+
       break;
 
     case KNX_CT_READ:
@@ -854,21 +815,7 @@ void KNX_CB_Action(message_t const &msg, void *arg)
         }
       }
 #endif // USE_RULES
-#ifdef USE_LIGHT
-      else if (chan->type == KNX_DIMMER) // Reply KNX_DIMMER
-      {
-        uint8_t dimmer = changeUIntScale(light_state.getDimmer(), 0, 100, 0, 255);
-        KNX_ANSWER_1BYTE_UINT(msg.received_on, dimmer);
-      }
-      else if (chan->type == KNX_COLOUR) // Reply KNX_COLOUR
-      {
-        if ( Light.subtype == LST_RGB) {
-          KNX_ANSWER_3BYTE_COLOR(msg.received_on, Light.current_color);
-        } else if ( Light.subtype == LST_RGBW) {
-          KNX_ANSWER_6BYTE_COLOR(msg.received_on, Light.current_color);
-        }
-      }
-#endif // USE_LIGHT
+
       break;
   }
 }
@@ -895,42 +842,7 @@ void KnxUpdatePowerState(uint8_t device, power_t state)
 }
 
 
-#ifdef USE_LIGHT
-void KnxUpdateLight()
-{
-  if (!(Settings->flag.knx_enabled)) { return; }
 
-  uint8_t dimmer = light_state.getDimmer();
-  uint8_t dim_knx = changeUIntScale(dimmer, 0, 100, 0, 255);
-
-  for (uint32_t i = 0; i < Settings->knx_GA_registered; ++i)
-  {
-    KNX_addr.value = Settings->knx_GA_addr[i];
-    if ( KNX_addr.value != 0 ) {
-      switch(Settings->knx_GA_param[i]) {
-        case KNX_DIMMER:
-          KNX_WRITE_1BYTE_UINT(KNX_addr, dim_knx);
-          AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_KNX "%s %d " D_SENT_TO " %d/%d/%d"),
-            device_param_ga[KNX_DIMMER -1],
-            dimmer,
-            KNX_addr.ga.area, KNX_addr.ga.line, KNX_addr.ga.member);
-          break;
-        case KNX_COLOUR:
-          if ( Light.subtype == LST_RGB) {
-            KNX_WRITE_3BYTE_COLOR(KNX_addr, Light.current_color);
-          } else if ( Light.subtype == LST_RGBW) {
-            KNX_WRITE_6BYTE_COLOR(KNX_addr, Light.current_color);
-          }
-          AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_KNX "%s %d,%d,%d,%d " D_SENT_TO " %d/%d/%d"),
-            device_param_ga[KNX_COLOUR -1],
-            Light.current_color[0], Light.current_color[1], Light.current_color[2], Light.current_color[3],
-            KNX_addr.ga.area, KNX_addr.ga.line, KNX_addr.ga.member);
-          break;
-      }
-    }
-  }
-}
-#endif // USE_LIGHT
 
 void KnxSendButtonPower(void)
 {

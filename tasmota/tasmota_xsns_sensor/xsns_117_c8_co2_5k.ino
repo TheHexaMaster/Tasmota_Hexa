@@ -93,9 +93,6 @@ void C8CO2_EverySecond()
 
         c8co2_ppm = (c8co2_buffer[6] << 8) | c8co2_buffer[7];
         AddLog(LOG_LEVEL_DEBUG, PSTR("C8-CO2-5K Sensor: %d ppm"), c8co2_ppm);
-#ifdef USE_LIGHT
-        LightSetSignal(CO2_LOW, CO2_HIGH, c8co2_ppm);
-#endif // USE_LIGHT
         return;
     }
 }

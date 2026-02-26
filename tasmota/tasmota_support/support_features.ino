@@ -25,9 +25,7 @@
 
 constexpr uint32_t feature[] = {
 //  0x00000001 |  // xdrv_03_energy.ino USE_ENERGY_MARGIN_DETECTION - DELETED
-#ifdef USE_LIGHT
-  0x00000002 |  // tasmota.ino, xdrv_04_light.ino
-#endif
+//  0x00000002 |  // tasmota.ino, xdrv_04_light.ino - USE_LIGHT - DELETED
 #ifdef USE_I2C
   0x00000004 |  // tasmota.ino
 #endif
@@ -49,9 +47,7 @@ constexpr uint32_t feature[] = {
 #if defined(USE_WEBSERVER) && defined(WEBSERVER_ADVERTISE)
   0x00000100 |  // xdrv_01_webserver.ino
 #endif
-#if defined(USE_WEBSERVER) && defined(USE_EMULATION_HUE)
-  0x00000200 |  // xdrv_20_hue.ino
-#endif
+//  0x00000200 |  // xdrv_20_hue.ino - USE_EMULATION_HUE - DELETED
 //#if (MQTT_LIBRARY_TYPE == MQTT_PUBSUBCLIENT)
   0x00000400 |  // xdrv_02_mqtt.ino
 //#endif
@@ -64,15 +60,9 @@ constexpr uint32_t feature[] = {
 #if defined(USE_DISCOVERY) && defined(MQTT_HOST_DISCOVERY)
   0x00002000 |  // xdrv_02_mqtt.ino
 #endif
-#if defined(USE_LIGHT) && defined(USE_ARILUX_RF)
-  0x00004000 |  // xdrv_04_light.ino
-#endif
-#if defined(USE_LIGHT) && defined(USE_WS2812)
-  0x00008000 |  // xdrv_04_light.ino
-#endif
-#if defined(USE_LIGHT) && defined(USE_WS2812) && defined(USE_WS2812_DMA)
-  0x00010000 |  // xdrv_04_light.ino
-#endif
+//  0x00004000 |  // xdrv_04_light.ino - USE_ARILUX_RF - DELETED
+//  0x00008000 |  // xdrv_04_light.ino - USE_WS2812 - DELETED
+//  0x00010000 |  // xdrv_04_light.ino - USE_WS2812 - USE_WS2812_DMA - DELETED
 //  0x00020000 |  // xdrv_05_irremote.ino USE_IR_REMOTE_FULL USE_IR_REMOTE - DELETED
 //  0x00040000 |  // xdrv_05_irremote.ino - USE_IR_HVAC - DELETED
 //  0x00080000 |  // USE_IR_REMOTE USE_IR_RECEIVE xdrv_05_irremote.ino  - DELETED
@@ -159,24 +149,16 @@ constexpr uint32_t feature[] = {
 #if defined(USE_I2C) && (defined(USE_PCA9685) || defined(USE_PCA9685_V2))
   0x00004000 |  // xdrv_15_pca9685.ino or xdrv_15_pca9685_v2.ino
 #endif
-#if defined(USE_LIGHT) && defined(USE_TUYA_MCU)
-  0x00008000 |  // xdrv_16_tuyadimmer.ino
-#endif
+//  0x00008000 |  // xdrv_16_tuyadimmer.ino - USE_TUYA_MCU - DELETED
 #ifdef USE_RC_SWITCH
   0x00010000 |  // xdrv_17_rcswitch.ino
 #endif
-#if defined(USE_LIGHT) && defined(USE_ARMTRONIX_DIMMERS)
-  0x00020000 |  // xdrv_18_armtronixdimmer.ino
-#endif
-#if defined(USE_LIGHT) && defined(USE_SM16716)
-  0x00040000 |  // xdrv_04_light.ino
-#endif
+//  0x00020000 |  // xdrv_18_armtronixdimmer.ino - USE_ARMTRONIX_DIMMERS - DELETED
+//  0x00040000 |  // xdrv_04_light.ino - USE_SM16716 - DELETED
 #ifdef USE_SCRIPT
   0x00080000 |  // xdrv_10_scripter.ino
 #endif
-#if defined(USE_WEBSERVER) && defined(USE_EMULATION_WEMO)
-  0x00100000 |  // xdrv_21_wemo.ino
-#endif
+//  0x00100000 |  // xdrv_21_wemo.ino - USE_EMULATION_WEMO - DELETED
 #ifdef USE_SONOFF_IFAN
   0x00200000 |  // xdrv_22_sonoff_ifan.ino
 #endif
@@ -402,9 +384,7 @@ constexpr uint32_t feature[] = {
   0x00000020 |  // xdrv_25_A4988.ino
 #endif
 //  0x00000040 |  // xnrg_09_dds2382.ino - USE_DDS2382 - DELETED
-#if defined(USE_LIGHT) && defined(USE_SM2135)
-  0x00000080 |  // xdrv_026_sm2135.ino
-#endif
+//  0x00000080 |  // xdrv_026_sm2135.ino - USE_SM2135 - DELETED
 #ifdef USE_SHUTTER
   0x00000100 |  // xdrv_027_shutter.ino
 #endif
@@ -421,12 +401,8 @@ constexpr uint32_t feature[] = {
 #ifdef USE_SONOFF_RF
   0x00002000 |  // xdrv_06_snfbridge.ino
 #endif
-#if defined(USE_LIGHT) && defined(USE_SONOFF_L1)
-  0x00004000 |  // xlgt_05_sonoff_l1.ino
-#endif
-#if defined(USE_LIGHT) && defined(USE_EXS_DIMMER)
-  0x00008000 |  // xdrv_30_exs_dimmer.ino
-#endif
+//  0x00004000 |  // xlgt_05_sonoff_l1.ino - USE_SONOFF_L1 - DELETED
+//  0x00008000 |  // xdrv_30_exs_dimmer.ino - USE_EXS_DIMMER - DELETED
 #ifdef USE_TASMOTA_CLIENT
   0x00010000 |  // xdrv_31_tasmota_client.ino
 #endif
@@ -470,9 +446,7 @@ constexpr uint32_t feature[] = {
 #ifdef USE_DEVICE_GROUPS
   0x40000000 |  // support_device_groups.ino
 #endif
-#ifdef USE_PWM_DIMMER
-  0x80000000 |  // xdrv_35_pwm_dimmer
-#endif
+//  0x80000000 |  // xdrv_35_pwm_dimmer - USE_PWM_DIMMER - DELETED
   0,
 #ifdef USE_KEELOQ
   0x00000001 |  // xdrv_36_keeloq.ino
@@ -480,9 +454,7 @@ constexpr uint32_t feature[] = {
 #ifdef USE_HRXL
   0x00000002 |  // xsns_64_hrxl.ino
 #endif
-#ifdef USE_SONOFF_D1
-  0x00000004 |  // xdrv_37_sonoff_d1.ino
-#endif
+//  0x00000004 |  // xdrv_37_sonoff_d1.ino - USE_SONOFF_D1 - DELETED
 #if defined(USE_I2C) && defined(USE_HDC1080)
   0x00000008 |  // xsns_65_hdc1080.ino
 #endif
@@ -704,9 +676,7 @@ constexpr uint32_t feature[] = {
 #if defined(USE_I2C) && defined(USE_HDC2010)
   0x00010000 |  // xsns_94_hdc2010.ino
 #endif
-#if defined(USE_LIGHT) && defined(USE_LSC_MCSL)
-  0x00020000 |  // xlgt_07_lsc_mcsl.ino
-#endif
+//  0x00020000 |  // xlgt_07_lsc_mcsl.ino - USE_LSC_MCSL - DELETED
 #ifdef USE_SONOFF_SPM
   0x00040000 |  // xdrv_86_esp32_sonoff_spm.ino
 #endif
@@ -731,15 +701,11 @@ constexpr uint32_t feature[] = {
 #ifdef USE_FLOWRATEMETER
   0x08000000 |  // xsns_96_flowratemeter.ino
 #endif
-#if defined(USE_LIGHT) && defined(USE_BP5758D)
-  0x10000000 |  // xlgt_08_bp5758d.ino
-#endif
+//  0x10000000 |  // xlgt_08_bp5758d.ino - USE_BP5758D - DELETED
 #if defined(USE_I2C) && defined(USE_HYT)
   0x20000000 |  // xsns_97_hyt.ino
 #endif
-#if defined(USE_LIGHT) && defined(USE_SM2335)
-  0x40000000 |  // xlgt_09_sm2335.ino
-#endif
+//  0x40000000 |  // xlgt_09_sm2335.ino - USE_SM2335 - DELETED
 #ifdef USE_DISPLAY_TM1621_SONOFF
   0x80000000 |  // xdrv_87_esp32_sonoff_tm1621.ino
 #endif
@@ -763,9 +729,7 @@ constexpr uint32_t feature[] = {
 #ifdef USE_DALI
   0x00000040 |  // xdrv_75_dali.ino
 #endif
-#if defined(USE_LIGHT) && defined(USE_BP1658CJ)
-  0x00000080 |  // xlgt_10_bp1658cj.ino
-#endif
+//  0x00000080 |  // xlgt_10_bp1658cj.ino - USE_BP1658CJ - DELETED
 #ifdef USE_DINGTIAN_RELAY
   0x00000100 |  // xdrv_90_dingtian_relay.ino
 #endif

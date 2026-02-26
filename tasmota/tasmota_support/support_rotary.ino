@@ -93,11 +93,7 @@ bool RotaryButtonPressed(uint32_t button_index) {
     if (index != button_index) { continue; }
 
     bool powered_on = (TasmotaGlobal.power);
-#ifdef USE_LIGHT
-    if (!Settings->flag4.rotary_uses_rules) {   // SetOption98 - Use rules instead of light control
-      powered_on = LightPower();
-    }
-#endif  // USE_LIGHT
+
     if (Encoder[index].changed && powered_on) {
       Encoder[index].changed = false;          // Color (temp) changed, no need to turn of the light
       return true;
@@ -197,12 +193,6 @@ void RotaryHandler(void) {
     if (Encoder[index].timeout) {
       Encoder[index].timeout--;
       if (!Encoder[index].timeout) {
-#ifdef USE_LIGHT
-        if (!Settings->flag4.rotary_uses_rules) {  // SetOption98 - Use rules instead of light control
-          ResponseLightState(0);
-          MqttPublishPrefixTopicRulesProcess_P(RESULT_OR_STAT, PSTR(D_CMND_STATE));
-        }
-#endif  // USE_LIGHT
         Encoder[index].direction = 0;
       }
     }
@@ -223,37 +213,6 @@ void RotaryHandler(void) {
     if (button_pressed) { Encoder[index].changed = true; }
 //    AddLog(LOG_LEVEL_DEBUG, PSTR("ROT: Button1 %d, Position %d"), button_pressed, rotary_position);
 
-#ifdef USE_LIGHT
-    if (!Settings->flag4.rotary_uses_rules) {   // SetOption98 - Use rules instead of light control
-      bool second_rotary = (Encoder[1].pinb >= 0);
-      if (0 == index) {                        // Rotary1
-        if (button_pressed) {
-          if (second_rotary) {                 // Color RGB
-            LightColorOffset(rotary_position * Rotary.color_increment);
-          } else {                             // Color Temperature or Color RGB
-            if (!LightColorTempOffset(rotary_position * Rotary.ct_increment)) {
-              LightColorOffset(rotary_position * Rotary.color_increment);
-            }
-          }
-        } else {                               // Dimmer RGBCW or RGB only if second rotary
-          uint32_t dimmer_index = second_rotary ? 1 : 0;
-          if (!Settings->flag4.rotary_poweron_dimlow || TasmotaGlobal.power) {  // SetOption113 - On rotary dial after power off set dimmer low
-            LightDimmerOffset(dimmer_index, rotary_position * Rotary.dimmer_increment);
-          } else {
-            if (rotary_position > 0) {         // Only power on if rotary increase
-              LightDimmerOffset(dimmer_index, -LightGetDimmer(dimmer_index) + ROTARY_START_DIM);
-            }
-          }
-        }
-      } else {                                 // Rotary2
-        if (button_pressed) {                  // Color Temperature
-          LightColorTempOffset(rotary_position * Rotary.ct_increment);
-        } else {                               // Dimmer CW
-          LightDimmerOffset(2, rotary_position * Rotary.dimmer_increment);
-        }
-      }
-    } else {
-#endif  // USE_LIGHT
       Encoder[index].abs_position[button_pressed] += rotary_position;
       if (Encoder[index].abs_position[button_pressed] < 0) {
         Encoder[index].abs_position[button_pressed] = 0;
@@ -271,9 +230,7 @@ void RotaryHandler(void) {
 
       Response_P(PSTR("{\"Rotary%d\":{\"Pos1\":%d,\"Pos2\":%d}}"), index +1, Encoder[index].abs_position[0], Encoder[index].abs_position[1]);
       XdrvRulesProcess(0);
-#ifdef USE_LIGHT
-    }
-#endif  // USE_LIGHT
+
   }
 }
 

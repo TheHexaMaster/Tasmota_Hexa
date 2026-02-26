@@ -500,15 +500,6 @@ void AdcEvery250ms(void) {
   uint32_t offset = 0;
 
   uint32_t dimmer_count = 0;
-#ifdef USE_LIGHT
-  if (!light_controller.isCTRGBLinked()) {                             // SetOption37 >= 128 (Light) RGB and White channel separation (default 0)
-    for (uint32_t channel = 0; channel < Adcs.present; channel++) {
-      if ((GPIO_ADC_INPUT == Adc[channel].type) && (Adc[channel].param[3] > 0)) {
-        dimmer_count++;
-      }
-    }
-  }
-#endif  // USE_LIGHT
   for (uint32_t channel = 0; channel < Adcs.present; channel++) {
     uint32_t type_index = Adc[channel].index;
 #ifdef ESP32
@@ -538,28 +529,8 @@ void AdcEvery250ms(void) {
           Adc[channel].indexOfPointer = 0;
           continue;                                                    // Do not use potentiometer state on restart
         }
-#ifdef USE_LIGHT
-        if (0 == param3) {                                             // Default (0) or Direct mode (1)
-#endif  // USE_LIGHT
           Response_P(PSTR("{\"ANALOG\":{\"A%ddiv10\":%d}}"), type_index + offset, new_value);
           XdrvRulesProcess(0);
-#ifdef USE_LIGHT
-        } else {
-          char command[33];
-          if (Settings->flag3.pwm_multi_channels) {                    // SetOption68 - Enable multi-channels PWM instead of Color PWM
-            snprintf_P(command, sizeof(command), PSTR(D_CMND_CHANNEL "%d %d"), type_index +1, new_value);
-          } else {
-            uint32_t dimmer_option;
-            if (dimmer_count > 1) {
-              dimmer_option = (0 == type_index) ? 1 : 2;               // Change RGB (1) or W(W) (2) dimmer
-            } else {
-              dimmer_option = (3 == param3) ? 3 : 0;                   // Change both RGB and W(W) Dimmers (0) with no fading (3)
-            }
-            snprintf_P(command, sizeof(command), PSTR(D_CMND_DIMMER "%d %d"), dimmer_option, new_value);
-          }
-          ExecuteCommand(command, SRC_SWITCH);
-        }
-#endif  // USE_LIGHT
       }
     }
     else if (GPIO_ADC_JOY == adc_type) {
@@ -804,9 +775,6 @@ void AdcShow(bool json) {
     uint32_t adc_type = Adc[channel].type;
     switch (adc_type) {
       case GPIO_ADC_INPUT: {
-#ifdef USE_LIGHT
-        if (0 == Adc[channel].param[3]) {                                // Default (0) or Direct mode (1)
-#endif  // USE_LIGHT
           uint16_t analog = AdcRead(Adc[channel].pin, 5);
           if (json) {
             AdcShowContinuation(&jsonflg);
@@ -816,9 +784,6 @@ void AdcShow(bool json) {
             WSContentSend_PD(HTTP_SNS_ANALOG, "", type_index + offset, analog);
 #endif  // USE_WEBSERVER
           }
-#ifdef USE_LIGHT
-        }
-#endif  // USE_LIGHT
         break;
       }
       case GPIO_ADC_TEMP: {
