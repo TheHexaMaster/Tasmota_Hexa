@@ -1142,7 +1142,7 @@ int GetStateNumber(const char *state_text)
   char command[CMDSZ];
   int state_number = GetCommandCode(command, sizeof(command), state_text, kOptions);
   if (state_number >= 0) {
-    state_number = pgm_read_byte(sNumbers + state_number);
+    state_number = pgm_read_byte(sNumbers + state_number); 
   }
   return state_number;
 }

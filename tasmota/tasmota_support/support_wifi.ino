@@ -1193,7 +1193,7 @@ void WifiCheckIp(void) {
       Wifi.retry = Wifi.retry_init;
     }
 #ifdef WIFI_MSBMODE
-            Wifi.counter = 30; 
+            Wifi.counter = 3; 
 #else
             Wifi.counter = 1; 
 #endif

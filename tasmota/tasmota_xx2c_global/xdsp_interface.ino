@@ -20,7 +20,12 @@
 #ifdef USE_DISPLAY
 
 
+#ifdef XFUNC_PTR_IN_ROM
+bool (* const xdsp_func_ptr[])(uint32_t) PROGMEM = {   // Display Function Pointers
+#else
 bool (* const xdsp_func_ptr[])(uint32_t) = {   // Display Function Pointers
+#endif
+
 
 #ifdef XDSP_01
   &Xdsp01,

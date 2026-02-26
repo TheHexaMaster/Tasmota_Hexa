@@ -723,7 +723,7 @@ void SettingsDefault(void) {
 }
 
 void SettingsDefaultSet1(void) {
-  memset(Settings, 0x00, sizeof(TSettings));
+  memset(Settings, 0x00, sizeof(TSettings)); 
 
   Settings->cfg_holder = (uint16_t)CFG_HOLDER;
   Settings->cfg_size = sizeof(TSettings);
@@ -894,6 +894,13 @@ void SettingsDefaultSet2(void) {
   flag5.disable_referer_chk |= true;
 #endif
 
+#ifdef NO_SPLASH_SCREEN
+  flag5.display_no_splash |= true;
+#else
+  flag5.display_no_splash |= false;
+#endif
+
+
   // Button
 #ifndef FIRMWARE_MINIMAL    // not needed in minimal/safeboot because of disabled feature and Settings are not saved anyways
   flag.button_restrict |= KEY_DISABLE_MULTIPRESS;
@@ -926,6 +933,7 @@ void SettingsDefaultSet2(void) {
   flag5.mqtt_persistent |= ~MQTT_CLEAN_SESSION;
   flag6.mqtt_disable_publish |= MQTT_DISABLE_SSERIALRECEIVED;
   flag6.mqtt_disable_modbus |= MQTT_DISABLE_MODBUSRECEIVED;
+  flag6.use_esp32_temperature |= USE_ESP32_TEMP_ON;
 //  flag.mqtt_serial |= 0;
   flag.device_index_enable |= MQTT_POWER_FORMAT;
   flag3.time_append_timezone |= MQTT_APPEND_TIMEZONE;

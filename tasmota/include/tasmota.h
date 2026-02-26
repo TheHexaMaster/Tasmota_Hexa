@@ -17,8 +17,16 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
 #ifndef _TASMOTA_H_
 #define _TASMOTA_H_
+
+/*********************************************************************************************\
+ * Performance ROM (PROGMEM) vs RAM (RODATA)
+\*********************************************************************************************/
+
+#define XFUNC_PTR_IN_ROM                    // Enable for keeping tables in ROM (PROGMEM) which seem to have access issues on some flash types
+
 
 /*********************************************************************************************\
  * Power Type
@@ -69,7 +77,7 @@ const uint8_t MAX_KNX_CB = 10;              // Max number of KNX Group Addresses
 const uint8_t MAX_XNRG_DRIVERS = 32;        // Max number of allowed energy drivers
 const uint8_t MAX_XDRV_DRIVERS = 128;       // Max number of allowed driver drivers
 const uint8_t MAX_XSNS_DRIVERS = 128;       // Max number of allowed sensor drivers
-const uint8_t MAX_I2C_DRIVERS = 96;         // Max number of allowed i2c drivers
+const uint8_t MAX_I2C_DRIVERS = 128;         // Max number of allowed i2c drivers
 const uint8_t MAX_SHUTTERS = 4;             // Max number of shutters
 const uint8_t MAX_SHUTTER_KEYS = 4;         // Max number of shutter keys or buttons
 const uint8_t MAX_PCF8574 = 4;              // Max number of PCF8574 devices

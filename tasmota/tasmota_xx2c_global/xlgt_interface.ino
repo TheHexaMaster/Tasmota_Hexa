@@ -20,7 +20,11 @@
 #ifdef USE_LIGHT
 
 
+#ifdef XFUNC_PTR_IN_ROM
+bool (* const xlgt_func_ptr[])(uint32_t) PROGMEM = {   // Light driver Function Pointers
+#else
 bool (* const xlgt_func_ptr[])(uint32_t) = {   // Light driver Function Pointers
+#endif
 
 
 #ifdef XLGT_01
