@@ -323,9 +323,6 @@ const uint16_t kGpioConvert[] PROGMEM = {
   AGPIO(GPIO_SBR_RX),         // Serial Bridge Serial interface
   AGPIO(GPIO_SR04_TRIG),      // SR04 Tri/TXgger pin
   AGPIO(GPIO_SR04_ECHO),      // SR04 Ech/RXo pin
-  AGPIO(GPIO_TM1638CLK),      // TM1638 Clock
-  AGPIO(GPIO_TM1638DIO),      // TM1638 Data I/O
-  AGPIO(GPIO_TM1638STB),      // TM1638 Strobe
   AGPIO(GPIO_SWT1_NP),        // Switch no pullup
   AGPIO(GPIO_SWT1_NP) +1,
   AGPIO(GPIO_SWT1_NP) +2,

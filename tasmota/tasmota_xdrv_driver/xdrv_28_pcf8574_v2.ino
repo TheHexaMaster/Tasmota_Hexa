@@ -29,8 +29,6 @@
  * sharing of the I2C address space. Still the covered range must remains valid.
  * A count of 0 can be used totaly disable any of the 2 ranges.
  * By default, the following addresses are explicitly excluded (as per the docs) :
- *  - 0x27 and 0x37 are reserved for USE_DISPLAY_LCD in xdsp_01_lcd.ino
- *  - 0X38 is reserved for other sensors
  * If the respective drivers are not used, overrides allows to recover those addresses
  * If defined, USE_MCP230xx_ADDR is also always excluded
  *

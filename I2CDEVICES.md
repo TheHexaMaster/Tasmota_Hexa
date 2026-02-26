@@ -12,11 +12,6 @@ Index | Define              | Driver   | Device   | Address(es) | Bus2 | Descrip
    1  | USE_PCA9685_V2      | xdrv_15  | PCA9685  | 0x40 - 0x47 |      | 16-channel 12-bit pwm driver
    2  | USE_PCF8574         | xdrv_28  | PCF8574  | 0x20 - 0x26 |      | 8-bit I/O expander (address range overridable)
    2  | USE_PCF8574         | xdrv_28  | PCF8574A | 0x39 - 0x3F |      | 8-bit I/O expander (address range overridable)
-   3  | USE_DISPLAY_LCD     | xdsp_01  |          | 0x27, 0x3F  |      | LCD display
-   4  | REMOVED             |          |          |             |      | USE_DISPLAY_SSD1306 - REMOVED
-   5  | USE_DISPLAY_MATRIX  | xdsp_03  | HT16K33  | 0x70 - 0x77 |      | 8x8 led matrix
-   6  | REMOVED             |          | SH1106   | 0x3C - 0x3D |      | USE_DISPLAY_SH1106 - REMOVED
-   7x  | USE_ADE7953         | xnrg_07  | ADE7953  | 0x38        |      | Energy monitor - REMOVED
    8  | USE_SHT             | xsns_07  | SHT1X    | Any         |      | Temperature and Humidity sensor
    9  | USE_HTU             | xsns_08  | HTU21    | 0x40        | Yes  | Temperature and Humidity sensor
    9  | USE_HTU             | xsns_08  | SI7013   | 0x40        | Yes  | Temperature and Humidity sensor
@@ -61,8 +56,6 @@ Index | Define              | Driver   | Device   | Address(es) | Bus2 | Descrip
   35  | USE_INA226          | xsns_54  | INA226   | 0x40 - 0x41, 0x44 - 0x45 |      | Low voltage current sensor
   36  | USE_HIH6            | xsns_55  | HIH6130  | 0x27        |      | Temperature and Humidity sensor
   37  | USE_24C256          | xdrv_10  | 24C256   | 0x50        |      | Scripter EEPROM storage
-  38  | USE_DISPLAY_ILI9488 | xdsp_08  | FT6236   | 0x38        |      | Touch panel controller
-  39  | USE_DISPLAY_RA8876  | xdsp_10  | FT5316   | 0x38        |      | Touch panel controller
   40  | USE_TSL2591         | xsns_57  | TSL2591  | 0x29        |      | Light intensity sensor
   41  | USE_DHT12           | xsns_58  | DHT12    | 0x5C        |      | Temperature and humidity sensor
   42  | USE_DS1624          | xsns_59  | DS1621   | 0x48 - 0x4F |      | Temperature sensor
@@ -73,7 +66,7 @@ Index | Define              | Driver   | Device   | Address(es) | Bus2 | Descrip
   44  | USE_WEMOS_MOTOR_V1  | xdrv_34  |          | 0x2D - 0x30 |      | WEMOS motor shield v1.0.0 (6612FNG)
   45  | USE_HDC1080         | xsns_65  | HDC1080  | 0x40        |      | Temperature and Humidity sensor
   46  | USE_IAQ             | xsns_66  | IAQ      | 0x5a        | Yes  | Air quality sensor
-  47  | USE_DISPLAY_SEVENSEG| xdsp_11  | HT16K33  | 0x70 - 0x77 |      | Seven segment LED
+  47  
   48  | USE_AS3935          | xsns_67  | AS3935   | 0x03        |      | Franklin Lightning Sensor
   49  | USE_VEML6075        | xsns_70  | VEML6075 | 0x10        |      | UVA/UVB/UVINDEX Sensor
   50  | USE_VEML7700        | xsns_71  | VEML7700 | 0x10        |      | Ambient light intensity sensor
@@ -112,7 +105,7 @@ Index | Define              | Driver   | Device   | Address(es) | Bus2 | Descrip
   71  | USE_QMC5883L        | xsns_33  | QMC5883L | 0x0D        |      | Magnetic Field Sensor
   72  | USE_INA3221         | xsns_100 | INA3221  | 0x40-0x43   |      | 3-channels Voltage and Current sensor
   73  | USE_HMC5883L        | xsns_101 | HMC5883L | 0x1E        |      | 3-channels Magnetic Field Sensor
-  74  | USE_DISPLAY_TM1650  | xdsp_20  | TM1650   | 0x24 - 0x27, 0x34 - 0x37 |      | Four-digit seven-segment LED controller
+  74  
   75  | USE_PCA9632         | xdrv_64  | PCA9632  | 0x60        |      | 4-channel 4-bit pwm driver
   76  | USE_SEN5X           | xsns_103 | SEN5X    | 0x69        | Yes  | Gas (VOC/NOx index) and air quality (PPM <1,<2.5,<4,<10)
   77  | USE_MCP23XXX_DRV    | xdrv_67  | MCP23x17 | 0x20 - 0x26 |      | 16-bit I/O expander as virtual button/switch/relay

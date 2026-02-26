@@ -134,7 +134,6 @@
 #undef USE_MAX31855                              // Disable MAX31855 K-Type thermocouple sensor using softSPI
 #undef USE_MAX31865                              // Disable support for MAX31865 RTD sensors using softSPI
 #undef USE_LMT01                                 // Disable support for TI LMT01 temperature sensor, count pulses on single GPIO (+0k5 code)
-#undef USE_TM1638                                // Disable support for TM1638 switches copying Switch1 .. Switch8
 #undef USE_HX711                                 // Disable support for HX711 load cell
 #undef USE_TX20_WIND_SENSOR                      // Disable support for La Crosse TX20 anemometer
 #undef USE_TX23_WIND_SENSOR                      // Disable support for La Crosse TX23 anemometer
@@ -296,9 +295,6 @@
 #define USE_DISPLAY_LVGL_ONLY
 
 //#undef USE_DISPLAY_MODES1TO5
-#undef USE_DISPLAY_LCD
-#undef USE_DISPLAY_MATRIX
-#undef USE_DISPLAY_SEVENSEG
 
 #define USE_ENHANCED_GUI_WIFI_SCAN
 
@@ -691,7 +687,6 @@
 #define USE_SHIFT595                             // Add support for 74xx595 8-bit shift registers (+0k7 code)
 //  #define SHIFT595_INVERT_OUTPUTS false            // [SetOption133] Don't invert outputs of 74x595 shift register
 //  #define SHIFT595_DEVICE_COUNT  1                 // [Shift595DeviceCount] Set the number of connected 74x595 shift registers
-#define USE_TM1638                               // Add support for TM1638 switches copying Switch1 .. Switch8 (+1k code)
 #define USE_HX711                                // Add support for HX711 load cell (+1k5 code)
 //#define USE_HX711_GUI                            // Add optional web GUI to HX711 as scale (+1k8 code)
 //#define USE_TX20_WIND_SENSOR                     // Add support for La Crosse TX20 anemometer (+2k6/0k8 code)
@@ -705,7 +700,6 @@
 //#define USE_A4988_STEPPER                        // Add support for A4988/DRV8825 stepper-motor-driver-circuit (+10k5 code)
 //#define USE_THERMOSTAT                           // Add support for Thermostat
 #define USE_ETHERNET                             // Add support for ethernet (+20k code)
-#define USE_DISPLAY_TM1621_SONOFF                // Add support for TM1621 display driver used by Sonoff POWR3xxD and THR3xxD
 #define USE_LOX_O2                               // Add support for LuminOx LOX O2 Sensor (+0k8 code)
 
 #ifndef USE_KNX

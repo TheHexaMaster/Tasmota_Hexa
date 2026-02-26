@@ -122,16 +122,12 @@ constexpr uint32_t feature[] = {
 #if defined(USE_DISPLAY) && defined(USE_DISPLAY_GRAPH)
   0x00000040 |  // xdrv_13_display.ino
 #endif
-#if defined(USE_I2C) && defined(USE_DISPLAY) && defined(USE_DISPLAY_LCD)
-  0x00000080 |  // xdsp_01_lcd.ino
-#endif
+//  0x00000080 |  // xdsp_01_lcd.ino - USE_DISPLAY_LCD - DELETED
 // REMOVED
 // #if defined(USE_I2C) && defined(USE_DISPLAY) && defined(USE_DISPLAY_SSD1306)
 //   0x00000100 |  // xdsp_02_ssd1306.ino
 // #endif
-#if defined(USE_I2C) && defined(USE_DISPLAY) && defined(USE_DISPLAY_MATRIX)
-  0x00000200 |  // xdsp_03_matrix.ino
-#endif
+//  0x00000200 |  // xdsp_03_matrix.ino - USE_DISPLAY_MATRIX - REMOVED
 // REMOVED
 // #if defined(USE_SPI) && defined(USE_DISPLAY) && defined(USE_DISPLAY_ILI9341)
 //   0x00000400 |  // xdsp_04_ili9341.ino
@@ -278,9 +274,7 @@ constexpr uint32_t feature[] = {
 #if defined(USE_I2C) && defined(USE_APDS9960)
   0x40000000 |  // xsns_27_apds9960.ino
 #endif
-#ifdef USE_TM1638
-  0x80000000 |  // xdrv_66_tm1638.ino
-#endif
+//  0x80000000 |  // xdrv_66_tm1638.ino - USE_TM1638 - DELETED
   0,
 #if defined(USE_I2C) && defined(USE_MCP230xx)
   0x00000001 |  // xsns_29_mcp230xx.ino
@@ -461,9 +455,7 @@ constexpr uint32_t feature[] = {
 #if defined(USE_I2C) && defined(USE_IAQ)
   0x00000010 |  // xsns_66_iAQ.ino
 #endif
-#if defined(USE_DISPLAY) && defined(USE_DISPLAY_SEVENSEG)
-  0x00000020 |  // xdsp_11_sevenseg.ino
-#endif
+//  0x00000020 |  // xdsp_11_sevenseg.ino - USE_DISPLAY_SEVENSEG - DELETED
 #if defined(USE_I2C) && defined(USE_AS3935)
   0x00000040 |  // xsns_67_as3935.ino
 #endif
@@ -578,18 +570,14 @@ constexpr uint32_t feature[] = {
 #ifdef USE_FTC532
   0x00004000 |  // xdrv_47_ftc532.ino
 #endif
-#if defined(USE_SPI) && defined(USE_DISPLAY) && defined(USE_DISPLAY_EPAPER_42)
-  0x00008000 |  // xdsp_06_epaper_42.ino
-#endif
+//  0x00008000 |  // xdsp_06_epaper_42.ino - USE_DISPLAY_EPAPER_42 - DELETED
 // #if defined(USE_SPI) && defined(USE_DISPLAY) && defined(USE_DISPLAY_ILI9488)
 //   0x00010000 |  // xdsp_08_ILI9488.ino
 // #endif
 // #if defined(USE_SPI) && defined(USE_DISPLAY) && defined(USE_DISPLAY_SSD1351)
 //   0x00020000 |  // xdsp_09_SSD1351.ino
 // #endif
-#if defined(USE_SPI) && defined(USE_DISPLAY) && defined(USE_DISPLAY_RA8876)
-  0x00040000 |  // xdsp_10_RA8876.ino
-#endif
+//  0x00040000 |  // xdsp_10_RA8876.ino - USE_DISPLAY_RA8876 - DELETED
 // #if defined(USE_SPI) && defined(USE_DISPLAY) && defined(USE_DISPLAY_ST7789)
 //   0x00080000 |  // xdsp_12_ST7789.ino
 // #endif
@@ -622,9 +610,7 @@ constexpr uint32_t feature[] = {
   0x10000000 |  // xsns_84_tof10120
 #endif
 //  0x20000000 |  // xnrg_18_sdm72.ino - USE_SDM72 - DELETED
-#if defined(USE_DISPLAY) && defined(USE_DISPLAY_TM1637)
-  0x40000000 |
-#endif
+//  0x40000000 |  // USE_DISPLAY_TM1637 - deleted
 #ifdef USE_PROJECTOR_CTRL
   0x80000000 |  // xdrv_53_projector_ctrl.ino
 #endif
@@ -706,9 +692,7 @@ constexpr uint32_t feature[] = {
   0x20000000 |  // xsns_97_hyt.ino
 #endif
 //  0x40000000 |  // xlgt_09_sm2335.ino - USE_SM2335 - DELETED
-#ifdef USE_DISPLAY_TM1621_SONOFF
-  0x80000000 |  // xdrv_87_esp32_sonoff_tm1621.ino
-#endif
+//  0x80000000 |  // xdrv_87_esp32_sonoff_tm1621.ino - USE_DISPLAY_TM1621_SONOFF - DELETED
   0,
 #if defined(USE_I2C) && defined(USE_SGP40)
   0x00000001 |  // xsns_98_sgp40.ino
@@ -742,9 +726,7 @@ constexpr uint32_t feature[] = {
 #ifdef USE_ME007
   0x00000800 |  // xsns_23_me007.ino
 #endif
-#if defined(USE_I2C) && defined(USE_DISPLAY) && defined(USE_DISPLAY_TM1650)
-  0x00001000 |  // xdsp_20_tm1650.ino
-#endif
+//  0x00001000 |  // xdsp_20_tm1650.ino -USE_DISPLAY_TM1650 - DELETED
 #if defined(USE_I2C) && defined(USE_PCA9632)
   0x00002000 |  // xdrv_64_pca9632.ino
 #endif

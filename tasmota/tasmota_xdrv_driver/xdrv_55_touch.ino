@@ -36,7 +36,7 @@
 \*******************************************************************************************/
 
 
-#if defined(USE_FT5206) || defined(USE_XPT2046) || defined(USE_GT911) || defined(USE_LILYGO47) || defined(USE_UNIVERSAL_TOUCH) || defined(USE_TOUCH_BUTTONS) || defined(SIMPLE_RES_TOUCH)
+#if defined(USE_FT5206) || defined(USE_XPT2046) || defined(USE_GT911) || defined(USE_UNIVERSAL_TOUCH) || defined(USE_TOUCH_BUTTONS) || defined(SIMPLE_RES_TOUCH)
 
 #include <renderer.h>
 
@@ -610,11 +610,11 @@ bool Xdrv55(uint32_t function) {
   return result;
 }
 
-#else  // #if defined(USE_FT5206) || defined(USE_XPT2046) || defined(USE_LILYGO47) || defined(USE_TOUCH_BUTTONS)
+#else  // #if defined(USE_FT5206) || defined(USE_XPT2046) || defined(USE_TOUCH_BUTTONS)
 
 // dummy for LVGL without a touch controller
 uint32_t Touch_Status(int32_t sel) {
   return 0;
 }
 
-#endif  // #if defined(USE_FT5206) || defined(USE_XPT2046) || defined(USE_LILYGO47) || defined(USE_TOUCH_BUTTONS)
+#endif  // #if defined(USE_FT5206) || defined(USE_XPT2046) || defined(USE_TOUCH_BUTTONS)

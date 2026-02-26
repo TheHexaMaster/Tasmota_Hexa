@@ -47,7 +47,6 @@ enum UserSelectablePins {
   GPIO_SDS0X1_TX, GPIO_SDS0X1_RX,      // Nova Fitness SDS011 Serial interface
   GPIO_SBR_TX, GPIO_SBR_RX,            // Serial Bridge Serial interface
   GPIO_SR04_TRIG, GPIO_SR04_ECHO,      // SR04 interface
-  GPIO_TM1638CLK, GPIO_TM1638DIO, GPIO_TM1638STB,  // TM1638 interface
   GPIO_MP3_DFR562,                     // RB-DFR-562, DFPlayer Mini MP3 Player
   GPIO_HX711_SCK, GPIO_HX711_DAT,      // HX711 Load Cell interface
   GPIO_TX2X_TXD_BLACK,                 // TX20/TX23 Transmission Pin
@@ -108,11 +107,7 @@ enum UserSelectablePins {
   GPIO_RC522_CS,
   GPIO_NRF24_CS, GPIO_NRF24_DC,
   GPIO_ILI9341_CS, GPIO_ILI9341_DC,
-  GPIO_ILI9488_CS,
-  GPIO_EPAPER29_CS,
-  GPIO_EPAPER42_CS,
   GPIO_SSD1351_CS,
-  GPIO_RA8876_CS,
   GPIO_ST7789_CS, GPIO_ST7789_DC,
   GPIO_SSD1331_CS, GPIO_SSD1331_DC,
   GPIO_SDCARD_CS,
@@ -121,12 +116,10 @@ enum UserSelectablePins {
   GPIO_BS814_CLK, GPIO_BS814_DAT,      // Holtek BS814A2 touch ctrlr
   GPIO_WIEGAND_D0, GPIO_WIEGAND_D1,    // Wiegand Data lines
   GPIO_NEOPOOL_TX, GPIO_NEOPOOL_RX,    // Sugar Valley RS485 interface
-  GPIO_TM1637CLK, GPIO_TM1637DIO,      // TM1637 interface
   GPIO_PROJECTOR_CTRL_TX, GPIO_PROJECTOR_CTRL_RX,  // LCD/DLP Projector Serial Control
   GPIO_SSD1351_DC,
   GPIO_XPT2046_CS,                     // XPT2046 SPI Chip Select
   GPIO_VL53LXX_XSHUT1,                 // VL53LXX_XSHUT (the max number of sensors is VL53LXX_MAX_SENSORS)- Used when connecting multiple VL53LXX
-  GPIO_MAX7219CLK, GPIO_MAX7219DIN, GPIO_MAX7219CS, // MAX7219 interface
   GPIO_TFMINIPLUS_TX, GPIO_TFMINIPLUS_RX,  // TFmini Plus ToF sensor
 #ifdef ESP32
   GPIO_HALLEFFECT,
@@ -154,7 +147,6 @@ enum UserSelectablePins {
   GPIO_SDIO_CMD, GPIO_SDIO_CLK, GPIO_SDIO_D0, GPIO_SDIO_D1, GPIO_SDIO_D2, GPIO_SDIO_D3, // SD Card SDIO interface, including 1-bit and 4-bit modes
   GPIO_FLOWRATEMETER_IN,               // Flowrate Meter
   GPIO_MP3_DFR562_BUSY,                // RB-DFR-562, DFPlayer Mini MP3 Player busy flag
-  GPIO_TM1621_CS, GPIO_TM1621_WR, GPIO_TM1621_RD, GPIO_TM1621_DAT,  // Sonoff POWR3xxD and THR3xxD LCD display
   GPIO_REL1_BI, GPIO_REL1_BI_INV,      // 8 x Relays bistable
   GPIO_I2S_MCLK,
   GPIO_MBR_TX, GPIO_MBR_RX,            // Modbus Bridge Serial interface
@@ -184,7 +176,6 @@ enum UserSelectablePins {
   GPIO_DALI_RX_INV, GPIO_DALI_TX_INV,   // DALI
   GPIO_LD2410S_TX, GPIO_LD2410S_RX,     // HLK-LD2410S
   GPIO_I2C_SER_TX, GPIO_I2C_SER_RX,     // I2C via Serial using SC18IM704 protocol (xdrv74)
-  GPIO_TM1640CLK, GPIO_TM1640DIN,       // TM1640 (16 x seven-segment LED controler)
   GPIO_TWAI_TX, GPIO_TWAI_RX, GPIO_TWAI_BO, GPIO_TWAI_CLK,  // ESP32 TWAI serial interface
   GPIO_C8_CO2_5K_TX, GPIO_C8_CO2_5K_RX, // C8-CO2-5K CO2 Sensor
   GPIO_LD2402_TX, GPIO_LD2402_RX,       // HLK-LD2402
@@ -378,7 +369,6 @@ const char kSensorNames[] PROGMEM =
   D_SENSOR_WIEGAND_D0 "|" D_SENSOR_WIEGAND_D1 "|"
   D_SENSOR_NEOPOOL_TX "|" D_SENSOR_NEOPOOL_RX "|"
   D_SENSOR_SDM72_TX "|" D_SENSOR_SDM72_RX "|"
-  D_SENSOR_TM1637_CLK "|" D_SENSOR_TM1637_DIO "|"
   D_SENSOR_PROJECTOR_CTRL_TX "|" D_SENSOR_PROJECTOR_CTRL_RX "|"
   D_SENSOR_SSD1351_DC "|"
   D_SENSOR_XPT2046_CS "|"
@@ -420,7 +410,6 @@ const char kSensorNames[] PROGMEM =
   D_SENSOR_BP5758D_CLK "|" D_SENSOR_BP5758D_DAT "|"
   D_SENSOR_SM2335_CLK "|" D_SENSOR_SM2335_DAT "|"
   D_SENSOR_DFR562_BUSY "|"
-  D_GPIO_TM1621_CS "|" D_GPIO_TM1621_WR "|" D_GPIO_TM1621_RD "|" D_GPIO_TM1621_DAT "|"
   D_SENSOR_RELAY "_b|" D_SENSOR_RELAY "_bi|"
   D_SENSOR_I2S_MCLK "|"
   D_SENSOR_MBR_TX "|" D_SENSOR_MBR_RX "|"
@@ -645,56 +634,7 @@ const uint16_t kGpioNiceList[] PROGMEM = {
   AGPIO(GPIO_XPT2046_CS),                        // XPT2046 SPI Chip Select
 #endif
 
-#ifdef USE_DISPLAY_ILI9488
-  AGPIO(GPIO_ILI9488_CS),
-#endif  // USE_DISPLAY_ILI9488
-#ifdef USE_DISPLAY_EPAPER_29
-  AGPIO(GPIO_EPAPER29_CS),
-#endif  // USE_DISPLAY_EPAPER_29
-#ifdef USE_DISPLAY_EPAPER_42
-  AGPIO(GPIO_EPAPER42_CS),
-#endif  // USE_DISPLAY_EPAPER_42
-// REMOVED
-// #ifdef USE_DISPLAY_SSD1351
-//   AGPIO(GPIO_SSD1351_CS),
-//   AGPIO(GPIO_SSD1351_DC),
-// #endif  // USE_DISPLAY_SSD1351
-#ifdef USE_DISPLAY_RA8876
-  AGPIO(GPIO_RA8876_CS),
-#endif  // USE_DISPLAY_RA8876
-// REMOVED
-// #ifdef USE_DISPLAY_ST7789
-//   AGPIO(GPIO_ST7789_CS),
-//   AGPIO(GPIO_ST7789_DC),
-// #endif  // USE_DISPLAY_ST7789
-// REMOVED
-// #ifdef USE_DISPLAY_SSD1331
-//   AGPIO(GPIO_SSD1331_CS),
-//   AGPIO(GPIO_SSD1331_DC),
-// #endif  // USE_DISPLAY_SSD1331
-#ifdef USE_DISPLAY_MAX7219_MATRIX
-  #undef USE_DISPLAY_MAX7219
-  #undef USE_DISPLAY_TM1637
-  AGPIO(GPIO_MAX7219CLK),
-  AGPIO(GPIO_MAX7219DIN),
-  AGPIO(GPIO_MAX7219CS),
-#endif  // USE_DISPLAY_MAX7219_MATRIX
-#ifdef USE_DISPLAY_MAX7219
-  AGPIO(GPIO_MAX7219CLK),
-  AGPIO(GPIO_MAX7219DIN),
-  AGPIO(GPIO_MAX7219CS),
-#endif  // USE_DISPLAY_MAX7219
-#ifdef USE_DISPLAY_TM1637
-  AGPIO(GPIO_TM1637CLK),
-  AGPIO(GPIO_TM1637DIO),
-  AGPIO(GPIO_TM1638CLK),
-  AGPIO(GPIO_TM1638DIO),
-  AGPIO(GPIO_TM1638STB),
-#endif  // USE_DISPLAY_TM1637
-#ifdef USE_DISPLAY_TM1640
-  AGPIO(GPIO_TM1640CLK),
-  AGPIO(GPIO_TM1640DIN),
-#endif  // USE_DISPLAY_TM1640
+
   AGPIO(GPIO_BACKLIGHT),                         // Display backlight control
   AGPIO(GPIO_OLED_RESET),                        // OLED Display Reset
 #ifdef ESP32
@@ -702,13 +642,7 @@ const uint16_t kGpioNiceList[] PROGMEM = {
 #endif
 #endif  // USE_DISPLAY
 
-#ifdef USE_DISPLAY_TM1621_SONOFF
-// Initial support outside display driver
-  AGPIO(GPIO_TM1621_CS),
-  AGPIO(GPIO_TM1621_WR),
-  AGPIO(GPIO_TM1621_RD),
-  AGPIO(GPIO_TM1621_DAT),
-#endif  // USE_DISPLAY_TM1621_SONOFF
+
 
 #ifdef USE_MAX31865
   AGPIO(GPIO_SSPI_MAX31865_CS1) + AGMAX(MAX_MAX31865S),
@@ -769,11 +703,6 @@ const uint16_t kGpioNiceList[] PROGMEM = {
 #ifdef USE_ME007
   AGPIO(GPIO_ME007_TRIG),                        // ME007 Trigger pin (xsns_23_me007.ino)
   AGPIO(GPIO_ME007_RX),                          // ME007 Rx pin (xsns_23_me007.ino)
-#endif
-#ifdef USE_TM1638
-  AGPIO(GPIO_TM1638CLK),                         // TM1638 Clock
-  AGPIO(GPIO_TM1638DIO),                         // TM1638 Data I/O
-  AGPIO(GPIO_TM1638STB),                         // TM1638 Strobe
 #endif
 #ifdef USE_HX711
   AGPIO(GPIO_HX711_SCK),                         // HX711 Load Cell clock
