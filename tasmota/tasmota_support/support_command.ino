@@ -1033,10 +1033,6 @@ void CmndStatus(void)
                           uxTaskGetStackHighWaterMark(nullptr) / 1024, ESP.getPsramSize()/1024, ESP.getFreePsram()/1024,
                           ESP_getFlashChipMagicSize()/1024, ESP.getFlashChipSize()/1024
 #endif  // ESP32
-#ifdef ESP8266
-                          ESP_getFlashChipSize()/1024, ESP.getFlashChipRealSize()/1024
-#endif // ESP8266
-                          , ESP_getFlashChipId()
                           , ESP_getFlashChipSpeed()/1000000);
     ResponseAppendFeatures();
     XsnsDriverState();

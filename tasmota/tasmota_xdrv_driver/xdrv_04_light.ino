@@ -141,7 +141,7 @@ const uint8_t LIGHT_COLOR_SIZE = 25;   // Char array scolor size
 const char kLightCommands[] PROGMEM = "|"  // No prefix
   // SetOptions synonyms
   D_SO_CHANNELREMAP "|" D_SO_MULTIPWM "|" D_SO_ALEXACTRANGE "|" D_SO_POWERONFADE "|" D_SO_PWMCT "|"
-  D_SO_WHITEBLEND "|" D_SO_ARTNET_AUTORUN "|"
+  D_SO_WHITEBLEND "|"
   // Other commands
   D_CMND_COLOR "|" D_CMND_COLORTEMPERATURE "|" D_CMND_DIMMER "|" D_CMND_DIMMER_RANGE "|" D_CMND_DIMMER_STEP "|" D_CMND_LEDTABLE "|" D_CMND_FADE "|"
   D_CMND_RGBWWTABLE "|" D_CMND_SCHEME "|" D_CMND_SPEED "|" D_CMND_WAKEUP "|" D_CMND_WAKEUPDURATION "|"
@@ -156,9 +156,7 @@ const char kLightCommands[] PROGMEM = "|"  // No prefix
 #ifdef USE_DGR_LIGHT_SEQUENCE
   "|" D_CMND_SEQUENCE_OFFSET
 #endif  // USE_DGR_LIGHT_SEQUENCE
-#ifdef USE_LIGHT_ARTNET
-  "|" D_CMND_ARTNET "|" D_CMND_ARTNET_CONFIG
-#endif
+
    "|UNDOCA" ;
 
 SO_SYNONYMS(kLightSynonyms,
@@ -180,9 +178,6 @@ void (* const LightCommand[])(void) PROGMEM = {
 #ifdef USE_DGR_LIGHT_SEQUENCE
   &CmndSequenceOffset,
 #endif  // USE_DGR_LIGHT_SEQUENCE
-#ifdef USE_LIGHT_ARTNET
-  &CmndArtNet, &CmndArtNetConfig,
-#endif
   &CmndUndocA };
 
 // Light color mode, either RGB alone, or white-CT alone, or both only available if ct_rgb_linked is false
@@ -2262,10 +2257,6 @@ void LightSetOutputs(const uint16_t *cur_col_10) {
   XdrvMailbox.data = (char*)cur_col;
   XdrvMailbox.topic = (char*)scale_col;
   XdrvMailbox.command = (char*)cur_col_10;
-#ifdef USE_LIGHT_ARTNET
-  if (ArtNetSetChannels()) { /* Serviced */}
-  else
-#endif
   if (XlgtCall(FUNC_SET_CHANNELS)) { /* Serviced */ }
   else if (XdrvCall(FUNC_SET_CHANNELS)) { /* Serviced */ }
   XdrvMailbox.data = tmp_data;
@@ -3453,9 +3444,7 @@ bool Xdrv04(uint32_t function)
             LightSetOutputs(Light.fade_cur_10);
           }
         }
-#ifdef USE_LIGHT_ARTNET
-        ArtNetLoop();
-#endif // USE_LIGHT_ARTNET
+
         break;
       case FUNC_EVERY_50_MSECOND:
         LightAnimate();
@@ -3488,17 +3477,7 @@ bool Xdrv04(uint32_t function)
       case FUNC_PRE_INIT:
         LightInit();
         break;
-#ifdef USE_LIGHT_ARTNET
-      case FUNC_JSON_APPEND:
-        ArtNetJSONAppend();
-        break;
-      case FUNC_NETWORK_UP:
-        ArtNetFuncNetworkUp();
-        break;
-      case FUNC_NETWORK_DOWN:
-        ArtNetFuncNetworkDown();
-        break;
-#endif // USE_LIGHT_ARTNET
+
       case FUNC_ACTIVE:
         result = true;
         break;

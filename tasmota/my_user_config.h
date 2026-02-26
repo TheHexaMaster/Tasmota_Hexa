@@ -616,8 +616,6 @@
 // -------- below if for ESP32x only -- ESP32 uses a lightweight library instead of NeoPixelBus
   // #define USE_WS2812_FORCE_NEOPIXELBUS           // this option forces to use NeoPixelBus (like ESP866), which disables Berry support and limits features -- DO NOT USE unless you have a good reason
 
-// #define USE_LIGHT_ARTNET                         // Add support for DMX/ArtNet via UDP on port 6454 (+3.5k code)
-  #define USE_LIGHT_ARTNET_MCAST 239,255,25,54   // Multicast address used to listen: 239.255.25.54
 
   // #define USE_BERRY_ANIMATION                    // New animation framework with dedicated language (ESP32x only, experimental, 81k not yet optimized)
     // #define USE_BERRY_ANIMATION_DSL                // DSL transpiler for new animation framework (not mandatory if DSL is transpiled externally, +98k not optimized yet)

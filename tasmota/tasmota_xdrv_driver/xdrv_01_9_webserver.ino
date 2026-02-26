@@ -3243,7 +3243,6 @@ void HandleInformation(void) {
   WSContentSend_P(PSTR("}1" D_ESP_CHIP_ID "}2%d (%s)"), 
     ESP_getChipId(), 
     GetDeviceHardwareRevision().c_str());
-  WSContentSend_P(PSTR("}1" D_FLASH_CHIP_ID "}20x%06X (" D_TASMOTA_FLASHMODE ")"), ESP_getFlashChipId());
 #ifdef ESP32
   uint64_t mac = ESP.getEfuseMac();
   uint8_t b0 = (uint8_t)(mac >> 0);
@@ -3260,10 +3259,6 @@ void HandleInformation(void) {
   WSContentSend_P(PSTR("}1" D_FLASH_CHIP_SIZE "}2%d KB"), ESP.getFlashChipSize() / 1024);
   WSContentSend_P(PSTR("}1" D_PROGRAM_FLASH_SIZE "}2%d KB"), ESP_getFlashChipMagicSize() / 1024);
 #endif // ESP32
-#ifdef ESP8266
-  WSContentSend_P(PSTR("}1" D_FLASH_CHIP_SIZE "}2%d KB"), ESP.getFlashChipRealSize() / 1024);
-  WSContentSend_P(PSTR("}1" D_PROGRAM_FLASH_SIZE "}2%d KB"), ESP_getFlashChipSize() / 1024);
-#endif // ESP8266
   WSContentSend_P(PSTR("}1" D_PROGRAM_SIZE "}2%d KB"), ESP_getSketchSize() / 1024);
   WSContentSend_P(PSTR("}1" D_FREE_PROGRAM_SPACE "}2%d KB"), ESP_getFreeSketchSpace() / 1024);
 #ifdef ESP32

@@ -583,7 +583,6 @@
 #undef USE_SONOFF_D1                            // Disable support for Sonoff D1 Dimmer (+0k7 code)
 
 #define USE_LIGHT_PALETTE                        // Add support for color palette (+0k9 code)
-#define USE_LIGHT_ARTNET                         // Add support for DMX/ArtNet via UDP on port 6454 (+3.5k code)
 #ifdef CONFIG_IDF_TARGET_ESP32C3
 #define USE_MAGIC_SWITCH                         // Add Sonoff MagicSwitch support as implemented in Sonoff Basic R4
 #endif
