@@ -669,7 +669,8 @@ void SettingsLoad(void) {
   if (source) {
     settings_location = 1;
     if (Settings->cfg_holder == (uint16_t)CFG_HOLDER) {
-      AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_CONFIG "Loaded from %s, " D_COUNT " %lu"), (2 == source)?"File":"NVS", Settings->save_flag);
+      const char *src = (3 == source) ? "MSBX" : (2 == source) ? "File" : (1 == source) ? "NVS" : "None";
+      AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_CONFIG "Loaded from %s, " D_COUNT " %lu"), src, Settings->save_flag);
     }
   }
 

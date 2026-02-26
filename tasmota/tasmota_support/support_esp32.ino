@@ -19,6 +19,7 @@ const static char kWifiPhyMode[] PROGMEM = "low rate|11b|11g|11a|HT20|HT40|HE20|
 // See libraries\ESP32\examples\ResetReason.ino
 #include "esp_chip_info.h"
 #include <nvs.h>
+#include <nvs_flash.h>
 
 #include "Esp.h"
 #include "spi_flash_mmap.h"
@@ -101,6 +102,75 @@ size_t getArduinoLoopTaskStackSize(void) {
   return SET_ESP32_STACK_SIZE;
 }
 
+// NEW NVS Config System
+
+static const char *kUserNvsPart = "msbx";
+static const char *kUserNvsNs   = "user";
+
+static bool user_nvs_ready = false;
+
+static bool UserNvsInit(void) {
+  if (user_nvs_ready) { return true; }
+  esp_err_t err = nvs_flash_init_partition(kUserNvsPart);
+  if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    nvs_flash_erase_partition(kUserNvsPart);
+    err = nvs_flash_init_partition(kUserNvsPart);
+  }
+  if (err != ESP_OK) {
+    AddLog(LOG_LEVEL_DEBUG, PSTR("NVS2: init %s err %d"), kUserNvsPart, err);
+    return false;
+  }
+  user_nvs_ready = true;
+  return true;
+}
+
+bool NvmLoad(const char *sNvsName, const char *sName, void *pSettings, unsigned nSettingsLen) {
+  nvs_handle_t handle;
+  esp_err_t err = nvs_open(sNvsName, NVS_READONLY, &handle);
+  if (err != ESP_OK) {
+    AddLog(LOG_LEVEL_DEBUG, PSTR("NVS: open %s err %d"), sNvsName, err);
+    return false;
+  }
+  size_t size = nSettingsLen;
+  err = nvs_get_blob(handle, sName, pSettings, &size);
+  nvs_close(handle);
+  return (err == ESP_OK && size == nSettingsLen);
+}
+
+static bool NvmLoadFromPartition(const char *part, const char *ns, const char *key, void *data, unsigned len) {
+  if (!UserNvsInit()) { return false; }
+  nvs_handle_t handle;
+  esp_err_t err = nvs_open_from_partition(part, ns, NVS_READONLY, &handle);
+  if (err != ESP_OK) { return false; }
+  size_t size = len;
+  err = nvs_get_blob(handle, key, data, &size);
+  nvs_close(handle);
+  return (err == ESP_OK && size == len);
+}
+
+static void NvmSaveToPartition(const char *part, const char *ns, const char *key, const void *data, unsigned len) {
+#ifdef USE_WEBCAM
+  WcInterrupt(0);
+#endif
+  if (!UserNvsInit()) { return; }
+  nvs_handle_t handle;
+  esp_err_t err = nvs_open_from_partition(part, ns, NVS_READWRITE, &handle);
+  if (err == ESP_OK) {
+    err = nvs_set_blob(handle, key, data, len);
+    if (err == ESP_OK) { nvs_commit(handle); }
+    nvs_close(handle);
+  }
+#ifdef USE_WEBCAM
+  WcInterrupt(1);
+#endif
+}
+
+static int32_t NvmErasePartitionAll(const char *part) {
+  user_nvs_ready = false;
+  return nvs_flash_erase_partition(part);
+}
+
+
 // Handle 20k of NVM
 
 bool NvmExists(const char *sNvsName) {
@@ -108,19 +178,6 @@ bool NvmExists(const char *sNvsName) {
   if (nvs_open(sNvsName, NVS_READONLY, &handle) != ESP_OK) {
     return false;
   }
-  nvs_close(handle);
-  return true;
-}
-
-bool NvmLoad(const char *sNvsName, const char *sName, void *pSettings, unsigned nSettingsLen) {
-  nvs_handle_t handle;
-  esp_err_t result = nvs_open(sNvsName, NVS_READONLY, &handle);
-  if (result != ESP_OK) {
-    AddLog(LOG_LEVEL_DEBUG, PSTR("NVS: Error %d"), result);
-    return false;
-  }
-  size_t size = nSettingsLen;
-  nvs_get_blob(handle, sName, pSettings, &size);
   nvs_close(handle);
   return true;
 }
@@ -159,6 +216,7 @@ void SettingsErase(uint8_t type) {
   // qpc      - Tasmota Quick Power Cycle state
   // main     - Tasmota Settings data
   int32_t r1, r2, r3 = 0;
+  int32_t r4 = 0;
   switch (type) {
     case 0:               // Reset 2 = Erase all flash from program end to end of physical flash
     case 2:               // Reset 5, 6 = Erase all flash from program end to end of physical flash excluding filesystem
@@ -168,7 +226,8 @@ void SettingsErase(uint8_t type) {
 #ifdef USE_UFILESYS
       r3 = TfsDeleteFile(TASM_FILE_SETTINGS);
 #endif
-      AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_APPLICATION D_ERASE " Tasmota data (%d,%d,%d)"), r1, r2, r3);
+      r4 = NvmErasePartitionAll(kUserNvsPart);
+      AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_APPLICATION D_ERASE " Tasmota data (%d,%d,%d,%d)"), r1, r2, r3, r4);
       break;
     case 1:               // Reset 3 = SDK parameter area
     case 4:               // WIFI_FORCE_RF_CAL_ERASE = SDK parameter area
@@ -194,22 +253,24 @@ void SettingsErase(uint8_t type) {
 }
 
 uint32_t SettingsRead(void *data, size_t size) {
+  if (NvmLoadFromPartition(kUserNvsPart, kUserNvsNs, "Settings", data, size)) {
+    return 3;
+  }
 #ifdef USE_UFILESYS
   if (TfsLoadFile(TASM_FILE_SETTINGS, (uint8_t*)data, size)) {
-    return 2;
+    NvmSaveToPartition(kUserNvsPart, kUserNvsNs, "Settings", data, size);
+    TfsDeleteFile(TASM_FILE_SETTINGS);
+    return 3;
   }
 #endif
   if (NvmLoad("main", "Settings", data, size)) {
     return 1;
-  };
+  }
   return 0;
 }
 
 void SettingsWrite(const void *pSettings, unsigned nSettingsLen) {
-#ifdef USE_UFILESYS
-  TfsSaveFile(TASM_FILE_SETTINGS, (const uint8_t*)pSettings, nSettingsLen);
-#endif
-  NvmSave("main", "Settings", pSettings, nSettingsLen);
+  NvmSaveToPartition(kUserNvsPart, kUserNvsNs, "Settings", pSettings, nSettingsLen);
 }
 
 void QPCRead(void *pSettings, unsigned nSettingsLen) {
