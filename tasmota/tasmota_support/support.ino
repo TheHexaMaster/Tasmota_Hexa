@@ -1952,8 +1952,13 @@ void SetSerial(uint32_t baudrate, uint32_t serial_config) {
   SetSeriallog(LOG_LEVEL_NONE);
   SetSerialBegin();
 }
-
+ 
 void ClaimSerial(void) {
+#if DISABLE_HW_SERIAL_CONSOLE
+  TasmotaGlobal.serial_local = true;
+  SetSeriallog(LOG_LEVEL_NONE);
+  return;
+#endif
 #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
 #ifdef USE_USB_CDC_CONSOLE
   if (!tasconsole_serial) { 

@@ -84,6 +84,31 @@
 // Structs
 #include "include/tasmota_types.h"
 
+// NULL TASMOTA CONSOLE
+
+class NullConsoleStream {
+ public:
+  void begin(uint32_t) {}
+  int available() { return 0; }
+  void flush() {}
+  size_t println() { return 0; }
+  size_t println(const char*) { return 0; }
+  size_t print(char*) { return 0; }
+
+  // presne signatúry, čo TASCONSOLE vyžaduje
+  size_t printf(char*) { return 0; }
+  size_t printf(const char*, char*, const char*&, const char*&, const char*&) { return 0; }
+
+  size_t read() { return (size_t)-1; }
+
+  size_t write(uint8_t) { return 1; }
+  size_t write(const uint8_t *buf, size_t size) { (void)buf; return size; }
+
+  size_t setRxBufferSize(size_t s) { return s; }
+};
+
+static NullConsoleStream NullConsole;
+
 /*********************************************************************************************\
  * Global variables
 \*********************************************************************************************/
@@ -188,6 +213,12 @@ WiFiUDP PortUdp;                            // UDP Syslog and Alexa
     CONFIG_IDF_TARGET_ESP32S2 ||            // support USB via USBCDC
     CONFIG_IDF_TARGET_ESP32S3               // support USB via HWCDC using JTAG interface or USBCDC
 */
+
+#if DISABLE_HW_SERIAL_CONSOLE
+  TASCONSOLE TasConsole{NullConsole};
+  bool tasconsole_serial = false;
+#else
+
 #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32P4
 
 //#if CONFIG_TINYUSB_CDC_ENABLED              // This define is not recognized here so use USE_USB_CDC_CONSOLE
@@ -222,7 +253,7 @@ TASCONSOLE TasConsole{Serial};
 bool tasconsole_serial = true;
 //#warning **** TasConsole uses Serial ****
 #endif  // ESP32C3, S2 or S3
-
+#endif
 
 char EmptyStr[1] = { 0 };                   // Provide a pointer destination to an empty char string
 
@@ -366,23 +397,52 @@ LList<char*> backlog;                       // Command backlog implemented with 
 \*********************************************************************************************/
 
 static void InitTasConsole(uint32_t baudrate) {
+#if DISABLE_HW_SERIAL_CONSOLE
+  (void)baudrate;
+  SetSeriallog(LOG_LEVEL_NONE);
+  return;
+#endif
 #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32P4
 #ifdef USE_USB_CDC_CONSOLE
 
-  bool is_connected_to_USB = true;
+  bool is_connected_to_USB = false;
   TasConsole.setRxBufferSize(INPUT_BUFFER_SIZE);
-  TasConsole.begin(115200);                 // Always start CDC EVEN if no cable plugged - we skip serial 
-  is_connected_to_USB = true; 
+  TasConsole.begin(115200);                 // Always start CDC to test plugged cable
 
+#if SOC_USB_SERIAL_JTAG_SUPPORTED  // Not S2
+  for (uint32_t i = 0; i < 5; i++) {        // Wait up to 250 ms
+    is_connected_to_USB = HWCDCSerial.isPlugged();
+    if (is_connected_to_USB) { break; }
+    delay(50);
+  }
+#else
+  is_connected_to_USB = true;               // S2
+#endif  // SOC_USB_SERIAL_JTAG_SUPPORTED
 
+  if (is_connected_to_USB) {
 #if !ARDUINO_USB_MODE
-  USB.begin();                            // Needs a serial console with DTR/DSR support
+    USB.begin();                            // Needs a serial console with DTR/DSR support
 #endif  // !ARDUINO_USB_MODE
-  TasConsole.println();
-  AddLog(LOG_LEVEL_INFO, PSTR("CMD: Using USB CDC"));
-  return;
+    TasConsole.println();
+    AddLog(LOG_LEVEL_INFO, PSTR("CMD: Using USB CDC"));
+    return;
+  }
 
+#if SOC_USB_SERIAL_JTAG_SUPPORTED  // Not S2
+  HWCDCSerial.~HWCDC();                     // Deinit CDC
+#endif  // SOC_USB_SERIAL_JTAG_SUPPORTED
+
+  // Fallback to UART
+
+
+  Serial.begin(baudrate);
+  Serial.println();
+  TasConsole = Serial;
+  tasconsole_serial = true;
+  AddLog(LOG_LEVEL_INFO, PSTR("CMD: Fall back to serial port, no SOF packet detected on USB port"));
+  return;
 #else   // !USE_USB_CDC_CONSOLE
+
 
   Serial.begin(baudrate);
   Serial.println();
@@ -391,6 +451,7 @@ static void InitTasConsole(uint32_t baudrate) {
 
 #endif  // USE_USB_CDC_CONSOLE
 #else   // Other ESP32 targets
+
 
   Serial.begin(baudrate);
   Serial.println();
@@ -439,6 +500,12 @@ void setup(void) {
 
   RtcPreInit();
   SettingsInit();
+
+#ifdef DISABLE_HW_SERIAL_CONSOLE
+  TasmotaGlobal.serial_local = true;   // nikdy nečítať konzolu z HW Serial (SerialInput sa nevolá)
+  AddLog(LOG_LEVEL_INFO, PSTR("SERIAL CONSOLE DISABLED - ONLY LOCAL."));
+  SetSeriallog(LOG_LEVEL_NONE);        // nič nelogovať na HW Serial
+#endif
 
 #ifdef USE_EMERGENCY_RESET
   EmergencyReset();
@@ -542,9 +609,7 @@ void setup(void) {
   TasmotaGlobal.stop_flash_rotate = Settings->flag.stop_flash_rotate;  // SetOption12 - Switch between dynamic or fixed slot flash save location
   TasmotaGlobal.save_data_counter = Settings->save_data;
   TasmotaGlobal.sleep = Settings->sleep;
-
   Settings->flag2.emulation = 0;
-
 //  AddLog(LOG_LEVEL_INFO, PSTR("DBG: TasmotaGlobal size %d, data %100_H"), sizeof(TasmotaGlobal), (uint8_t*)&TasmotaGlobal);
 
   if (Settings->param[P_BOOT_LOOP_OFFSET]) {         // SetOption36
@@ -744,7 +809,7 @@ void Scheduler(void) {
     XdrvXsnsCall(FUNC_EVERY_SECOND);
   }
 
-  if (!TasmotaGlobal.serial_local) { SerialInput(); }
+  if (!TasmotaGlobal.serial_local) { SerialInput(); } 
   if (!tasconsole_serial) { TasConsoleInput(); }
 
 #ifndef SYSLOG_UPDATE_SECOND

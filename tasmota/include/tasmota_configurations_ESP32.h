@@ -49,6 +49,8 @@
  * Start copy of all undefines from FIRMWARE_MINIMAL
 \*-------------------------------------------------------------------------------------------*/
 
+#define USE_UFILESYS
+#define USE_WIREGUARD
 #undef USE_IMPROV                                // Disable support for IMPROV serial protocol as used by esp-web-tools (+2k code)
 #undef USE_TASMESH                               // Disable Tasmota Mesh using ESP-NOW (+11k code)
 #undef USE_ARDUINO_OTA                           // Disable support for Arduino OTA
@@ -57,7 +59,7 @@
 #undef USE_HOME_ASSISTANT                        // Disable Home Assistant
 #undef USE_TASMOTA_DISCOVERY                     // Disable Tasmota Discovery support (+2k code)
 #undef USE_TELEGRAM                              // Disable support for Telegram protocol (+49k code, +7.0k mem and +4.8k additional during connection handshake)
-//#undef USE_MQTT_TLS                              // Disable TLS support won't work as the MQTTHost is not set
+#undef USE_MQTT_TLS                              // Disable TLS support won't work as the MQTTHost is not set
 #undef USE_KNX                                   // Disable KNX IP Protocol Support
 #undef USE_DALI                                  // Disable support for DALI gateway (+5k code)
 //#undef USE_WEBSERVER                             // Disable Webserver
@@ -77,7 +79,7 @@
 // -- Optional modules ----------------------------
 #undef ROTARY_V1                                 // Disable support for MI Desk Lamp
 #undef USE_SONOFF_RF                             // Disable support for Sonoff Rf Bridge (+3k2 code)
-  #undef USE_RF_FLASH                            // Disable support for flashing the EFM8BB1 chip on the Sonoff RF Bridge. C2CK must be connected to GPIO4, C2D to GPIO5 on the PCB
+#undef USE_RF_FLASH                            // Disable support for flashing the EFM8BB1 chip on the Sonoff RF Bridge. C2CK must be connected to GPIO4, C2D to GPIO5 on the PCB
 #undef USE_SONOFF_SC                             // Disable support for Sonoff Sc (+1k1 code)
 #undef USE_SONOFF_IFAN                           // Disable support for Sonoff iFan02 and iFan03 (+2k code)
 #undef USE_BUZZER                                // Disable support for a buzzer (+0k6 code)
@@ -93,9 +95,9 @@
 #define USE_ADC_VCC                              // Display Vcc in Power status. Disable for use as Analog input on selected devices
 #undef USE_DS18x20                               // Disable DS18x20 sensor
 
-#undef USE_I2C                                   // Disable all I2C sensors and devices
-#undef USE_SPI                                   // Disable all SPI devices
-#undef USE_DISPLAY                               // Disable Display support
+// #undef USE_I2C                                   // Disable all I2C sensors and devices
+// #undef USE_SPI                                   // Disable all SPI devices
+// #undef USE_DISPLAY                               // Disable Display support
 
 #undef USE_MHZ19                                 // Disable support for MH-Z19 CO2 sensor
 #undef USE_SENSEAIR                              // Disable support for SenseAir K30, K70 and S8 CO2 sensor
@@ -148,6 +150,16 @@
 #undef USE_DEBUG_DRIVER                          // Disable debug code
 #undef USE_AC_ZERO_CROSS_DIMMER                  // Disable support for AC_ZERO_CROSS_DIMMER
 
+#undef USE_ALPINEJS
+#undef USE_BUZZER
+
+#undef USE_BERRY_WEBCLIENT_ASYNC                // Enable ASYNC webclient mode as an additional mode to standary berry webclient.   
+#undef USE_BERRY_DEBUG                          // Compile Berry bytecode with line number information, makes exceptions easier to debug. Adds +8% of memory consumption for compiled code
+#undef USE_BERRY_DEBUG_GC                       // Print low-level GC metrics
+#define USE_WEBCLIENT_HTTPS                     // Enable HTTPS outgoing requests based on BearSSL (much ligher then mbedTLS, 42KB vs 150KB) in insecure mode (no verification of server's certificate)                                                 // Note that only two ciphers are enabled: ECDHE_RSA_WITH_AES_128_GCM_SHA256, ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+#define USE_BERRY_TCPSERVER                     // Enable TCP socket server (+0.6k)
+#undef USE_BERRY_ULP     
+
 /*-------------------------------------------------------------------------------------------*\
  * End copy of all undefines from FIRMWARE_MINIMAL
  *
@@ -156,13 +168,13 @@
 
 #define FIRMWARE_MINIMAL
 
-#undef USE_ESP32_SENSORS
-#undef USE_UFILESYS
-#undef GUI_TRASH_FILE
-#undef GUI_EDIT_FILE
-#undef USE_PING
+// #undef USE_ESP32_SENSORS
+// #undef USE_UFILESYS
+// #undef GUI_TRASH_FILE
+// #undef GUI_EDIT_FILE
+// #undef USE_PING
 #undef USE_AUTOCONF
-#undef USE_BERRY
+// #undef USE_BERRY
 
 #define USE_TLS
 #define USE_WEBSERVER

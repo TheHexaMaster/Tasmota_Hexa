@@ -13,7 +13,7 @@
     "variant": "esp32p4",
     "partitions": "partitions/esp32_partition_app3904k_fs11584k.csv"
   },
-  "connectivity": [
+  "connectivity": [ 
     "wifi",
     "ethernet"
   ],
