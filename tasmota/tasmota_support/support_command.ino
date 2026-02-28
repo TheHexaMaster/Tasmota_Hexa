@@ -1161,7 +1161,7 @@ void CmndStatus(void)
     if ((0 == payload) || (12 == payload)) {
       Response_P(PSTR("{\"" D_CMND_STATUS D_STATUS12_STATUS "\":"));
       CrashDump();
-      ResponseJsonEnd();CrashDumpClear
+      ResponseJsonEnd();
       CmndStatusResponse(12);
     }
   }

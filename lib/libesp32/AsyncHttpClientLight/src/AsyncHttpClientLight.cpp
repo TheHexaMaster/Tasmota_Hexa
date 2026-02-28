@@ -168,6 +168,36 @@ int AsyncHttpClientLight::AsyncTcpAdapter::available() {
   return bytes;
 }
 
+bool AsyncHttpClientLight::AsyncTcpAdapter::connected() {
+  if (_fd < 0 || !_isConnected) return false;
+
+  // 1) rýchly check na pending socket error
+  int soerr = 0;
+  socklen_t slen = sizeof(soerr);
+  if (getsockopt(_fd, SOL_SOCKET, SO_ERROR, &soerr, &slen) != 0 || soerr != 0) {
+    stop();
+    return false;
+  }
+
+  // 2) detekcia peer-close (FIN) bez čítania dát: MSG_PEEK
+  uint8_t b;
+  int r = ::recv(_fd, &b, 1, MSG_PEEK | MSG_DONTWAIT);
+  if (r == 0) {           // peer closed
+    stop();
+    return false;
+  }
+  if (r < 0) {
+    // would-block = stále ok
+    if (errno == EAGAIN || errno == EWOULDBLOCK) return true;
+
+    // iný error = koniec
+    stop();
+    return false;
+  }
+
+  return true;            // máme aspoň 1 bajt pending alebo len potvrdený socket
+}
+
 void AsyncHttpClientLight::AsyncTcpAdapter::stop() {
   if (_fd >= 0) {
 #if ASYNCHTTP_HTTP_LINGER_RST
@@ -395,16 +425,24 @@ bool AsyncHttpClientLight::writeAllWithOneReconnect(const uint8_t* data, size_t 
     sent_total = 0;
     const uint8_t* cur = p;
     size_t left = l;
+
     while (left) {
       if (!_transport->connected()) return false;
+
       size_t s = _transport->write(cur, left);
       if (s > 0) {
-        cur += s; left -= s; sent_total += s;
-        start = millis();
-      } else {
-        delay(1);
-        if ((millis()-start) > (uint32_t)_tcpTimeout) return false;
+        cur += s;
+        left -= s;
+        sent_total += s;
+        start = millis();                 // progres = reset timeout
+        continue;
       }
+
+      // s == 0 -> buď wouldblock, alebo už padnuté spojenie
+      if (!_transport->connected()) return false;
+
+      delay(1);
+      if ((millis() - start) > (uint32_t)_tcpTimeout) return false;
     }
     return true;
   };
@@ -413,15 +451,18 @@ bool AsyncHttpClientLight::writeAllWithOneReconnect(const uint8_t* data, size_t 
   bool ok = try_send(data, len, first_sent);
   if (ok) return true;
 
-  if (allow_retry_if_zero_sent && first_sent == 0 && _reuse) {
-    _transport->stop();
-    if (!connectTransport()) return false;
-    size_t second_sent = 0;
-    return try_send(data, len, second_sent);
+  // retry (keep-alive) ak sme neposlali celý header
+  if (allow_retry_if_zero_sent && _reuse) {
+    if (first_sent < len) {
+      _transport->stop();
+      if (!connectTransport()) return false;
+
+      size_t second_sent = 0;
+      return try_send(data, len, second_sent);
+    }
   }
   return false;
 }
-
 // ---------- send header line -------------------------------------------
 
 bool AsyncHttpClientLight::sendHeader(const char * method) {
@@ -467,23 +508,33 @@ int AsyncHttpClientLight::handleHeaderResponse() {
   _canReuse = _reuse;
   _transferEncoding = HTTPC_TE_IDENTITY;
 
-  auto readLine = [&](String& out)->bool{
+  auto readLine = [&](String& out)->bool {
     out = "";
     uint32_t start = millis();
     char c;
+
     while (true) {
+      if (!_transport || !_transport->connected()) return false;
+
       int avail = _transport->available();
       if (avail <= 0) {
         delay(1);
-        if ((millis()-start) > (uint32_t)_tcpTimeout) return false;
+        if ((millis() - start) > (uint32_t)_tcpTimeout) return false;
         continue;
       }
+
       int r = _transport->read((uint8_t*)&c, 1);
       if (r == 1) {
         if (c == '\r') continue;
         if (c == '\n') return true;
         out += c;
+        start = millis(); // reset timeout on progress
+        continue;
       }
+
+      // r <= 0: wouldblock alebo disconnect (read() pri disconnect spraví stop())
+      delay(1);
+      if ((millis() - start) > (uint32_t)_tcpTimeout) return false;
     }
   };
 
@@ -498,13 +549,19 @@ int AsyncHttpClientLight::handleHeaderResponse() {
 
     if (line.length() == 0) {
       if (te.length()) {
-        if (te.equalsIgnoreCase("chunked"))      _transferEncoding = HTTPC_TE_CHUNKED;
+        if (te.equalsIgnoreCase("chunked"))       _transferEncoding = HTTPC_TE_CHUNKED;
         else if (te.equalsIgnoreCase("identity")) _transferEncoding = HTTPC_TE_IDENTITY;
         else return HTTPC_ERROR_ENCODING;
-      } else _transferEncoding = HTTPC_TE_IDENTITY;
+      } else {
+        _transferEncoding = HTTPC_TE_IDENTITY;
+      }
 
       // BODY_PENDING: by headers
-      _bodyPending = (_transferEncoding == HTTPC_TE_CHUNKED) || (_size > 0);
+      bool unknown_len = (_transferEncoding == HTTPC_TE_IDENTITY) && (_size < 0);
+      _bodyPending = (_transferEncoding == HTTPC_TE_CHUNKED) || (_size > 0) || unknown_len;
+
+      // unknown length => reuse nie je bezpečné
+      if (unknown_len) _canReuse = false;
 
       return _returnCode ? _returnCode : HTTPC_ERROR_NO_HTTP_SERVER;
     }
@@ -512,10 +569,11 @@ int AsyncHttpClientLight::handleHeaderResponse() {
     if (firstLine) {
       firstLine = false;
       if (_canReuse && line.startsWith("HTTP/1.")) _canReuse = (line[sizeof "HTTP/1." - 1] != '0');
+
       int cp = line.indexOf(' ');
       if (cp > 0) {
-        int next = line.indexOf(' ', cp+1);
-        _returnCode = line.substring(cp+1, next > 0 ? next : line.length()).toInt();
+        int next = line.indexOf(' ', cp + 1);
+        _returnCode = line.substring(cp + 1, next > 0 ? next : line.length()).toInt();
       }
       continue;
     }
@@ -523,16 +581,19 @@ int AsyncHttpClientLight::handleHeaderResponse() {
     int colon = line.indexOf(':');
     if (colon > 0) {
       String name = line.substring(0, colon);
-      String value = line.substring(colon+1); value.trim();
+      String value = line.substring(colon + 1);
+      value.trim();
 
       if (name.equalsIgnoreCase("Content-Length")) _size = value.toInt();
+
       if (_canReuse && name.equalsIgnoreCase("Connection")) {
         if (value.indexOf("close") >= 0 && value.indexOf("keep-alive") < 0) _canReuse = false;
       }
+
       if (name.equalsIgnoreCase("Transfer-Encoding")) te = value;
       if (name.equalsIgnoreCase("Location")) _location = value;
 
-      for (size_t i=0;i<_headerKeysCount;i++) {
+      for (size_t i = 0; i < _headerKeysCount; i++) {
         if (_currentHeaders[i].key.equalsIgnoreCase(name)) {
           _currentHeaders[i].value = value;
           break;
@@ -540,9 +601,9 @@ int AsyncHttpClientLight::handleHeaderResponse() {
       }
     }
   }
+
   return HTTPC_ERROR_CONNECTION_LOST;
 }
-
 // ---------- body read (sync) -------------------------------------------
 
 int AsyncHttpClientLight::writeToStreamDataBlock(Stream * stream, int size) {
@@ -989,24 +1050,35 @@ int AsyncHttpClientLight::Job_WriteToStream(void* arg) {
     int r = a->self->writeToStreamDataBlock(a->self->_lastStream, a->self->_size);
     if (r < 0) return r;
     ret = r;
-  } else if (a->self->_transferEncoding == HTTPC_TE_CHUNKED) {
+  }
+  else if (a->self->_transferEncoding == HTTPC_TE_CHUNKED) {
+
     auto readLine = [&](String& out)->bool {
       out = "";
       char c;
       uint32_t start = millis();
+
       while (true) {
-        int avail = a->self->_transport ? a->self->_transport->available() : 0;
+        if (!a->self->_transport || !a->self->_transport->connected()) return false;
+
+        int avail = a->self->_transport->available();
         if (avail <= 0) {
           delay(1);
           if ((millis() - start) > (uint32_t)a->self->_tcpTimeout) return false;
           continue;
         }
+
         int r = a->self->_transport->read((uint8_t*)&c, 1);
         if (r == 1) {
           if (c == '\r') continue;
           if (c == '\n') return true;
           out += c;
+          start = millis();
+          continue;
         }
+
+        delay(1);
+        if ((millis() - start) > (uint32_t)a->self->_tcpTimeout) return false;
       }
     };
 
@@ -1018,10 +1090,12 @@ int AsyncHttpClientLight::Job_WriteToStream(void* arg) {
         a->self->_bodyPending = false;
         return HTTPC_ERROR_READ_TIMEOUT;
       }
+
       h.trim();
       int chunk = (int) strtol(h.c_str(), nullptr, 16);
 
       if (chunk <= 0) {
+        // consume trailer CRLF + optional headers
         String tmp;
         if (!readLine(tmp)) {
           if (a->self->_transport) a->self->_transport->stop();
@@ -1042,12 +1116,21 @@ int AsyncHttpClientLight::Job_WriteToStream(void* arg) {
 
       int remaining = chunk;
       while (remaining > 0) {
+        if (!a->self->_transport || !a->self->_transport->connected()) {
+          a->self->_bodyPending = false;
+          return HTTPC_ERROR_CONNECTION_LOST;
+        }
+
         uint8_t buf[HTTP_TCP_BUFFER_SIZE];
         int wish = remaining;
         if (wish > (int)sizeof(buf)) wish = sizeof(buf);
 
         uint32_t start = millis();
         while (a->self->_transport->available() <= 0) {
+          if (!a->self->_transport->connected()) {
+            a->self->_bodyPending = false;
+            return HTTPC_ERROR_CONNECTION_LOST;
+          }
           delay(1);
           if ((millis() - start) > (uint32_t)a->self->_tcpTimeout) {
             if (a->self->_transport) a->self->_transport->stop();
@@ -1065,34 +1148,49 @@ int AsyncHttpClientLight::Job_WriteToStream(void* arg) {
           if (w != r) return HTTPC_ERROR_STREAM_WRITE;
           ret += r;
           remaining -= r;
+        } else {
+          // wouldblock - yield
+          delay(1);
         }
       }
 
       // CRLF after chunks
-      char crlf[2]; int got = 0;
+      char crlf[2];
+      int got = 0;
       uint32_t t2 = millis();
+
       while (got < 2) {
+        if (!a->self->_transport || !a->self->_transport->connected()) {
+          a->self->_bodyPending = false;
+          return HTTPC_ERROR_CONNECTION_LOST;
+        }
+
         if ((millis() - t2) > (uint32_t)a->self->_tcpTimeout) {
           if (a->self->_transport) a->self->_transport->stop();
           a->self->_bodyPending = false;
           return HTTPC_ERROR_READ_TIMEOUT;
         }
+
         if (a->self->_transport->available() <= 0) { delay(1); continue; }
+
         int r = a->self->_transport->read((uint8_t*)&crlf[got], 1);
         if (r == 1) got++;
+        else delay(1);
       }
+
       if (crlf[0] != '\r' || crlf[1] != '\n') return HTTPC_ERROR_READ_TIMEOUT;
     }
-  } else {
+  }
+  else {
     return HTTPC_ERROR_ENCODING;
   }
 
-  // BODY 
   a->self->_bodyPending = false;
 
   if (!a->self->_reuse || !a->self->_canReuse) {
     a->self->_transport->stop();
   }
+
   return ret;
 }
 
@@ -1111,24 +1209,35 @@ int AsyncHttpClientLight::Job_GetString(void* arg) {
     int r = a->self->writeToStreamDataBlock(&s, a->self->_size);
     if (r < 0) return r;
     ret = r;
-  } else if (a->self->_transferEncoding == HTTPC_TE_CHUNKED) {
+  }
+  else if (a->self->_transferEncoding == HTTPC_TE_CHUNKED) {
+
     auto readLine = [&](String& out)->bool {
       out = "";
       char c;
       uint32_t start = millis();
+
       while (true) {
+        if (!a->self->_transport || !a->self->_transport->connected()) return false;
+
         int avail = a->self->_transport ? a->self->_transport->available() : 0;
         if (avail <= 0) {
           delay(1);
           if ((millis() - start) > (uint32_t)a->self->_tcpTimeout) return false;
           continue;
         }
+
         int r = a->self->_transport->read((uint8_t*)&c, 1);
         if (r == 1) {
           if (c == '\r') continue;
           if (c == '\n') return true;
           out += c;
+          start = millis();
+          continue;
         }
+
+        delay(1);
+        if ((millis() - start) > (uint32_t)a->self->_tcpTimeout) return false;
       }
     };
 
@@ -1139,6 +1248,7 @@ int AsyncHttpClientLight::Job_GetString(void* arg) {
         a->self->_bodyPending = false;
         return HTTPC_ERROR_READ_TIMEOUT;
       }
+
       h.trim();
       int chunk = (int) strtol(h.c_str(), nullptr, 16);
 
@@ -1158,17 +1268,26 @@ int AsyncHttpClientLight::Job_GetString(void* arg) {
           }
           if (t.length() == 0) break;
         }
-        break; // end
+        break;
       }
 
       int remaining = chunk;
       while (remaining > 0) {
+        if (!a->self->_transport || !a->self->_transport->connected()) {
+          a->self->_bodyPending = false;
+          return HTTPC_ERROR_CONNECTION_LOST;
+        }
+
         uint8_t buf[HTTP_TCP_BUFFER_SIZE];
         int wish = remaining;
         if (wish > (int)sizeof(buf)) wish = sizeof(buf);
 
         uint32_t start = millis();
         while (a->self->_transport->available() <= 0) {
+          if (!a->self->_transport->connected()) {
+            a->self->_bodyPending = false;
+            return HTTPC_ERROR_CONNECTION_LOST;
+          }
           delay(1);
           if ((millis() - start) > (uint32_t)a->self->_tcpTimeout) {
             if (a->self->_transport) a->self->_transport->stop();
@@ -1186,25 +1305,39 @@ int AsyncHttpClientLight::Job_GetString(void* arg) {
           if (w != r) return HTTPC_ERROR_STREAM_WRITE;
           ret += r;
           remaining -= r;
+        } else {
+          delay(1);
         }
       }
 
       // CRLF after chunk
-      char crlf[2]; int got = 0;
+      char crlf[2];
+      int got = 0;
       uint32_t t2 = millis();
+
       while (got < 2) {
+        if (!a->self->_transport || !a->self->_transport->connected()) {
+          a->self->_bodyPending = false;
+          return HTTPC_ERROR_CONNECTION_LOST;
+        }
+
         if ((millis() - t2) > (uint32_t)a->self->_tcpTimeout) {
           if (a->self->_transport) a->self->_transport->stop();
           a->self->_bodyPending = false;
           return HTTPC_ERROR_READ_TIMEOUT;
         }
+
         if (a->self->_transport->available() <= 0) { delay(1); continue; }
+
         int r = a->self->_transport->read((uint8_t*)&crlf[got], 1);
         if (r == 1) got++;
+        else delay(1);
       }
+
       if (crlf[0] != '\r' || crlf[1] != '\n') return HTTPC_ERROR_READ_TIMEOUT;
     }
-  } else {
+  }
+  else {
     return HTTPC_ERROR_ENCODING;
   }
 
@@ -1237,7 +1370,8 @@ int AsyncHttpClientLight::readBodyToStreamString(StreamString& s, int size_limit
     while (left) {
       size_t w = s.write(buf, left);
       if ((int)w <= 0) return false;
-      buf += w; left -= (int)w;
+      buf += w;
+      left -= (int)w;
     }
     return true;
   };
@@ -1245,12 +1379,13 @@ int AsyncHttpClientLight::readBodyToStreamString(StreamString& s, int size_limit
   // identity
   if (_transferEncoding == HTTPC_TE_IDENTITY) {
     int remaining = _size;
-    if (remaining < 0) remaining = size_limit; // max to limit if we dont know content height
+    if (remaining < 0) remaining = size_limit; // keď nevieme dĺžku, čítame max do limitu
 
     while (remaining != 0) {
       if (_asyncAbortReq) return bail(HTTPC_ERROR_CONNECTION_LOST);
+      if (!_transport || !_transport->connected()) return bail(HTTPC_ERROR_CONNECTION_LOST);
 
-      int avail = _transport ? _transport->available() : 0;
+      int avail = _transport->available();
       if (avail <= 0) { delay(1); continue; }
 
       if (avail > remaining && remaining > 0) avail = remaining;
@@ -1259,52 +1394,79 @@ int AsyncHttpClientLight::readBodyToStreamString(StreamString& s, int size_limit
       uint8_t buf[HTTP_TCP_BUFFER_SIZE];
       int r = _transport->read(buf, avail);
       if (r > 0) {
-        // limit
         int room = size_limit - read_total;
-        if (room <= 0) { // limit done - close
-          return bail(0);
-        }
+        if (room <= 0) return bail(0);
+
         int take = (r > room) ? room : r;
         if (!push(buf, take)) return bail(HTTPC_ERROR_STREAM_WRITE);
+
         read_total += take;
         if (remaining > 0) remaining -= r;
+      } else {
+        // wouldblock
+        delay(1);
       }
     }
   }
   // chunked
   else if (_transferEncoding == HTTPC_TE_CHUNKED) {
+
     auto readLine = [&](String& out)->bool {
       out = "";
       char c;
       uint32_t start = millis();
+
       while (true) {
         if (_asyncAbortReq) return false;
-        int avail = _transport ? _transport->available() : 0;
+        if (!_transport || !_transport->connected()) return false;
+
+        int avail = _transport->available();
         if (avail <= 0) {
           delay(1);
           if ((millis() - start) > (uint32_t)_tcpTimeout) return false;
           continue;
         }
+
         int r = _transport->read((uint8_t*)&c, 1);
-        if (r == 1) { if (c == '\r') continue; if (c == '\n') return true; out += c; }
+        if (r == 1) {
+          if (c == '\r') continue;
+          if (c == '\n') return true;
+          out += c;
+          start = millis();
+          continue;
+        }
+
+        delay(1);
+        if ((millis() - start) > (uint32_t)_tcpTimeout) return false;
       }
     };
 
     while (true) {
       if (_asyncAbortReq) return bail(HTTPC_ERROR_CONNECTION_LOST);
-      String h; if (!readLine(h)) return bail(HTTPC_ERROR_READ_TIMEOUT);
+      if (!_transport || !_transport->connected()) return bail(HTTPC_ERROR_CONNECTION_LOST);
+
+      String h;
+      if (!readLine(h)) return bail(HTTPC_ERROR_READ_TIMEOUT);
       h.trim();
+
       int chunk = (int) strtol(h.c_str(), nullptr, 16);
+
       if (chunk <= 0) {
         String tmp;
         if (!readLine(tmp)) return bail(HTTPC_ERROR_READ_TIMEOUT);
-        while (true) { String t; if (!readLine(t)) return bail(HTTPC_ERROR_READ_TIMEOUT); if (t.length() == 0) break; }
-        break; // end
+        while (true) {
+          String t;
+          if (!readLine(t)) return bail(HTTPC_ERROR_READ_TIMEOUT);
+          if (t.length() == 0) break;
+        }
+        break;
       }
 
       int remaining = chunk;
       while (remaining > 0) {
         if (_asyncAbortReq) return bail(HTTPC_ERROR_CONNECTION_LOST);
+        if (!_transport || !_transport->connected()) return bail(HTTPC_ERROR_CONNECTION_LOST);
+
         uint8_t buf[HTTP_TCP_BUFFER_SIZE];
         int wish = remaining;
         if (wish > (int)sizeof(buf)) wish = sizeof(buf);
@@ -1312,6 +1474,8 @@ int AsyncHttpClientLight::readBodyToStreamString(StreamString& s, int size_limit
         uint32_t start = millis();
         while (_transport->available() <= 0) {
           if (_asyncAbortReq) return bail(HTTPC_ERROR_CONNECTION_LOST);
+          if (!_transport->connected()) return bail(HTTPC_ERROR_CONNECTION_LOST);
+
           delay(1);
           if ((millis() - start) > (uint32_t)_tcpTimeout) return bail(HTTPC_ERROR_READ_TIMEOUT);
         }
@@ -1323,34 +1487,45 @@ int AsyncHttpClientLight::readBodyToStreamString(StreamString& s, int size_limit
         if (r > 0) {
           int room = size_limit - read_total;
           if (room <= 0) return bail(0);
+
           int take = (r > room) ? room : r;
           if (!push(buf, take)) return bail(HTTPC_ERROR_STREAM_WRITE);
+
           read_total += take;
           remaining -= r;
+        } else {
+          delay(1);
         }
       }
 
-      // CRLF za chunkom
-      char crlf[2]; int got = 0;
+      // CRLF after chunk
+      char crlf[2];
+      int got = 0;
       uint32_t t2 = millis();
+
       while (got < 2) {
         if (_asyncAbortReq) return bail(HTTPC_ERROR_CONNECTION_LOST);
+        if (!_transport || !_transport->connected()) return bail(HTTPC_ERROR_CONNECTION_LOST);
+
         if ((millis() - t2) > (uint32_t)_tcpTimeout) return bail(HTTPC_ERROR_READ_TIMEOUT);
+
         if (_transport->available() <= 0) { delay(1); continue; }
+
         int r = _transport->read((uint8_t*)&crlf[got], 1);
         if (r == 1) got++;
+        else delay(1);
       }
+
       if (crlf[0] != '\r' || crlf[1] != '\n') return bail(HTTPC_ERROR_READ_TIMEOUT);
     }
-  } else {
+  }
+  else {
     return HTTPC_ERROR_ENCODING;
   }
 
-  // body read done
   _bodyPending = false;
   return read_total;
 }
-
 
 // ---------- Async jobs --------------------------------------------------
 
