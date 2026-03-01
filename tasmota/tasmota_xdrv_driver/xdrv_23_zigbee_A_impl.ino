@@ -1745,7 +1745,7 @@ void ZigbeeGlowPermitJoinLight(void) {
       analogWritePhase(led_pin, led_power, 0);
     }
 #else
-    AnalogWrite(led_pin, TasmotaGlobal.ledlnk_inverted ? 1023 - led_power : led_power);
+    analogWritePhase(led_pin, TasmotaGlobal.ledlnk_inverted ? 1023 - led_power : led_power, 0);
 #endif
   }
 }

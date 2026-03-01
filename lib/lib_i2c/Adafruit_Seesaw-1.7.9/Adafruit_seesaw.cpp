@@ -506,7 +506,7 @@ void Adafruit_seesaw::digitalWriteBulk(uint32_t port_values) {
  *	@param		width the width of the value to write. Defaults to 8. If
  *16 is passed a 16 bit value will be written.
  ****************************************************************************************/
-void Adafruit_seesaw::analogWrite(uint8_t pin, uint16_t value, uint8_t width) {
+void Adafruit_seesaw::analogWritePhase(uint8_t pin, uint16_t value, uint8_t width) {
   int8_t p = -1;
 
   if (_hardwaretype == SEESAW_HW_ID_CODE_SAMD09) {

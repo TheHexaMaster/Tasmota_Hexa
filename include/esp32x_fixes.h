@@ -71,9 +71,10 @@
 
 #endif // TARGET
 
+// CANCELLED - MAIN CAUSE OF COMPILATION ERRORS AND UNIDENTIFIED CRASH BEHAVIOURS WHEN COMPILING IN DIFFERENT MODES / DIFFERENT LINKERS!!!!
 // This trick makes sure that 'lto' optimizer does not inline `delay()
 // so we can override it with `-Wl,--wrap=delay` linker directive
-#ifdef __cplusplus
-extern "C"
-#endif // _cplusplus
-void  delay(__UINT32_TYPE__ ms) __attribute__((noinline)) __attribute__ ((noclone));
+// #ifdef __cplusplus
+// extern "C"
+// #endif // _cplusplus
+// void  delay(__UINT32_TYPE__ ms) __attribute__((noinline)) __attribute__ ((noclone));

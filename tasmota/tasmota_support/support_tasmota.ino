@@ -486,7 +486,7 @@ void SetLedPowerIdx(uint32_t led, uint32_t state)
     if (bitRead(Settings->ledpwm_mask, led)) {
       pwm = changeUIntScale((uint16_t)(state ? Settings->ledpwm_on : Settings->ledpwm_off), 0, 255, 0, Settings->pwm_range); // linear
       if (analogAttach(Pin(GPIO_LED1, led)) >= 0)
-        analogWrite(Pin(GPIO_LED1, led), bitRead(TasmotaGlobal.led_inverted, led) ? Settings->pwm_range - pwm : pwm);
+        analogWritePhase(Pin(GPIO_LED1, led), bitRead(TasmotaGlobal.led_inverted, led) ? Settings->pwm_range - pwm : pwm, 0);
     } else {
       DigitalWrite(GPIO_LED1, led, bitRead(TasmotaGlobal.led_inverted, led) ? !state : state);
     }

@@ -105,7 +105,7 @@ void analogWriteFreq(uint32_t freq, int32_t pin = -1);
 // analogWrite - change the value of PWM
 //
 // val must be in range.
-void analogWrite(uint8_t pin, int val);
+// void analogWrite(uint8_t pin, int val);
 
 // Extended version that also allows to change phase
 extern void analogWritePhase(uint8_t pin, uint32_t duty, uint32_t phase = 0);

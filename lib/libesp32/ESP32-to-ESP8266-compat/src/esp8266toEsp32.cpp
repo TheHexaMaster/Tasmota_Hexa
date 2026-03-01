@@ -344,7 +344,6 @@ void analogDetachAll(void) {
 }
 
 extern "C" uint32_t ledcReadFreq2(uint8_t chan) {
-// extern "C" uint32_t __wrap_ledcReadFreq(uint8_t chan) {
   if (chan > MAX_PWMS) {
     return 0;     // wrong channel
   }
@@ -382,9 +381,9 @@ int32_t ledcRead2(uint8_t pin) {
 }
 
 // void analogWrite(uint8_t pin, int val);
-extern "C" void __wrap__Z11analogWritehi(uint8_t pin, int val) {
-  analogWritePhase(pin, val, 0);      // if unspecified, use phase = 0
-}
+// extern "C" void __wrap__Z11analogWritehi(uint8_t pin, int val) {
+//   analogWritePhase(pin, val, 0);      // if unspecified, use phase = 0
+// }
 
 /*
   The primary goal of this function is to add phase control to PWM ledc

@@ -22,7 +22,7 @@ void uDisplay::HandeBP(int8_t on) {
         // initial default
 #ifdef ESP32
         if (!bp_mode.bp_nopwm) {
-          analogWrite(bpanel, 32);
+          analogWritePhase(bpanel, 32, 0);
         } else {
           pinMode(bpanel, OUTPUT);
           digitalWrite(bpanel, HIGH);         
@@ -37,9 +37,9 @@ void uDisplay::HandeBP(int8_t on) {
     if (on) { 
         if (!bp_mode.bp_nopwm) {
             if (!bp_mode.bp_invert) {
-                analogWrite(bpanel, dimmer10_gamma);
+                analogWritePhase(bpanel, dimmer10_gamma, 0);
             } else {
-                analogWrite(bpanel, AW_PWMRES - dimmer10_gamma);
+                analogWritePhase(bpanel, AW_PWMRES - dimmer10_gamma, 0);
             }
         } else {
             if (!bp_mode.bp_invert) {
@@ -51,9 +51,9 @@ void uDisplay::HandeBP(int8_t on) {
     } else {
         if (!bp_mode.bp_nopwm) {
             if (!bp_mode.bp_invert) {
-                analogWrite(bpanel, 0);
+                analogWritePhase(bpanel, 0, 0);
             }   else {
-                analogWrite(bpanel, AW_PWMRES - 1);
+                analogWritePhase(bpanel, AW_PWMRES - 1, 0);
             }
         } else {
              if (!bp_mode.bp_invert) {
@@ -101,9 +101,9 @@ void uDisplay::dim10(uint8_t dim, uint16_t dim_gamma) {
             return;
         }
         if (!bp_mode.bp_invert) {
-            analogWrite(bpanel, dimmer10_gamma);
+            analogWritePhase(bpanel, dimmer10_gamma, 0);
         } else {
-            analogWrite(bpanel, AW_PWMRES - dimmer10_gamma);
+            analogWritePhase(bpanel, AW_PWMRES - dimmer10_gamma, 0);
         }
     } else if (dim_cbp) {
         dim_cbp(dim);

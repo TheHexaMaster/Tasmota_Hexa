@@ -8202,12 +8202,12 @@ void esp_pwm(int32_t value, uint32 freq, uint32_t channel) {
     glob_script_mem.pwmpin[channel] = -value;
     pinMode(glob_script_mem.pwmpin[channel], OUTPUT);
     analogWriteFreq(freq);
-    AnalogWrite(glob_script_mem.pwmpin[channel], 0);
+    analogWritePhase(glob_script_mem.pwmpin[channel], 0, 0);
   } else {
     if (value > 1023) {
       value = 1023;
     }
-    AnalogWrite(glob_script_mem.pwmpin[channel], value);
+    analogWritePhase(glob_script_mem.pwmpin[channel], value, 0);
   }
 #endif // ESP32
 }
