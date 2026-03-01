@@ -1173,55 +1173,47 @@ void WebHexCode(uint32_t i, const char* code)
 
   if (3 == strlen(p)) {  // Convert 3 character to 6 character color code
     p[6] = p[3];  // \0
-    p[5] = p[2];  // 3
-    p[4] = p[2];  // 3
-    p[3] = p[1];  // 2
-    p[2] = p[1];  // 2
-    p[1] = p[0];  // 1
+    p[5] = p[2];
+    p[4] = p[2];
+    p[3] = p[1];
+    p[2] = p[1];
+    p[1] = p[0];
   }
 
   uint32_t color = strtol(p, nullptr, 16);
-/*
-  if (3 == strlen(p)) {  // Convert 3 character to 6 character color code
-    uint32_t w = ((color & 0xF00) << 8) | ((color & 0x0F0) << 4) | (color & 0x00F);  // 00010203
-    color = w | (w << 4);                                                            // 00112233
-  }
-*/
-  uint32_t j = sizeof(Settings->web_color) / 3;          // First area contains j = 18 colors
-/*
+
+  const uint32_t j = sizeof(Settings->web_color)  / sizeof(Settings->web_color[0]);   // 18
+  const uint32_t k = sizeof(Settings->web_color2) / sizeof(Settings->web_color2[0]);
+
+  uint8_t* dst = nullptr;
   if (i < j) {
-    Settings->web_color[i][0] = (color >> 16) & 0xFF;  // Red
-    Settings->web_color[i][1] = (color >> 8) & 0xFF;   // Green
-    Settings->web_color[i][2] = color & 0xFF;          // Blue
+    dst = &Settings->web_color[i][0];
   } else {
-    Settings->web_color2[i-j][0] = (color >> 16) & 0xFF;  // Red
-    Settings->web_color2[i-j][1] = (color >> 8) & 0xFF;   // Green
-    Settings->web_color2[i-j][2] = color & 0xFF;          // Blue
+    uint32_t idx = i - j;
+    if (idx >= k) { return; }   // ochrana proti blbému indexu (na validných vstupoch nemení nič)
+    dst = &Settings->web_color2[idx][0];
   }
-*/
-  if (i >= j) {
-    // Calculate i to index in Settings->web_color2 - Dirty(!) but saves 128 bytes code
-    i += ((((uint8_t*)&Settings->web_color2 - (uint8_t*)&Settings->web_color) / 3) - j);
-  }
-  Settings->web_color[i][0] = (color >> 16) & 0xFF;  // Red
-  Settings->web_color[i][1] = (color >> 8) & 0xFF;   // Green
-  Settings->web_color[i][2] = color & 0xFF;          // Blue
+
+  dst[0] = (color >> 16) & 0xFF;  // Red
+  dst[1] = (color >>  8) & 0xFF;  // Green
+  dst[2] =  color        & 0xFF;  // Blue
 }
 
 uint32_t WebColor(uint32_t i)
 {
-  uint32_t j = sizeof(Settings->web_color) / 3;          // First area contains j = 18 colors
-/*
-  uint32_t tcolor = (i<j)? (Settings->web_color[i][0] << 16) | (Settings->web_color[i][1] << 8) | Settings->web_color[i][2] :
-                           (Settings->web_color2[i-j][0] << 16) | (Settings->web_color2[i-j][1] << 8) | Settings->web_color2[i-j][2];
-*/
-  if (i >= j) {
-    // Calculate i to index in Settings->web_color2 - Dirty(!) but saves 128 bytes code
-    i += ((((uint8_t*)&Settings->web_color2 - (uint8_t*)&Settings->web_color) / 3) - j);
-  }
-  uint32_t tcolor = (Settings->web_color[i][0] << 16) | (Settings->web_color[i][1] << 8) | Settings->web_color[i][2];
+  const uint32_t j = sizeof(Settings->web_color)  / sizeof(Settings->web_color[0]);   // 18
+  const uint32_t k = sizeof(Settings->web_color2) / sizeof(Settings->web_color2[0]);
 
-  return tcolor;
+  const uint8_t* src = nullptr;
+  if (i < j) {
+    src = &Settings->web_color[i][0];
+  } else {
+    uint32_t idx = i - j;
+    if (idx >= k) { return 0; }  // validné vstupy nemení; invalidné aspoň nerozbijú RAM
+    src = &Settings->web_color2[idx][0];
+  }
+
+  return ((uint32_t)src[0] << 16) | ((uint32_t)src[1] << 8) | (uint32_t)src[2];
 }
 
 void AllowInterrupts(bool state) {

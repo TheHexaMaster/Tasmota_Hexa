@@ -19,7 +19,7 @@
 
 int16_t analog_write_state[MAX_GPIO_PIN] = { -1 };
 
-void analogWritePhase(uint8_t pin, int val, 0) {
+void analogWritePhase(uint8_t pin, int val, uint32_t phase) {
   analog_write_state[pin] = val;
   analogWritePhase(pin, val, 0);
 }
