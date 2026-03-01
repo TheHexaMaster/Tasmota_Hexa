@@ -138,14 +138,7 @@ FastCRC16 FastCRC;
 
 #ifdef USE_SML_CANBUS
 
-#ifdef ESP8266
-// esp8266 uses SPI MPC2515
-#undef SML_CAN_MASKS
-#undef SML_CAN_FILTERS
-#define SML_CAN_MASKS 2
-#define SML_CAN_FILTERS 6
-#include "mcp2515.h"
-#else
+
 // esp32 uses native twai
 #undef SML_CAN_MASKS
 #undef SML_CAN_FILTERS
@@ -153,7 +146,6 @@ FastCRC16 FastCRC;
 #define SML_CAN_FILTERS 1
 #include <can.h>
 #include "driver/twai.h"
-#endif
 #endif // USE_SML_CANBUS
 
 /* special options per meter
@@ -545,9 +537,7 @@ struct METER_DESC {
 #endif  // ESP32
 
 // software serial pointers
-#ifdef ESP8266
-  TasmotaSerial *meter_ss;
-#endif  // ESP8266
+
 
 #ifdef USE_SML_DECRYPT
 	bool use_crypt = false;
@@ -578,11 +568,9 @@ struct METER_DESC {
 
 
 #ifdef USE_SML_CANBUS
-#ifdef ESP8266
-  MCP2515 *mcp2515;
-#else
+
   //twai_handle_t *canp;
-#endif
+
   uint32_t can_masks[SML_CAN_MASKS];
   uint32_t can_filters[SML_CAN_FILTERS];
 #endif // USE_SML_CANBUS
@@ -982,43 +970,7 @@ void dump2log(void) {
 				break;
  #ifdef USE_SML_CANBUS       
       case 'C':
- #ifdef ESP8266     
-        if (mp->mcp2515 == nullptr) break;
-        { struct can_frame canFrame;
-        while (mp->mcp2515->checkReceive()) {
-            if (mp->mcp2515->readMessage(&canFrame) == MCP2515::ERROR_OK) {
-              mp->sbuff[0] = canFrame.can_id >> 24;
-              mp->sbuff[1] = canFrame.can_id >> 16;
-              mp->sbuff[2] = canFrame.can_id >> 8;
-              mp->sbuff[3] = canFrame.can_id;
-              mp->sbuff[4] = canFrame.can_dlc;
-              for (int i = 0; i < canFrame.can_dlc; i++) {
-                mp->sbuff[5 + i] = canFrame.data[i];
-              }
-              sml_dump_start(' ');
-              for (uint8_t index = 0; index < canFrame.can_dlc + 5; index++) {
-                sprintf_P(&sml_globs.log_data[sml_globs.sml_logindex], PSTR("%02x"), mp->sbuff[index]);
-                sml_globs.sml_logindex += 2;
-                if (index == 3) {
-                  sml_globs.log_data[sml_globs.sml_logindex] = ':';
-                  sml_globs.sml_logindex++;
-                  sml_globs.log_data[sml_globs.sml_logindex] = ' ';
-                  sml_globs.sml_logindex++;
-                }
-              }
-              sml_globs.log_data[sml_globs.sml_logindex] = 0;
-              AddLogData(LOG_LEVEL_INFO, sml_globs.log_data);
-            } else {
-              if (mp->mcp2515->checkError()) {
-                uint8_t errFlags = mp->mcp2515->getErrorFlags();
-                mp->mcp2515->clearRXnOVRFlags();
-                AddLog(LOG_LEVEL_DEBUG, PSTR("SML CAN: Received error %d"), errFlags);
-              }
-            }
-        }
-        }
-        break;
-#else
+
         // esp32 native CAN
         if (!sml_globs.twai_installed) break;
         {
@@ -1053,7 +1005,6 @@ void dump2log(void) {
         }
         }
         break;
-#endif
 #endif // USE_SML_CANBUS
     	default:
       	// raw dump
@@ -3722,47 +3673,7 @@ next_line:
     } else if (mp->type == 'C') {
 #ifdef USE_SML_CANBUS
 
-#ifdef ESP8266
-      mp->mcp2515 = nullptr;
-      if ( PinUsed(GPIO_SPI_MISO) && PinUsed(GPIO_SPI_MOSI) && PinUsed(GPIO_SPI_CLK) ) {
-        mp->mcp2515 = new MCP2515(mp->srcpin);
-        if (MCP2515::ERROR_OK != mp->mcp2515->reset()) {
-          AddLog(LOG_LEVEL_DEBUG, PSTR("SML CAN: Failed to reset module"));
-          return;
-        }
 
-        if (MCP2515::ERROR_OK != mp->mcp2515->setBitrate((CAN_SPEED)(mp->params%100), (CAN_CLOCK)(mp->params/100))) {
-          AddLog(LOG_LEVEL_DEBUG, PSTR("SML CAN: Failed to set module bitrate"));
-          return;
-        }
-
-        //attachInterrupt(mp->trxpin, sml_canbus_irq, FALLING);
-
-        if (MCP2515::ERROR_OK != mp->mcp2515->setConfigMode()) {
-          AddLog(LOG_LEVEL_DEBUG, PSTR("SML CAN: Failed to set config mode"));
-        } else {
-          if (mp->can_filters[0]) mp->mcp2515->setFilter(MCP2515::RXF0, true, mp->can_filters[0]);
-          if (mp->can_filters[1]) mp->mcp2515->setFilter(MCP2515::RXF1, true, mp->can_filters[1]);
-          if (mp->can_filters[2]) mp->mcp2515->setFilter(MCP2515::RXF2, true, mp->can_filters[2]);
-          if (mp->can_filters[3]) mp->mcp2515->setFilter(MCP2515::RXF3, true, mp->can_filters[3]);
-          if (mp->can_filters[4]) mp->mcp2515->setFilter(MCP2515::RXF4, true, mp->can_filters[4]);
-          if (mp->can_filters[5]) mp->mcp2515->setFilter(MCP2515::RXF5, true, mp->can_filters[5]);
-
-          if (mp->can_masks[0]) mp->mcp2515->setFilterMask(MCP2515::MASK0, true, mp->can_masks[0]);
-          if (mp->can_masks[1]) mp->mcp2515->setFilterMask(MCP2515::MASK1, true, mp->can_masks[1]);
-
-         }
-
-        if (MCP2515::ERROR_OK != mp->mcp2515->setNormalMode()) {
-          AddLog(LOG_LEVEL_DEBUG, PSTR("SML CAN: Failed to set normal mode"));
-          return;
-        }
-
-        AddLog(LOG_LEVEL_INFO, PSTR("SML CAN: Initialized"));
-      } else {
-        AddLog(LOG_LEVEL_DEBUG, PSTR("SML CAN: SPI not configuered"));
-      }
- #else
       // Initialize configuration structures using macro initializers
       twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT((gpio_num_t)mp->trxpin, (gpio_num_t)mp->srcpin, TWAI_MODE_NORMAL);
       uint8_t qlen = mp->params/100;
@@ -3830,7 +3741,7 @@ next_line:
       } else {
         AddLog(LOG_LEVEL_DEBUG, PSTR("Failed to install can driver"));
       }
- #endif     
+ 
 #endif // USE_SML_CANBUS
     } else {
       // serial input, init
@@ -3840,18 +3751,6 @@ next_line:
 #endif
       } else {
         // serial mode
-#ifdef ESP8266
-#ifdef SPECIAL_SS
-        char type = mp->type;
-        if (type == 'm' || type == 'M' || type == 'k' || type == 'p' || type == 'R' || type == 'v') {
-          mp->meter_ss = new TasmotaSerial(mp->srcpin, mp->trxpin, 1, 0, mp->sibsiz);
-        } else {
-          mp->meter_ss = new TasmotaSerial(mp->srcpin, mp->trxpin, 1, 1, mp->sibsiz);
-        }
-#else
-        mp->meter_ss = new TasmotaSerial(mp->srcpin, mp->trxpin, 1, 0, mp->sibsiz);
-#endif  // SPECIAL_SS
-#endif // ESP8266
 
 #ifdef ESP32
         // use hardware serial
@@ -3906,19 +3805,6 @@ next_line:
             }
           }
         }
-
-#ifdef ESP8266
-        if (mp->meter_ss->begin(mp->params)) {
-          mp->meter_ss->flush();
-        }
-        if (mp->meter_ss->hardwareSerial()) {
-          Serial.begin(mp->params, (SerialConfig)smode);
-          ClaimSerial();
-          if (mp->so_flags.SO_TRX_INVERT) {
-            U0C0 = U0C0 | BIT(UCRXI) | BIT(UCTXI); // Inverse RX, TX
-          }
-        }
-#endif  // ESP8266
 
 #ifdef ESP32
         mp->meter_ss->begin(mp->params, smode, mp->srcpin, mp->trxpin, mp->so_flags.SO_TRX_INVERT);
@@ -4001,16 +3887,7 @@ uint32_t SML_SetBaud(uint32_t meter, uint32_t br) {
   if (meter < 1 || meter > sml_globs.meters_used) return 0;
   meter--;
   if (!meter_desc[meter].meter_ss) return 0;
-#ifdef ESP8266
-  if (meter_desc[meter].meter_ss->begin(br)) {
-    meter_desc[meter].meter_ss->flush();
-  }
-  if (meter_desc[meter].meter_ss->hardwareSerial()) {
-    if (sml_globs.mp[meter].type=='M') {
-      Serial.begin(br, SERIAL_8E1);
-    }
-  }
-#endif  // ESP8266
+
 #ifdef ESP32
   meter_desc[meter].meter_ss->flush();
   meter_desc[meter].meter_ss->updateBaudRate(br);
@@ -4069,14 +3946,11 @@ uint32_t SML_Write(int32_t meter, char *hstr) {
         break;
     }
 
-#ifdef ESP8266
-    Serial.begin(baud, (SerialConfig)smode);
-#else
+
     meter_desc[meter].meter_ss->begin(baud, smode, sml_globs.mp[meter].srcpin, sml_globs.mp[meter].trxpin, sml_globs.mp[meter].so_flags.SO_TRX_INVERT);
     if (sml_globs.mp[meter].so_flags.SO_DISS_PULL) {
       gpio_pullup_dis((gpio_num_t)sml_globs.mp[meter].srcpin);
     }
-#endif
   }
   return 1;
 }
@@ -4321,40 +4195,6 @@ uint32_t sml_can_check_alerts() {
 #define SML_CAN_MAX_FRAMES 8
 
 void SML_CANBUS_Read() {
-#ifdef ESP8266
-  struct can_frame canFrame;
-
-  for (uint32_t meter = 0; meter < sml_globs.meters_used; meter++) {
-    struct METER_DESC *mp = &sml_globs.mp[meter];
-    uint8_t nCounter = 0;
-
-    if (mp->type != 'C') continue;
-
-    if (mp->mcp2515 == nullptr) continue;
-
-    while (mp->mcp2515->checkReceive() && nCounter <= SML_CAN_MAX_FRAMES) {
-      if (mp->mcp2515->readMessage(&canFrame) == MCP2515::ERROR_OK) {
-          mp->sbuff[0] = canFrame.can_id >> 24;
-          mp->sbuff[1] = canFrame.can_id >> 16;
-          mp->sbuff[2] = canFrame.can_id >> 8;
-          mp->sbuff[3] = canFrame.can_id;
-          mp->sbuff[4] = canFrame.can_dlc;
-          for (int i = 0; i < canFrame.can_dlc; i++) {
-            mp->sbuff[5 + i] = canFrame.data[i];
-          }
-          SML_Decode(meter);
-          nCounter++;
-      } else {
-        if (mp->mcp2515->checkError()) {
-          uint8_t errFlags = mp->mcp2515->getErrorFlags();
-          mp->mcp2515->clearRXnOVRFlags();
-          AddLog(LOG_LEVEL_DEBUG, PSTR("SML CAN: Received error %d"), errFlags);
-          break;
-        }
-      }
-    }
-  }
-#else
 
   for (uint32_t meter = 0; meter < sml_globs.meters_used; meter++) {
     struct METER_DESC *mp = &sml_globs.mp[meter];
@@ -4385,7 +4225,7 @@ void SML_CANBUS_Read() {
     }
   } 
 
-#endif
+
 }
 #endif // USE_SML_CANBUS
 
@@ -4672,17 +4512,7 @@ void SML_Send_Seq(uint32_t meter, char *seq) {
   } else {
     if (mp->type == 'C') {
 #ifdef USE_SML_CANBUS
-#ifdef ESP8266
-      if (mp->mcp2515 != nullptr) {
-        struct can_frame canMsg;
-        canMsg.can_id = (uint32_t) (sbuff[0] << 24 | sbuff[1] << 16 | sbuff[2] << 8 | sbuff[3]);
-        canMsg.can_dlc = sbuff[4];
-        for (uint8_t i = 0; i < canMsg.can_dlc; i++) {
-          canMsg.data[i] = sbuff[i + 5];
-        }
-        mp->mcp2515->sendMessage(&canMsg);
-      }
-#else
+
       if (sml_globs.twai_installed) {
         twai_message_t message;
         message.identifier = (uint32_t) (sbuff[0] << 24 | sbuff[1] << 16 | sbuff[2] << 8 | sbuff[3]);
@@ -4706,7 +4536,7 @@ void SML_Send_Seq(uint32_t meter, char *seq) {
           AddLog(LOG_LEVEL_DEBUG, PSTR("Failed to queue can message for transmission"));
         }
       }
-#endif
+
 #endif // USE_SML_CANBUS
     } else { 
       if (mp->trx_en.trxen) {

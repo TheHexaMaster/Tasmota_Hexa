@@ -106,14 +106,7 @@
 
 
 // Memory footprint
-#ifdef ESP8266
-const static uint16_t z_spi_start_sector = 0xFF;  // Force last bank of first MB
-const static uint8_t* z_spi_start    = (uint8_t*) 0x402FF000;  // 0x402FF000
-const static uint8_t* z_dev_start    = z_spi_start + 0x0800;   // 0x402FF800 - 2KB
-const static size_t   z_spi_len      = 0x1000;   // 4kb blocks
-const static size_t   z_block_offset = 0x0800;
-const static size_t   z_block_len    = 0x0800;   // 2kb
-#endif  // ESP8266
+
 #ifdef ESP32
 uint8_t* z_dev_start;
 const static size_t   z_spi_len      = 0x1000;   // 4kb blocks
@@ -383,25 +376,7 @@ bool loadZigbeeDevices(void) {
   }
 #endif // USE_ZIGBEE_EEPROM
 
-#ifdef ESP8266
-  if (!f.valid() && flash_valid()) {
-    // Read binary data from Flash
 
-    Z_Flashentry flashdata;
-    memcpy_P(&flashdata, z_dev_start, sizeof(Z_Flashentry));
-    // AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_ZIGBEE "z_dev_start %p"), z_dev_start);
-    AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_ZIGBEE "Zigbee signature in Flash: %08X - %d"), flashdata.name, flashdata.len);
-
-    // Check the signature
-    if ( ((flashdata.name == ZIGB_NAME2) || (flashdata.name == ZIGB_NAME4))
-        && (flashdata.len > 0)) {
-      uint16_t buf_len = flashdata.len;
-      if (flashdata.name == ZIGB_NAME2) { file_version = 2; }  // v2 found
-      f.init(z_dev_start + sizeof(Z_Flashentry), buf_len);
-      storage_class = PSTR("Flash");
-    }
-  }
-#endif // ESP8266
 
   uint32_t file_len = 0;
   uint8_t num_devices = 0;

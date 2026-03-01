@@ -67,25 +67,7 @@ ftp       start stop ftp server: 0 = OFF, 1 = SDC, 2 = FlashFile
 #define UFS_SDC           0
 #define UFS_SDMMC         1
 
-/*
-// In tasmota.ino
-#ifdef ESP8266
-#include <LittleFS.h>
-#include <SPI.h>
-#ifdef USE_SDCARD
-#include <SD.h>
-#include <SDFAT.h>
-#endif  // USE_SDCARD
-#endif  // ESP8266
-#ifdef ESP32
-#include <LITTLEFS.h>
-#ifdef USE_SDCARD
-#include <SD.h>
-#endif  // USE_SDCARD
-#include "FFat.h"
-#include "FS.h"
-#endif  // ESP32
-*/
+
 
 const int UFS_FILENAME_SIZE = 50;
 
@@ -120,13 +102,7 @@ void UfsInitOnce(void) {
   ffsp = 0;
   ufs_dir = 0;
 
-#ifdef ESP8266
-  ffsp = &LittleFS;
-  if (!LittleFS.begin()) {
-    ffsp = nullptr;
-    return;
-  }
-#endif  // ESP8266
+
 
 #ifdef ESP32
   // try lfs first
@@ -209,17 +185,13 @@ void UfsCheckSDCardInit(void) {
   }
   if (cs > -1) {
 
-#ifdef ESP8266
-    SPI.begin();
-#endif // ESP8266
+
 #ifdef ESP32
     SPI.begin(Pin(GPIO_SPI_CLK, spi_bus), Pin(GPIO_SPI_MISO, spi_bus), Pin(GPIO_SPI_MOSI, spi_bus), -1);
 #endif // ESP32
 
     if (SD.begin(cs)) {
-#ifdef ESP8266
-      ufsp = &SDFS;
-#endif  // ESP8266
+
 #ifdef ESP32
       ufsp = &SD;
 #endif  // ESP32
@@ -229,10 +201,7 @@ void UfsCheckSDCardInit(void) {
       dfsp = ufsp;
       if (ffsp) {ufs_dir = 1;}
       // make sd card the global filesystem
-#ifdef ESP8266
-      // on esp8266 sdcard info takes several seconds !!!, so we ommit it here
-      AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_UFS "SDCard mounted"));
-#endif // ESP8266
+
 #ifdef ESP32
       AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_UFS "SDCard mounted (SPI mode) with %d kB free"), UfsInfo(1, 0));
 #endif // ESP32
@@ -279,21 +248,12 @@ uint32_t UfsInfo(uint32_t sel, uint32_t type) {
     itype = ffs_type;
   }
 
-#ifdef ESP8266
-  FSInfo64 fsinfo;
-#endif  // ESP8266
+
 
   switch (itype) {
     case UFS_TSDC:
 #ifdef USE_SDCARD
-#ifdef ESP8266
-      ifsp->info64(fsinfo);
-      if (sel == 0) {
-        result = fsinfo.totalBytes;
-      } else {
-        result = (fsinfo.totalBytes - fsinfo.usedBytes);
-      }
-#endif  // ESP8266
+
 #ifdef ESP32
 #ifdef SOC_SDMMC_HOST_SUPPORTED
       if (sd_type == UFS_SDC) {
@@ -323,14 +283,7 @@ uint32_t UfsInfo(uint32_t sel, uint32_t type) {
       break;
 
     case UFS_TLFS:
-#ifdef ESP8266
-      ifsp->info64(fsinfo);
-      if (sel == 0) {
-        result = fsinfo.totalBytes;
-      } else {
-        result = (fsinfo.totalBytes - fsinfo.usedBytes);
-      }
-#endif  // ESP8266
+
 #ifdef ESP32
       if (sel == 0) {
         result = LittleFS.totalBytes();

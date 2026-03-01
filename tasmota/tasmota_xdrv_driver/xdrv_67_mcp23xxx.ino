@@ -620,9 +620,7 @@ void MCP23xModuleInit(void) {
 
 #ifdef USE_SPI
   if ((SPI_MOSI_MISO == TasmotaGlobal.spi_enabled) && PinUsed(GPIO_MCP23SXX_CS, GPIO_ANY)) {
-#ifdef ESP8266
-    SPI.begin();
-#endif
+
 #ifdef ESP32
     SPI.begin(Pin(GPIO_SPI_CLK), Pin(GPIO_SPI_MISO), Pin(GPIO_SPI_MOSI), -1);
 #endif

@@ -1,14 +1,7 @@
 #include "uDisplay_SPI_controller.h"
 
 // ===== GPIO Macros =====
-#ifdef ESP8266
-#define PIN_OUT_SET 0x60000304
-#define PIN_OUT_CLEAR 0x60000308
-#define GPIO_SET(A) WRITE_PERI_REG(PIN_OUT_SET, 1 << A)
-#define GPIO_CLR(A) WRITE_PERI_REG(PIN_OUT_CLEAR, 1 << A)
-#define GPIO_SET_SLOW(A) digitalWrite(A, HIGH)
-#define GPIO_CLR_SLOW(A) digitalWrite(A, LOW)
-#else // ESP32
+
 #if CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32P4
 #define GPIO_CLR(A) GPIO.out_w1tc.val = (1 << A)
 #define GPIO_SET(A) GPIO.out_w1ts.val = (1 << A)
@@ -18,7 +11,7 @@
 #endif
 #define GPIO_SET_SLOW(A) digitalWrite(A, HIGH)
 #define GPIO_CLR_SLOW(A) digitalWrite(A, LOW)
-#endif
+
 
 // ===== RA8876 Constants =====
 static constexpr uint8_t RA8876_DATA_WRITE  = 0x80;
@@ -40,20 +33,7 @@ SPIController::SPIController(const SPIControllerConfig& config)
       digitalWrite(spi_config.cs, HIGH);
     }
 
-#ifdef ESP8266
-    if (spi_config.bus_nr <= 1) {
-      SPI.begin();
-      spi = &SPI;
-    } else {
-      pinMode(spi_config.clk, OUTPUT);
-      digitalWrite(spi_config.clk, LOW);
-      pinMode(spi_config.mosi, OUTPUT);
-      digitalWrite(spi_config.mosi, LOW);
-      if (spi_config.miso >= 0) {
-        pinMode(spi_config.miso, INPUT_PULLUP);
-      }
-    }
-#endif // ESP8266
+
 
 #ifdef ESP32
     if (spi_config.bus_nr == 1) {

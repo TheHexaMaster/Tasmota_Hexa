@@ -53,12 +53,7 @@ const uint16_t CHUNKED_BUFFER_SIZE = 500;                // Chunk buffer size (n
 
 const uint16_t HTTP_REFRESH_TIME = 2345;                 // milliseconds
 const uint16_t HTTP_RESTART_RECONNECT_TIME = 10000;      // milliseconds - Allow time for restart and wifi reconnect
-#ifdef ESP8266
-const uint16_t HTTP_OTA_RESTART_RECONNECT_TIME = 24000;  // milliseconds - Allow time for uploading binary, unzip/write to final destination and wifi reconnect
-#endif  // ESP8266
-#ifdef ESP32
 const uint16_t HTTP_OTA_RESTART_RECONNECT_TIME = 15000;  // milliseconds - Allow time for restart and wifi reconnect
-#endif  // ESP32
 
 #include <ESP8266WebServer.h>
 #include <DNSServer.h>
@@ -143,16 +138,6 @@ const char HTTP_MODULE_TEMPLATE_REPLACE_NO_INDEX[] PROGMEM =
   #include "./html_uncompressed/HTTP_SCRIPT_TEMPLATE.h"
 #endif
 
-#ifdef ESP8266
-const char HTTP_SCRIPT_TEMPLATE2[] PROGMEM =
-    "j=0;"
-    "for(i=0;i<" STR(MAX_USER_PINS) ";i++){"  // Supports 13 GPIOs
-      "if(6==i){j=9;}"
-      "if(8==i){j=12;}"
-      "sk(g[i],j);"                       // Set GPIO
-      "j++;"
-    "}";
-#endif  // ESP8266
 #ifdef ESP32
 #if CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32P4
 const char HTTP_SCRIPT_TEMPLATE2[] PROGMEM =
@@ -627,9 +612,7 @@ const WebServerDispatch_t WebServerDispatch[] PROGMEM = {
 
 void WebServer_on(const char * prefix, void (*func)(void), uint8_t method = HTTP_ANY) {
   if (Webserver == nullptr) { return; }
-#ifdef ESP8266
-  Webserver->on((const __FlashStringHelper *) prefix, (HTTPMethod) method, func);
-#endif  // ESP8266
+
 #ifdef ESP32
   Webserver->on(prefix, (HTTPMethod) method, func);
 #endif  // ESP32
@@ -1910,43 +1893,9 @@ void WSContentSendNiceLists(uint32_t option) {
       first_done = true;
     }
   }
-#ifdef ESP8266
-#ifdef USE_ADC
-  for (uint32_t i = 0; i < nitems(kAdcNiceList); i++) {   // hs=[36,68,100,132,168,200,232,264,292,324,356,388,421,453];
-    midx = pgm_read_word(kAdcNiceList + i);
-    if (midx & 0x001F) {
-      if (first_done) { WSContentSend_P(PSTR(",")); }
-      WSContentSend_P(PSTR("%d"), midx);
-      first_done = true;
-    }
-  }
-#endif  // USE_ADC
-#endif  // ESP8266
+
   WSContentSend_P(PSTR("];"));
 }
-
-/*-------------------------------------------------------------------------------------------*/
-
-#ifdef ESP8266
-#ifdef USE_ADC
-void WSContentSendAdcNiceList(uint32_t option) {
-  char stemp[30];                                             // Template number and Sensor name
-  WSContentSend_P(PSTR("os=\""));
-  for (uint32_t i = 0; i < nitems(kAdcNiceList); i++) {   // GPIO: }2'0'>None}3}2'17'>Analog}3...
-    if (option && (1 == i)) {
-      WSContentSend_P(HTTP_MODULE_TEMPLATE_REPLACE_NO_INDEX,
-        AGPIO(GPIO_USER),
-        PSTR(D_SENSOR_USER));  // }2'15'>User}3
-    }
-    uint32_t ridx = pgm_read_word(kAdcNiceList + i) & 0xFFE0;
-    uint32_t midx = BGPIO(ridx);
-    WSContentSend_P(HTTP_MODULE_TEMPLATE_REPLACE_NO_INDEX,
-      ridx,
-      GetTextIndexed(stemp, sizeof(stemp), midx, kSensorNames));
-  }
-}
-#endif  // USE_ADC
-#endif  // ESP8266
 
 /*-------------------------------------------------------------------------------------------*/
 
@@ -1999,12 +1948,7 @@ void HandleTemplateConfiguration(void) {
 
   WSContentSend_P(HTTP_SCRIPT_TEMPLATE2);
 
-#ifdef ESP8266
-#ifdef USE_ADC
-  WSContentSendAdcNiceList(1);
-  WSContentSend_P(HTTP_SCRIPT_TEMPLATE3);
-#endif  // USE_ADC
-#endif  // ESP8266
+
 
   WSContentSend_P(HTTP_SCRIPT_TEMPLATE4);
   for (uint32_t i = 0; i < sizeof(kModuleNiceList); i++) {  // "}2'%d'>%s (%d)}3" - "}2'0'>Sonoff Basic (1)}3"
@@ -2073,11 +2017,9 @@ uint16_t WebGetGpioArg(uint32_t i) {
 
 void TemplateSaveSettings(void) {
   char tmp[TOPSZ];                                      // WebGetArg NAME and GPIO/BASE/FLAG byte value
-#ifdef ESP8266
-  char command[300];                                    // Template command string
-#else
+
   char command[500];                                    // Template command string supporting P4 (55 GPIOs)
-#endif
+
 
   WebGetArg(PSTR("s1"), tmp, sizeof(tmp));              // NAME
   snprintf_P(command, sizeof(command), PSTR(D_CMND_TEMPLATE " {\"" D_JSON_NAME "\":\"%s\",\"" D_JSON_GPIO "\":["), tmp);
@@ -2100,12 +2042,7 @@ void TemplateSaveSettings(void) {
     j++;
 #endif
 */
-#ifdef ESP8266
-    if (6 == i) { j = 9; }
-    if (8 == i) { j = 12; }
-    snprintf_P(command, sizeof(command), PSTR("%s%s%d"), command, (i>0)?",":"", WebGetGpioArg(j));
-    j++;
-#endif  // ESP8266
+
 #ifdef ESP32
 #if CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32P4
     snprintf_P(command, sizeof(command), PSTR("%s%s%d"), command, (i>0)?",":"", WebGetGpioArg(i));
@@ -2178,12 +2115,7 @@ void HandleModuleConfiguration(void) {
     }
   }
 
-#ifdef ESP8266
-#ifdef USE_ADC
-  WSContentSendAdcNiceList(0);
-  WSContentSend_P(PSTR("\";sk(%d," STR(ADC0_PIN) ");"), Settings->my_gp.io[(sizeof(myio) / 2) -1]);
-#endif  // USE_ADC
-#endif  // ESP8266
+
 
   WSContentSend_P(PSTR("}wl(sl);"));
 
@@ -2792,11 +2724,7 @@ void HandleInformation(void) {
   WSContentSend_P(PSTR("}1" D_BUILD_DATE_AND_TIME "}2%s"), GetBuildDateAndTime().c_str());
   WSContentSend_P(PSTR("}1" D_CORE_AND_SDK_VERSION "}2" ARDUINO_CORE_RELEASE "/%s"), ESP.getSdkVersion());
   WSContentSend_P(PSTR("}1" D_UPTIME "}2%s"), GetUptime().c_str());
-#ifdef ESP8266
-  WSContentSend_P(PSTR("}1" D_FLASH_WRITE_COUNT "}2%d " D_AT " 0x%X"), 
-    Settings->save_flag,
-    GetSettingsAddress());
-#endif  // ESP8266
+
 #ifdef ESP32
   WSContentSend_P(PSTR("}1" D_FLASH_WRITE_COUNT "}2%d"), Settings->save_flag);
 #endif  // ESP32
@@ -3321,9 +3249,7 @@ void HandleUploadLoop(void) {
       }
 #endif  // USE_CCLOADER
 #ifdef USE_ZIGBEE_EZSP
-#ifdef ESP8266
-      else if ((SONOFF_ZB_BRIDGE == TasmotaGlobal.module_type) && (0xEB == upload.buf[0])) {  // Check if this is a Zigbee bridge FW file
-#endif  // ESP8266
+
 #ifdef ESP32
       else if (PinUsed(GPIO_ZIGBEE_RX) && PinUsed(GPIO_ZIGBEE_TX) && (0xEB == upload.buf[0])) {  // Check if this is a Zigbee bridge FW file
 #endif  // ESP32
@@ -3341,16 +3267,12 @@ void HandleUploadLoop(void) {
           return;
         }
         if (0xE9 == upload.buf[0]) {
-#ifdef ESP8266
-          uint32_t bin_flash_size = ESP.magicFlashChipSize((upload.buf[3] & 0xf0) >> 4);
-          if (bin_flash_size > ESP.getFlashChipRealSize()) {
-#else
+
           char tmp[16];
           WebGetArg("fsz", tmp, sizeof(tmp));                    // filesize
           uint32_t upload_size = (!strlen(tmp)) ? 0 : atoi(tmp);
           AddLog(LOG_LEVEL_DEBUG, D_LOG_UPLOAD "Freespace %i Filesize %i", ESP.getFreeSketchSpace(), upload_size);
           if (upload_size > ESP.getFreeSketchSpace()) {   // TODO revisit this test
-#endif  // ESP8266
             Web.upload_error = 4;  // Program flash size is larger than real flash size
             return;
           }

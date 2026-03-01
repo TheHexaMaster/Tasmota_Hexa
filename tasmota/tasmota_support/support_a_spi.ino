@@ -17,9 +17,7 @@ SPIClass *SpiBegin(uint32 bus) {
   if (1 == bus) {                // SPI bus 1
     if (TasmotaGlobal.spi_enabled) {
       spi = &SPI;                // Uses VSPI on ESP32 or FSPI on all other ESP32 derivatives (See SPI.cpp)
-#ifdef ESP8266
-      spi->begin();
-#endif // ESP8266
+
 #ifdef ESP32      
       spi->begin(Pin(GPIO_SPI_CLK), Pin(GPIO_SPI_MISO), Pin(GPIO_SPI_MOSI), -1);
 #endif  // ESP32
@@ -47,10 +45,7 @@ void AddLogSpi(uint32_t hardware, int clk, int mosi, int miso) {
   uint32_t enabled = TasmotaGlobal.soft_spi_enabled;
   char hwswbus[8];
   if (hardware) {
-#ifdef ESP8266
-    strcpy_P(hwswbus, PSTR("Hard"));
-    enabled = TasmotaGlobal.spi_enabled;
-#endif      
+    
 #ifdef ESP32
     strcpy_P(hwswbus, PSTR("Bus0"));
     hwswbus[3] += (char)hardware;

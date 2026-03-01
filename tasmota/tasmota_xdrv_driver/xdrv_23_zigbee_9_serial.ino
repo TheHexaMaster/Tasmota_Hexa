@@ -310,11 +310,7 @@ void ZigbeeInitSerial(void)
       return;
     }
     ZigbeeSerial->begin(115200);
-#ifdef ESP8266
-    if (ZigbeeSerial->hardwareSerial()) {
-      ClaimSerial();
-		}
-#endif // ESP8266
+
 #ifdef ESP32
     AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_ZIGBEE "Using Hardware Serial UART%d"), ZigbeeSerial->getUart());
 #endif  // ESP32

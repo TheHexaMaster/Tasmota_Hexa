@@ -1182,11 +1182,7 @@ bool HTTPClientLight::connect(void)
     log_d(" connected to %s:%u", _host.c_str(), _port);
 
 
-/*
-#ifdef ESP8266
-    _client->setNoDelay(true);
-#endif
- */
+
  return connected();
 }
 

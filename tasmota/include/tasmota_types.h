@@ -570,31 +570,7 @@ typedef struct {
   uint16_t      energy_min_power;          // 3A6 (P4 386)
   uint32_t      pn532_password;            // 3A8 (P4 388) - ex_switchmode4-7, Free since 9.2.0.6
 
-#ifdef ESP8266
-  // --------------------------------------------------------------
-  // Mapping 0x3AC to 0x496 for ESP8266
-  // --------------------------------------------------------------
-  myio          my_gp;                     // 3AC  2x18 bytes (ESP8266)
-  uint16_t      gpio16_converted;          // 3D0
 
-  uint8_t       free_esp8266_3D2[42];      // 3D2
-
-  mytmplt       user_template;             // 3FC  2x15 bytes (ESP8266)
-
-  uint8_t       free_esp8266_41A[55];      // 41A
-
-  char          serial_delimiter;          // 451
-  uint8_t       seriallog_level;           // 452
-  uint8_t       sleep;                     // 453
-  uint16_t      domoticz_switch_idx[MAX_DOMOTICZ_IDX];      // 454
-  uint16_t      domoticz_sensor_idx[MAX_DOMOTICZ_SNS_IDX];  // 45C
-  uint8_t       module;                    // 474
-  uint8_t       ws_color[4][3];            // 475
-  uint8_t       ws_width[3];               // 481
-  myio8         ex_my_gp8;                 // 484 17 bytes (ESP8266) - Free since 9.0.0.1
-  uint8_t       ex_my_adc0;                // 495  Free since 9.0.0.1 - Do not use anymore because of ESP32S3
-                                           // 496
-#endif  // ESP8266
 #ifdef ESP32
 #if CONFIG_IDF_TARGET_ESP32P4
   // --------------------------------------------------------------
@@ -774,9 +750,7 @@ typedef struct {
   uint8_t       user_template_base;        // 71F
   char          user_template_name[15];    // 720  15 bytes - Backward compatibility since v8.2.0.3
 
-#ifdef ESP8266
-  uint8_t       ex_user_template8[5];      // 72F  14 bytes (ESP8266) - Free since 9.0.0.1 - only 5 bytes referenced now
-#endif  // ESP8266
+
 #ifdef ESP32
   uint8_t       webcam_clk;                // 72F
   WebCamCfg2    webcam_config2;            // 730
@@ -960,10 +934,5 @@ typedef union {
 } StateBitfield;
 
 // See issue https://github.com/esp8266/Arduino/issues/2913
-#ifdef ESP8266
-#ifdef USE_ADC_VCC
-  ADC_MODE(ADC_VCC);                       // Set ADC input for Power Supply Voltage usage
-#endif
-#endif
 
 #endif  // _TASMOTA_TYPES_H_

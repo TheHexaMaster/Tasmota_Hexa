@@ -1135,15 +1135,11 @@ Renderer *uDisplay::Init(void) {
   // for any bpp below native 16 bits, we allocate a local framebuffer to copy into
   if (ep_mode || bpp < 16) {
     if (framebuffer) free(framebuffer);
-#ifdef ESP8266
-    framebuffer = (uint8_t*)calloc((gxs * gys * bpp) / 8, 1);
-#else
     if (UsePSRAM()) {
       framebuffer = (uint8_t*)heap_caps_malloc((gxs * gys * bpp) / 8, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
     } else {
       framebuffer = (uint8_t*)calloc((gxs * gys * bpp) / 8, 1);
     }
-#endif // ESP8266
   }
   frame_buffer = framebuffer;
 

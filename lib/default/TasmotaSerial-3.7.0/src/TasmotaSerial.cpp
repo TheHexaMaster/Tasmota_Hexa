@@ -30,15 +30,7 @@ extern "C" {
 extern void AddLog(uint32_t loglevel, PGM_P formatP, ...);
 enum LoggingLevels {LOG_LEVEL_NONE, LOG_LEVEL_ERROR, LOG_LEVEL_INFO, LOG_LEVEL_DEBUG, LOG_LEVEL_DEBUG_MORE};
 
-#ifdef ESP8266
 
-void IRAM_ATTR callRxRead(void *self) { ((TasmotaSerial*)self)->rxRead(); };
-
-// As the Arduino attachInterrupt has no parameter, lists of objects
-// and callbacks corresponding to each possible GPIO pins have to be defined
-TasmotaSerial *tms_obj_list[16];
-
-#endif  // ESP8266
 #ifdef ESP32
 
 #include "driver/uart.h"
@@ -64,35 +56,7 @@ TasmotaSerial::TasmotaSerial(int receive_pin, int transmit_pin, int hardware_fal
   m_tx_enable_pin = -1;
   m_in_pos = 0;
   m_out_pos = 0;
-#ifdef ESP8266
-  if (!((isValidGPIOpin(receive_pin)) && (isValidGPIOpin(transmit_pin) || transmit_pin == 16))) {
-    return;
-  }
-  if (hardware_fallback && (((3 == m_rx_pin) && (1 == m_tx_pin)) || ((3 == m_rx_pin) && (-1 == m_tx_pin)) || ((-1 == m_rx_pin) && (1 == m_tx_pin)))) {
-    m_hardserial = true;
-  }
-  else if ((2 == hardware_fallback) && (((13 == m_rx_pin) && (15 == m_tx_pin)) || ((13 == m_rx_pin) && (-1 == m_tx_pin)) || ((-1 == m_rx_pin) && (15 == m_tx_pin)))) {
-    m_hardserial = true;
-    m_hardswap = true;
-  }
-  else {
-    if ((m_rx_pin < 0) && (m_tx_pin < 0)) { return; }
-    if (m_rx_pin > -1) {
-      m_buffer = (uint8_t*)malloc(serial_buffer_size);
-      if (m_buffer == NULL) return;
-      // Use getCycleCount() loop to get as exact timing as possible
-      m_bit_time = ESP.getCpuFreqMHz() * 1000000 / TM_SERIAL_BAUDRATE;
-      m_bit_start_time = m_bit_time + m_bit_time/3 - 500; // pre-compute first wait
-      pinMode(m_rx_pin, INPUT);
-      tms_obj_list[m_rx_pin] = this;
-      attachInterruptArg(m_rx_pin, callRxRead, this, (m_nwmode) ? CHANGE : FALLING);
-    }
-    if (m_tx_pin > -1) {
-      pinMode(m_tx_pin, OUTPUT);
-      digitalWrite(m_tx_pin, HIGH);
-    }
-  }
-#endif  // ESP8266
+
 #ifdef ESP32
   if ((receive_pin >= 0) && !GPIO_IS_VALID_GPIO(receive_pin)) { return; }
   if ((transmit_pin >= 0) && !GPIO_IS_VALID_OUTPUT_GPIO(transmit_pin)) { return; }
@@ -103,19 +67,6 @@ TasmotaSerial::TasmotaSerial(int receive_pin, int transmit_pin, int hardware_fal
 }
 
 void TasmotaSerial::end(void) {
-#ifdef ESP8266
-  if (m_hardserial) {
-//    Serial.end();  // Keep active for logging
-  } else {
-    if (m_rx_pin > -1) {
-      detachInterrupt(m_rx_pin);
-      tms_obj_list[m_rx_pin] = NULL;
-      if (m_buffer) {
-        free(m_buffer);
-      }
-    }
-  }
-#endif  // ESP8266
 
 #ifdef ESP32
 //  Serial.printf("TSR: Freeing UART%d\n", m_uart);
@@ -132,18 +83,13 @@ TasmotaSerial::~TasmotaSerial(void) {
 }
 
 bool TasmotaSerial::isValidGPIOpin(int pin) {
-#ifdef ESP8266
-  return (pin >= -1 && pin <= 5) || (pin >= 12 && pin <= 15);
-#endif
+
 #ifdef ESP32
   return GPIO_IS_VALID_OUTPUT_GPIO(pin);
 #endif
 }
 
 void TasmotaSerial::setTransmitEnablePin(int tx_enable_pin) {
-#ifdef ESP8266
-  if ((tx_enable_pin > -1) && (isValidGPIOpin(tx_enable_pin) || (16 == tx_enable_pin))) {
-#endif
 #ifdef ESP32
   if ((tx_enable_pin > -1) && isValidGPIOpin(tx_enable_pin)) {
 #endif
@@ -218,10 +164,7 @@ size_t TasmotaSerial::setRxBufferSize(size_t size) {
   if (size != serial_buffer_size) {
     if (m_hardserial) {
       if (size > 256) {      // Default hardware serial Rx buffer size
-#ifdef ESP8266
-        serial_buffer_size = size;
-        Serial.setRxBufferSize(serial_buffer_size);
-#endif  // ESP8266
+
 #ifdef ESP32
         if (TSerial) {
           // RX Buffer can't be resized when Serial is already running
@@ -254,16 +197,7 @@ bool TasmotaSerial::begin(uint32_t speed, uint32_t config) {
     if (serial_buffer_size < 256) {
       serial_buffer_size = 256;
     }
-#ifdef ESP8266
-    Serial.flush();
-    Serial.begin(speed, (SerialConfig)config, SERIAL_FULL, m_tx_pin, m_invert);
-    if (m_hardswap) {
-      Serial.swap();
-    }
-    if (serial_buffer_size > 256) {
-      Serial.setRxBufferSize(serial_buffer_size);
-    }
-#endif  // ESP8266
+
 #ifdef ESP32
     if (TSerial == nullptr) {      // Allow for dynamic change in baudrate or config
       if (freeUart()) {            // We prefer UART1 and UART2 and keep UART0 for debugging
@@ -327,9 +261,7 @@ void TasmotaSerial::setReadChunkMode(bool mode) {
 }
 
 bool TasmotaSerial::hardwareSerial(void) {
-#ifdef ESP8266
-  return m_hardserial;
-#endif  // ESP8266
+
 #ifdef ESP32
   return (0 == m_uart);  // We prefer UART1 and UART2 and keep UART0 for debugging
 #endif  // ESP32
@@ -337,9 +269,7 @@ bool TasmotaSerial::hardwareSerial(void) {
 
 bool TasmotaSerial::overflow(void) {
   if (m_hardserial) {
-#ifdef ESP8266
-    return Serial.hasOverrun();  // Returns then clear overrun flag
-#endif  // ESP8266
+
 #ifdef ESP32
     return false;  // Not implemented
 #endif  // ESP32
@@ -352,10 +282,7 @@ bool TasmotaSerial::overflow(void) {
 
 void TasmotaSerial::flush(void) {
   if (m_hardserial) {
-#ifdef ESP8266
-    Serial.flush();    // Flushes Tx only
-    while (Serial.available()) { Serial.read(); }  // Flushes Rx
-#endif  // ESP8266
+
 #ifdef ESP32
     TSerial->flush();  // Flushes Tx only https://github.com/espressif/arduino-esp32/pull/4263
     while (TSerial->available()) { TSerial->read(); }  // Flushes Rx
@@ -368,9 +295,7 @@ void TasmotaSerial::flush(void) {
 
 int TasmotaSerial::peek(void) {
   if (m_hardserial) {
-#ifdef ESP8266
-    return Serial.peek();
-#endif  // ESP8266
+
 #ifdef ESP32
     return TSerial->peek();
 #endif  // ESP32
@@ -382,9 +307,7 @@ int TasmotaSerial::peek(void) {
 
 int TasmotaSerial::read(void) {
   if (m_hardserial) {
-#ifdef ESP8266
-    return Serial.read();
-#endif  // ESP8266
+
 #ifdef ESP32
     return TSerial->read();
 #endif  // ESP32
@@ -400,9 +323,7 @@ int TasmotaSerial::read(void) {
 
 size_t TasmotaSerial::read(char* buffer, size_t size) {
   if (m_hardserial) {
-#ifdef ESP8266
-    return Serial.read(buffer, size);
-#endif  // ESP8266
+
 #ifdef ESP32
     return TSerial->read(buffer, size);
 #endif  // ESP32
@@ -421,9 +342,7 @@ size_t TasmotaSerial::read(char* buffer, size_t size) {
 
 int TasmotaSerial::available(void) {
   if (m_hardserial) {
-#ifdef ESP8266
-    return Serial.available();
-#endif  // ESP8266
+
 #ifdef ESP32
     return TSerial->available();
 #endif  // ESP32
@@ -470,9 +389,7 @@ size_t TasmotaSerial::write(uint8_t b) {
   }
   size_t size = 0;
   if (m_hardserial) {
-#ifdef ESP8266
-    size = Serial.write(b);
-#endif  // ESP8266
+
 #ifdef ESP32
     size = TSerial->write(b);
 #endif  // ESP32
@@ -545,125 +462,3 @@ int32_t TasmotaSerial::setConfig(uint32_t config) {
 }
 #endif
 
-#ifdef ESP8266
-void IRAM_ATTR TasmotaSerial::rxRead(void) {
-  if (!m_nwmode) {
-    uint32_t start = ESP.getCycleCount();
-    // Advance the starting point for the samples but compensate for the
-    // initial delay which occurs before the interrupt is delivered
-    uint32_t wait = m_bit_start_time;
-    // Decide to read as much data as buffer can hold or a single byte
-    // The first option may keep interrupt busy too long resulting in Hardware Watchdog
-    // The second option may receive ocasional invalid data
-    // User control by function setReadChunkMode()
-    int32_t loop_read = m_very_high_speed ? serial_buffer_size : 1;
-    uint32_t bit_mask = 0x01 << (m_data_bits -1);
-    while (loop_read-- > 0) {    // try to receive all consecutive bytes in a row
-      uint32_t rec = 0;
-      for (uint32_t i = 0; i < m_data_bits; i++) {
-        TM_SERIAL_WAIT_RCV;
-        rec >>= 1;
-        if (digitalRead(m_rx_pin)) rec |= bit_mask;
-      }
-      // Store the received value in the buffer unless we have an overflow
-      uint32_t next = (m_in_pos + 1) % serial_buffer_size;
-      if (next != m_out_pos) {
-        m_buffer[m_in_pos] = rec;
-        m_in_pos = next;
-      } else {
-        // Buffer overrun - exit
-        m_overflow = true;
-        loop_read = 0;
-      }
-
-      TM_SERIAL_WAIT_RCV_LOOP;    // wait for stop bit
-      if (2 == m_stop_bits) {
-        wait += m_bit_time;
-        TM_SERIAL_WAIT_RCV_LOOP;
-      }
-      wait += m_bit_time / 4;
-
-      if (loop_read <= 0) { break; }   // exit now if not very high speed or buffer full
-
-      bool start_of_next_byte = false;
-      for (uint32_t i = 0; i < 12; i++) {
-        TM_SERIAL_WAIT_RCV_LOOP;    // wait for 1/4 bits
-        wait += m_bit_time / 4;
-        if (!digitalRead(m_rx_pin)) {
-          // this is the start bit of the next byte
-          wait += m_bit_time;   // we have advanced in the first 1/4 of bit, and already added 1/4 of bit so we're roughly centered. Just skip start bit.
-          start_of_next_byte = true;
-          m_bit_follow_metric++;
-          break;  // exit loop
-        }
-      }
-
-      if (!start_of_next_byte) {
-        break;   // exit now if no sign of next byte
-      }
-    }
-    // Must clear this bit in the interrupt register,
-    // it gets set even when interrupts are disabled
-    GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, 1 << m_rx_pin);
-  } else {
-    // Currently supports 8-bit data only
-    uint32_t diff;
-    uint32_t level;
-
-    #define LASTBIT 9
-
-    GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, 1 << m_rx_pin);
-
-    level = digitalRead(m_rx_pin);
-
-    if (!level && !ss_index) {
-      // start condition
-      ss_bstart = ESP.getCycleCount() - (m_bit_time / 4);
-      ss_byte = 0;
-      ss_index++;
-      //digitalWrite(1, LOW);
-    } else {
-      // now any bit changes go here
-      // calc bit number
-      diff = (ESP.getCycleCount() - ss_bstart) / m_bit_time;
-      //digitalWrite(1, level);
-
-      if (!level && diff > LASTBIT) {
-        // start bit of next byte, store  and restart
-        // leave irq at change
-        for (uint32_t i = ss_index; i <= LASTBIT; i++) {
-          ss_byte |= (1 << i);
-        }
-        //stobyte(0,ssp->ss_byte>>1);
-        uint32_t next = (m_in_pos + 1) % serial_buffer_size;
-        if (next != m_out_pos) {
-          m_buffer[m_in_pos] = ss_byte >> 1;
-          m_in_pos = next;
-        }
-
-        ss_bstart = ESP.getCycleCount() - (m_bit_time / 4);
-        ss_byte = 0;
-        ss_index = 1;
-        return;
-      }
-      if (diff >= LASTBIT) {
-        // bit zero was 0,
-        //stobyte(0,ssp->ss_byte>>1);
-        uint32_t next = (m_in_pos + 1) % serial_buffer_size;
-        if (next != m_out_pos) {
-          m_buffer[m_in_pos] = ss_byte >> 1;
-          m_in_pos = next;
-        }
-        ss_byte = 0;
-        ss_index = 0;
-      } else {
-        // shift in
-        for (uint32_t i = ss_index; i < diff; i++) {
-          if (!level) ss_byte |= (1 << i);
-        }
-        ss_index = diff;
-      }
-    }
-  }
-}
-#endif // ESP8266

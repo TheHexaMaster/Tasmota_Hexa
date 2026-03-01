@@ -380,17 +380,7 @@ void MESHsetSleep(void) {
 }
 
 void MESHsetWifi(bool state) {
-#ifdef ESP8266                         // Only ESP8266 as ESP32 is a broker and needs Wifi
-  if (state) {                         // Wifi On
-    Settings->flag4.network_wifi = 1;  // (Re-)enable wifi as long as Mesh is not enabled
-//    TasmotaGlobal.global_state.wifi_down = 0;
-    Settings->flag.global_state = 0;   // (Wifi, MQTT) Control link led blinking (1)
-  } else {                             // Wifi Off and use ESP-NOW
-    Settings->flag4.network_wifi = 0;  // The "old" wifi off command
-    TasmotaGlobal.global_state.wifi_down = 1;
-    Settings->flag.global_state = 1;   // (Wifi, MQTT) Control link led blinking (1)
-  }
-#endif  // ESP8266
+
 }
 
 uint32_t MESHmaxPayloadSize(void) {

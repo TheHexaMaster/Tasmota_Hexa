@@ -1295,11 +1295,6 @@
  * Post-process compile options for TLS
 \*********************************************************************************************/
 
-#ifdef ESP8266
-#ifdef USE_SENDMAIL
-  #define USE_TLS                                // flag indicates we need to include TLS code
-#endif
-#endif
 
 #if defined(USE_MQTT_TLS) || defined(USE_TELEGRAM) || defined(USE_WEBCLIENT_HTTPS)
   #define USE_TLS                                // flag indicates we need to include TLS code

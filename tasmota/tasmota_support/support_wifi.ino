@@ -84,18 +84,9 @@ const char kWifiEncryptionTypes[] PROGMEM = "OPEN|WEP|WPA/PSK|WPA2/PSK|WPA/WPA2/
  * normalizes them to a consistent set of values.
  */
 String WifiEncryptionType(uint32_t i) {
-#ifdef ESP8266
-  // Reference. WiFi.encryptionType =
-  // 2 : ENC_TYPE_TKIP - WPA / PSK
-  // 4 : ENC_TYPE_CCMP - WPA2 / PSK
-  // 5 : ENC_TYPE_WEP  - WEP
-  // 7 : ENC_TYPE_NONE - open network
-  // 8 : ENC_TYPE_AUTO - WPA / WPA2 / PSK
-  uint8_t typea[] = { 0,2,0,3,1,0,0,4 };
-  int type = typea[WiFi.encryptionType(i) -1 &7];
-#else
+
   int type = WiFi.encryptionType(i);
-#endif
+
   if ((type < 0) || (type > 8)) { type = 0; }
   char stemp1[20];
   GetTextIndexed(stemp1, sizeof(stemp1), type, kWifiEncryptionTypes);
@@ -1430,9 +1421,6 @@ void WifiEnable(void) {
   Wifi.counter = 1;
 }
 
-//#ifdef ESP8266
-//#include <sntp.h>                       // sntp_servermode_dhcp()
-//#endif  // ESP8266
 
 #ifdef ESP32
 void WifiEvents(arduino_event_t *event);
@@ -1484,10 +1472,7 @@ void WifiConnect(void)
   WifiSetState(0);
 //  WifiSetOutputPower();
 
-//#ifdef ESP8266
-  // https://github.com/arendst/Tasmota/issues/16061#issuecomment-1216970170
-//  sntp_servermode_dhcp(0);
-//#endif  // ESP8266
+
 
   WiFi.persistent(false);     // Solve possible wifi init errors
   Wifi.status = 0;
@@ -1548,11 +1533,8 @@ void WifiShutdown(bool option) {
     // Courtesy of EspEasy
     // WiFi.persistent(true);    // use SDK storage of SSID/WPA parameters
     ETS_UART_INTR_DISABLE();
-#ifdef ESP8266
-    wifi_station_disconnect();  // this will store empty ssid/wpa into sdk storage
-#else
+
     WiFi.disconnect(true, true);
-#endif
     ETS_UART_INTR_ENABLE();
     // WiFi.persistent(false);   // Do not use SDK storage of SSID/WPA parameters
   }
@@ -1634,87 +1616,6 @@ void EspRestart(void) {
   }
 }
 
-#ifdef ESP8266
-//
-// Gratuitous ARP, backported from https://github.com/esp8266/Arduino/pull/6889
-//
-extern "C" {
-#if LWIP_VERSION_MAJOR == 1
-#include "netif/wlan_lwip_if.h" // eagle_lwip_getif()
-#include "netif/etharp.h" // gratuitous arp
-#else
-#include "lwip/etharp.h" // gratuitous arp
-#endif
-}
-
-/**
- * Sends a Gratuitous ARP packet to update network ARP tables
- * 
- * This function sends a Gratuitous ARP announcement to inform other devices
- * on the network about the device's MAC and IP address mapping. This helps
- * maintain connectivity by refreshing ARP cache entries on network devices,
- * particularly useful with routers that might otherwise expire ARP entries.
- * 
- * The function:
- * 1. Finds the active station interface
- * 2. Verifies it has a valid IP address
- * 3. Sends a gratuitous ARP packet
- * 
- * This implementation handles differences between LWIP v1 and v2.
- * Backported from https://github.com/esp8266/Arduino/pull/6889
- */
-void stationKeepAliveNow(void) {
-  AddLog(LOG_LEVEL_DEBUG_MORE, PSTR(D_LOG_WIFI "Sending Gratuitous ARP"));
-  for (netif* interface = netif_list; interface != nullptr; interface = interface->next)
-    if (
-          (interface->flags & NETIF_FLAG_LINK_UP)
-      && (interface->flags & NETIF_FLAG_UP)
-#if LWIP_VERSION_MAJOR == 1
-      && interface == eagle_lwip_getif(STATION_IF) /* lwip1 does not set if->num properly */
-      && (!ip_addr_isany(&interface->ip_addr))
-#else
-      && interface->num == STATION_IF
-      && (!ip4_addr_isany_val(*netif_ip4_addr(interface)))
-#endif
-  )
-  {
-    etharp_gratuitous(interface);
-    break;
-  }
-}
-
-/**
- * Periodically sends Gratuitous ARP packets to maintain network presence
- * 
- * This function manages the timing for sending Gratuitous ARP packets
- * based on the configured interval in Settings->param[P_ARP_GRATUITOUS].
- * 
- * The timing can be configured as:
- * - Values 1-100: Seconds between ARP packets
- * - Values >100: Minutes between ARP packets (value - 100)
- *   e.g., 105 = 5 minutes, 110 = 10 minutes
- * - Value 0: Feature disabled
- * 
- * This helps maintain connectivity with network devices that might
- * otherwise expire ARP cache entries, particularly useful with some
- * router models that aggressively clear their ARP tables.
- */
-void wifiKeepAlive(void) {
-  static uint32_t wifi_timer = millis();                     // Wifi keepalive timer
-
-  uint32_t wifiTimerSec = Settings->param[P_ARP_GRATUITOUS];  // 8-bits number of seconds, or minutes if > 100
-
-  if ((WL_CONNECTED != Wifi.status) || (0 == wifiTimerSec)) { return; }   // quick exit if wifi not connected or feature disabled
-
-  if (TimeReached(wifi_timer)) {
-    stationKeepAliveNow();
-    if (wifiTimerSec > 100) {
-      wifiTimerSec = (wifiTimerSec - 100) * 60;              // convert >100 as minutes, ex: 105 = 5 minutes, 110 = 10 minutes
-    }
-    SetNextTimeInterval(wifi_timer, wifiTimerSec * 1000);
-  }
-}
-#endif  // ESP8266
 
 /**
  * Returns the configured DNS resolution timeout

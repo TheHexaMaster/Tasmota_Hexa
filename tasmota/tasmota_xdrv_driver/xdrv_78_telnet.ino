@@ -176,9 +176,7 @@ void TelnetLoop(void) {
 
   if (Telnet.client) {
     // Output latest data
-#ifdef ESP8266
-    TelnetGetLog();                                  // As heap is low on ESP8266 it uses log output
-#endif
+
     if (1 == Telnet.prompt) {
       TelnetWriteColor(Telnet.color[0]);
       Telnet.client.printf("%s:# ", NetworkHostname());

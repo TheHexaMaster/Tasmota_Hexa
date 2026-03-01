@@ -89,18 +89,10 @@ bool DhtRead(uint32_t sensor) {
       delayMicroseconds(2000);                          // 20200621: See https://github.com/arendst/Tasmota/pull/7468#issuecomment-647067015
       break;
     case GPIO_SI7021:                                   // iTead SI7021
-#ifdef ESP8266
-      delayMicroseconds(500);
-#else
       delayMicroseconds(400);                           // Higher (or lower) results in Timeout waiting for high pulse on ESP32
-#endif
       break;
     case GPIO_MS01:                                     // Sonoff MS01
-#ifdef ESP8266
-      delayMicroseconds(450);
-#else
       delayMicroseconds(400);                           // Higher (or lower) results in Timeout waiting for high pulse on ESP32
-#endif
       break;
   }
 

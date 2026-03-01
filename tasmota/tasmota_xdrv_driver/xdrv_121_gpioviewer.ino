@@ -148,13 +148,10 @@ typedef struct {
   uint16_t init_done;
   uint16_t port;
   uint8_t ADCPinsCount;
-#ifdef ESP8266
-  uint8_t ADCPins[1];
-#else  // ESP32
+
   uint8_t ADCPins[MAX_GPIO_PIN];
   uint8_t TouchPins[MAX_GPIO_PIN];
   uint8_t TouchPinsCount;
-#endif  // ESP32
   bool mutex;
   bool sse_ready;
 } tGV;
@@ -164,11 +161,7 @@ WiFiClient GVWebClient;
 /*********************************************************************************************/
 
 int GetPinMode(uint32_t pin) {
-#ifdef ESP8266  
-//  if (17 == pin) { return GV_ANALOG; }    
-  if (17 == pin) { return GV_INPUT_PULLUP; }  // See Note 20240506
-  if (16 == pin) { return GV_NOT_USED; }      // Skip GPIO16
-#endif  // ESP8266
+
 
   uint32_t bit = digitalPinToBitMask(pin);
   uint32_t port = digitalPinToPort(pin);
@@ -211,10 +204,7 @@ bool GVInit(void) {
       GV->sampling = (GV_SAMPLING_INTERVAL < 20) ? 20 : GV_SAMPLING_INTERVAL;
       GV->baseUrl = GV_BASE_URL;
       GV->port = GV_PORT;
-#ifdef ESP8266
-      GV->ADCPins[0] = 17;
-      GV->ADCPinsCount = 1;
-#else  // ESP32
+
       int8_t channel;
       for (int i = 0; i < MAX_GPIO_PIN; i++) {
 #ifdef SOC_ADC_SUPPORTED
@@ -228,7 +218,7 @@ bool GVInit(void) {
           GV->TouchPins[GV->TouchPinsCount++] = i;
         }
       }
-#endif  // ESP32
+
       return true;
     }
     return false;
@@ -439,57 +429,7 @@ void GVHandleEspInfo(void) {
 
 void GVHandlePartition(void) {
   String jsonResponse = "["; // Start of JSON array
-#ifdef ESP8266
-#ifdef GV_USE_ESPINFO
-  int fl_tasmota = 0x0;
-  int fl_settings = (SETTINGS_LOCATION - CFG_ROTATES) * SPI_FLASH_SEC_SIZE;
-  int fl_filesystem = (FLASH_FS_SIZE) ? FLASH_FS_START * SPI_FLASH_SEC_SIZE : -1;
-  int fl_eeprom = EEPROM_LOCATION * SPI_FLASH_SEC_SIZE;  // eeprom, rfcal, wifi
-  int fl_end = ESP.getFlashChipSize();
-  int fl_ota = ((fl_filesystem > 0x100000) || (fl_eeprom > 0x100000)) ? 0x100000 : -1;
 
-  int fl_settings_pend = fl_eeprom;
-  if (fl_ota > 0) { 
-    fl_settings_pend = fl_ota;
-  }
-  else if (fl_filesystem > 0) {
-    fl_settings_pend = fl_filesystem;
-  }
-  int fl_ota_end = fl_eeprom;
-  if (fl_filesystem > 0) {
-    fl_ota_end = fl_filesystem;
-  }
-
-  struct Partition {
-    String label;       // Label, zero-terminated ASCII string
-    uint8_t type;       // 0 = Application, 1 = Data
-    uint8_t subtype;    // 0 = OTA selection, 1 = PHY init data, 16 = OTA0, 17 = OTA1, 131 = LITTLEFS
-    int address;        // Starting address in flash
-    int size;           // Size in bytes
-  };
-
-  static const Partition part_info[] = {
-    { "tasmota", 0, 16, fl_tasmota, fl_settings - fl_tasmota },
-    { "settings", 1, 0, fl_settings, fl_settings_pend - fl_settings },
-    { "ota1", 0, 17, fl_ota, fl_ota_end - fl_ota },
-    { "littlefs", 1, 131, fl_filesystem, fl_eeprom - fl_filesystem  },
-    { "rfcal", 1, 1, fl_eeprom, fl_end - fl_eeprom }
-  };
-
-  for (uint32_t i = 0; i < 5; i++) {
-    if (part_info[i].address != -1) {
-      if (jsonResponse.length() > 2) {
-        jsonResponse += ",";
-      }
-      jsonResponse += "{\"label\":\"" + String(part_info[i].label);
-      jsonResponse += "\",\"type\":" + String(part_info[i].type);
-      jsonResponse += ",\"subtype\":" + String(part_info[i].subtype);
-      jsonResponse += ",\"address\":\"0x" + String(part_info[i].address, HEX);
-      jsonResponse += "\",\"size\":" + String(part_info[i].size) + "}";
-    }
-  }
-#endif  // GV_USE_ESPINFO
-#endif  // ESP8266
 #ifdef ESP32
   bool firstEntry = true;    // Used to format the JSON array correctly
   const esp_partition_t *cur_part = esp_ota_get_running_partition();
@@ -663,16 +603,7 @@ void GVMonitorTask(void) {
     }
 #endif  // ESP32
 
-#ifdef ESP8266
-    // Read PWM GPIO
-    int pwm_value = AnalogRead(pin);
-    if (pwm_value > -1) {
-      pintype = GV_PWMPin;
-      pinmode = GV_OUTPUT;
-      originalValue = pwm_value;
-      currentState = changeUIntScale(originalValue, 0, Settings->pwm_range, 0, 255);  // Bring back to 0..255
-    }
-#endif  // ESP8266
+
 
 #ifdef USE_ADC
     else if (AdcPin(pin)) {
@@ -684,10 +615,7 @@ void GVMonitorTask(void) {
 #ifdef ESP32
       originalValue = AdcRead(pin, 2);
 #endif  // ESP32
-#ifdef ESP8266
-      // Fix exception 9 if using ticker - GV.sampling != 100 caused by delay(1) in AdcRead() (CallChain: (phy)pm_wakeup_init, (adc)test_tout, ets_timer_arm_new, delay, AdcRead, String6concat, MonitorTask)
-      originalValue = (GV.sampling != 100) ? analogRead(pin) : AdcRead(pin, 1);
-#endif  // ESP8266
+
 */
       originalValue = AdcRead1(pin);
       currentState = changeUIntScale(originalValue, 0, AdcRange(), 0, 255);   // Bring back to 0..255

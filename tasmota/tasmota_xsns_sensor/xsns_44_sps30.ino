@@ -26,9 +26,7 @@
 #define SPS30_ADDR 0x69
 
 #include <Wire.h>
-#ifdef ESP8266
-#include <twi.h>
-#endif
+
 
 uint8_t sps30_ready = 0;
 uint8_t sps30_running;
@@ -76,9 +74,7 @@ uint8_t sps30_calc_CRC(uint8_t *data) {
 
 void CmdClean(void);
 
-#ifdef ESP8266
-unsigned char twi_readFrom(unsigned char address, unsigned char* buf, unsigned int len, unsigned char sendStop);
-#endif
+
 
 void sps30_get_data(uint16_t cmd, uint8_t *data, uint8_t dlen) {
   unsigned char cmdb[2];
@@ -97,9 +93,7 @@ void sps30_get_data(uint16_t cmd, uint8_t *data, uint8_t dlen) {
   dlen/=2;
   dlen*=3;
 
-#ifdef ESP8266
-  twi_readFrom(SPS30_ADDR,twi_buff,dlen,1);
-#endif  // ESP8266
+
 #ifdef ESP32
   Wire.requestFrom((uint16_t)SPS30_ADDR, dlen, true);
   Wire.readBytes(twi_buff, dlen);

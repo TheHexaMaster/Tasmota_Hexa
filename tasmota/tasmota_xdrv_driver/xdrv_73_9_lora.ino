@@ -270,9 +270,7 @@ void LoraInput(void) {
 void LoraInit(void) {
   if ((SPI_MOSI_MISO == TasmotaGlobal.spi_enabled) &&
       (PinUsed(GPIO_LORA_CS)) && (PinUsed(GPIO_LORA_RST))) {
-#ifdef ESP8266
-    SPI.begin();
-#endif // ESP8266
+
 #ifdef ESP32
     SPI.begin(Pin(GPIO_SPI_CLK), Pin(GPIO_SPI_MISO), Pin(GPIO_SPI_MOSI), -1);
 //    SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));

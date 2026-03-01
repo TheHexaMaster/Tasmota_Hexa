@@ -188,11 +188,7 @@ void MESHInit(void) {
 }
 
 void MESHdeInit(void) {
-#ifdef ESP8266  // only ESP8266, ESP32 as a broker should not use deepsleep
-  AddLog(LOG_LEVEL_INFO, PSTR("MSH: Stopping"));
-  // TODO: degister from the broker, so he can stop MQTT-proxy
-  esp_now_deinit();
-#endif  // ESP8266
+
 }
 
 /*********************************************************************************************\
@@ -379,44 +375,7 @@ void MESHregisterNode(uint8_t mode){
 \*********************************************************************************************/
 
 void MESHstartNode(int32_t _channel, uint8_t _role){ //we need a running broker with a known channel at that moment
-#ifdef ESP8266 // for now only ESP8266, might be added for the ESP32 later
-  MESH.channel = _channel;
-  WiFi.mode(WIFI_STA);
-  WiFiHelper::begin("", "", MESH.channel, nullptr, false); //fake connection attempt to set channel
-  wifi_promiscuous_enable(1);
-  wifi_set_channel(MESH.channel);
-  wifi_promiscuous_enable(0);
-  WiFi.disconnect();
-  MESHsetWifi(0);
-  esp_now_deinit();  // in case it was already initialized but disconnected
-  int init_result = esp_now_init();
-  if (init_result != 0) {
-    AddLog(LOG_LEVEL_INFO, PSTR("MSH: Node init failed with error: %d"), init_result);
-    // try to re-launch wifi
-    MESH.role = ROLE_NONE;
-    MESHsetWifi(1);
-    WifiBegin(3, MESH.channel);
-    return;
-  }
 
-//  AddLog(LOG_LEVEL_INFO, PSTR("MSH: Node initialized, channel: %u"),wifi_get_channel()); //check if we succesfully set the
-  Response_P(PSTR("{\"%s\":{\"Node\":1,\"Channel\":%u,\"Role\":%u}}"), D_CMND_MESH, wifi_get_channel(), _role);
-  XdrvRulesProcess(0);
-
-  esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
-  esp_now_register_send_cb(CB_MESHDataSent);
-  esp_now_register_recv_cb(CB_MESHDataReceived);
-
-  MESHsetKey(MESH.key);
-  memcpy(MESH.sendPacket.receiver, MESH.broker, 6);
-  WiFi.macAddress(MESH.sendPacket.sender);
-  MESHaddPeer(MESH.broker); //must always be peer 0!! -return code -7 for peer list full
-  MESHcountPeers();
-  MESH.lastMessageFromBroker = millis();  // Init
-  MESH.role = (0 == _role) ? ROLE_NODE_SMALL : ROLE_NODE_FULL;
-  MESHsetSleep();
-  MESHregisterNode(0);
-#endif  // ESP8266
 }
 
 void MESHstartBroker(void) {       // Must be called after WiFi is initialized!! Rule - on system#boot do meshbroker endon

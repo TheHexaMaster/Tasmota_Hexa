@@ -64,11 +64,7 @@
 
 const char kDebugCommands[] PROGMEM = "|"  // No prefix
   D_CMND_MEMDUMP "|" D_CMND_CFGDUMP "|" D_CMND_CFGPEEK "|" D_CMND_CFGPOKE "|"
-#ifdef ESP8266
-#ifdef UMM_INLINE_METRICS
-  D_CMND_SHOWHEAP "|"
-#endif
-#endif
+
 #ifdef USE_WEBSERVER
   D_CMND_CFGXOR "|"
 #endif
@@ -85,11 +81,7 @@ const char kDebugCommands[] PROGMEM = "|"  // No prefix
 
 void (* const DebugCommand[])(void) PROGMEM = {
   &CmndMemDump, &CmndCfgDump, &CmndCfgPeek, &CmndCfgPoke,
-#ifdef ESP8266
-#ifdef UMM_INLINE_METRICS
-  &CmndShowHeap,
-#endif
-#endif
+
 #ifdef USE_WEBSERVER
   &CmndCfgXor,
 #endif
@@ -202,33 +194,7 @@ void CpuLoadLoop(void)
 
 /*******************************************************************************************/
 
-#ifdef ESP8266
-// All version from core 2.4.2
-// https://github.com/esp8266/Arduino/pull/5018
-// https://github.com/esp8266/Arduino/pull/4553
 
-extern "C" {
-#include <cont.h>
-  extern cont_t* g_pcont;
-}
-
-void DebugFreeMem(void) {
-  register uint32_t *sp asm("a1");
-
-  AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_DEBUG "FreeRam %d, FreeStack %d (%s)"), ESP.getFreeHeap(), 4 * (sp - g_pcont->stack), XdrvMailbox.data);
-}
-
-uint32_t FreeStack(void) {
-  register uint32_t *sp asm("a1");
-  return 4 * (sp - g_pcont->stack);
-}
-
-void AddLogMem(const char* function) {
-  register uint32_t *sp asm("a1");
-  AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_DEBUG "== %s FreeRam %d, FreeStack %d"), function, ESP.getFreeHeap(), 4 * (sp - g_pcont->stack));
-}
-
-#endif  // ESP8266
 #ifdef ESP32
 
 void DebugFreeMem(void) {
@@ -275,64 +241,7 @@ void DebugTimer(bool start) {
 
 void DebugRtcDump(char* parms)
 {
-#ifdef ESP8266
-  uint32_t CFG_COLS = 16;
 
-  uint16_t idx;
-  uint16_t maxrow;
-  uint16_t row;
-  uint16_t col;
-  char *p;
-
-  // |<--SDK data (256 bytes)-->|<--User data (512 bytes)-->|
-  // 000 - 0FF: SDK
-  //  000 - 01B: SDK rst_info
-  // 100 - 2FF: User
-  //  280 - 283: Tasmota RtcReboot   (Offset 100 (x 4bytes) - sizeof(RTCRBT) (x 4bytes))
-  //  290 - 2EB: Tasmota RtcSettings (Offset 100 (x 4bytes))
-
-  uint8_t buffer[768];
-//  ESP.rtcUserMemoryRead(0, (uint32_t*)&buffer, sizeof(buffer));
-  system_rtc_mem_read(0, (uint32_t*)&buffer, sizeof(buffer));
-
-  maxrow = ((sizeof(buffer)+CFG_COLS)/CFG_COLS);
-
-  uint16_t srow = strtol(parms, &p, 16) / CFG_COLS;
-  uint16_t mrow = strtol(p, &p, 10);
-
-//  AddLog(LOG_LEVEL_DEBUG, PSTR("Cnfg: Parms %s, Start row %d, rows %d"), parms, srow, mrow);
-
-  if (0 == mrow) {  // Default only 8 lines
-    mrow = 8;
-  }
-  if (srow > maxrow) {
-    srow = maxrow - mrow;
-  }
-  if (mrow < (maxrow - srow)) {
-    maxrow = srow + mrow;
-  }
-
-  char log_data[100];  // 020:  C7 2B 2E AB  70 E8 09 AE  C8 88 3D EA  7C FF 48 2F | +. p     = | H/|
-  for (row = srow; row < maxrow; row++) {
-    idx = row * CFG_COLS;
-    snprintf_P(log_data, sizeof(log_data), PSTR("%03X:"), idx);
-    for (col = 0; col < CFG_COLS; col++) {
-      if (!(col%4)) {
-        snprintf_P(log_data, sizeof(log_data), PSTR("%s "), log_data);
-      }
-      snprintf_P(log_data, sizeof(log_data), PSTR("%s %02X"), log_data, buffer[idx + col]);
-    }
-    snprintf_P(log_data, sizeof(log_data), PSTR("%s |"), log_data);
-    for (col = 0; col < CFG_COLS; col++) {
-//      if (!(col%4)) {
-//        snprintf_P(log_data, sizeof(log_data), PSTR("%s "), log_data);
-//      }
-      snprintf_P(log_data, sizeof(log_data), PSTR("%s%c"), log_data, ((buffer[idx + col] > 0x20) && (buffer[idx + col] < 0x7F)) ? (char)buffer[idx + col] : ' ');
-    }
-    snprintf_P(log_data, sizeof(log_data), PSTR("%s|"), log_data);
-    AddLogData(LOG_LEVEL_INFO, log_data);
-  }
-#endif  // ESP8266
 }
 
 /*******************************************************************************************/
@@ -487,23 +396,7 @@ void DebugCfgPoke(char* parms)
 
 void SetFlashMode(uint8_t mode)
 {
-#ifdef ESP8266
-  uint8_t *_buffer;
-  uint32_t address;
 
-  address = 0;
-  _buffer = new uint8_t[FLASH_SECTOR_SIZE];
-
-  if (ESP.flashRead(address, (uint32_t*)_buffer, FLASH_SECTOR_SIZE)) {
-    if (_buffer[2] != mode) {  // DOUT
-      _buffer[2] = mode;
-      if (ESP.flashEraseSector(address / FLASH_SECTOR_SIZE)) {
-        ESP.flashWrite(address, (uint32_t*)_buffer, FLASH_SECTOR_SIZE);
-      }
-    }
-  }
-  delete[] _buffer;
-#endif  // ESP8266
 }
 
 /*********************************************************************************************\
@@ -553,14 +446,7 @@ void CmndCfgPoke(void)
   ResponseCmndDone();
 }
 
-#ifdef ESP8266
-#ifdef UMM_INLINE_METRICS
-void CmndShowHeap(void) {
-  system_show_malloc();
-  ResponseCmndDone();
-}
-#endif
-#endif
+
 
 #ifdef USE_WEBSERVER
 void CmndCfgXor(void)
@@ -596,9 +482,7 @@ void CmndSerBufSize(void)
   if (XdrvMailbox.data_len > 0) {
     Serial.setRxBufferSize(XdrvMailbox.payload);
   }
-#ifdef ESP8266
-  ResponseCmndNumber(Serial.getRxBufferSize());
-#endif  // ESP8266
+
 #ifdef ESP32
   ResponseCmndDone();
 #endif  // ESP32
@@ -629,38 +513,7 @@ uint32_t DebugSwap32(uint32_t x) {
 
 void CmndFlashDump(void)
 {
-#ifdef ESP8266
-  // FlashDump
-  // FlashDump 0xFF000
-  // FlashDump 0xFC000 10
-  const uint32_t flash_start = 0x40200000;  // Start address flash
-  const uint8_t bytes_per_cols = 0x20;
-  const uint32_t max = (EEPROM_LOCATION + 5) * SPI_FLASH_SEC_SIZE;  // 0x100000 for 1M flash, 0x400000 for 4M flash
 
-  uint32_t start = flash_start;
-  uint32_t rows = 8;
-
-  if ((XdrvMailbox.payload >= 0) && (XdrvMailbox.payload <= (max - bytes_per_cols))) {
-    start += (XdrvMailbox.payload &0x7FFFFFFC);  // Fix exception as flash access is only allowed on 4 byte boundary
-
-    char *p;
-    uint32_t is_payload = strtol(XdrvMailbox.data, &p, 16);
-    rows = strtol(p, &p, 10);
-    if (0 == rows) { rows = 8; }
-  }
-  uint32_t end = start + (rows * bytes_per_cols);
-  if ((end - flash_start) > max) {
-    end = flash_start + max;
-  }
-
-  for (uint32_t pos = start; pos < end; pos += bytes_per_cols) {
-    uint32_t* values = (uint32_t*)(pos);
-    AddLog(LOG_LEVEL_INFO, PSTR("%06X:  %08X %08X %08X %08X  %08X %08X %08X %08X"), pos - flash_start,
-      DebugSwap32(values[0]), DebugSwap32(values[1]), DebugSwap32(values[2]), DebugSwap32(values[3]),
-      DebugSwap32(values[4]), DebugSwap32(values[5]), DebugSwap32(values[6]), DebugSwap32(values[7]));
-  }
-  ResponseCmndDone();
-#endif  // ESP8266
 }
 
 #ifdef USE_I2C
@@ -728,12 +581,7 @@ void CmndI2cRead(void)
 
 void CmndI2cStretch(void)
 {
-#ifdef ESP8266
-  if (TasmotaGlobal.i2c_enabled[0] && (XdrvMailbox.payload > 0)) {
-    Wire.setClockStretchLimit(XdrvMailbox.payload);
-  }
-  ResponseCmndDone();
-#endif  // ESP8266
+
 }
 
 void CmndI2cClock(void)

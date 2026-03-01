@@ -97,33 +97,7 @@ const char WIFI_HOSTNAME[] = WIFI_DEFAULT_HOSTNAME;    // Override by user_confi
 #error "Please add missing flashmode definition in the lines above!" // could be upcoming octal modes
 #endif // value check of CONFIG_TASMOTA_FLASHMODE
 
-/*********************************************************************************************\
- * ESP8266 specific parameters
-\*********************************************************************************************/
 
-#ifdef ESP8266
-
-#ifndef MODULE
-#define MODULE                      SONOFF_BASIC   // [Module] Select default model
-#endif
-#ifndef FALLBACK_MODULE
-#define FALLBACK_MODULE             SONOFF_BASIC   // [Module2] Select default module on fast reboot where USER_MODULE is user template
-#endif
-
-#ifndef ARDUINO_ESP8266_RELEASE
-#define ARDUINO_CORE_RELEASE        "STAGE"
-#else
-//#define ARDUINO_CORE_RELEASE        ARDUINO_ESP8266_RELEASE  // 2_7_8
-#define ARDUINO_CORE_RELEASE        "2.7.8"
-#endif  // ARDUINO_ESP8266_RELEASE
-
-#ifndef USE_ADC_VCC
-#define USE_ADC
-#else
-#undef USE_ADC
-#endif
-
-#endif  // ESP8266
 
 /*********************************************************************************************\
  * ESP32 specific parameters

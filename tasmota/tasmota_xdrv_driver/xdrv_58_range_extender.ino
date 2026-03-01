@@ -63,13 +63,6 @@ Backlog RgxSSID rangeextender ; RgxPassword securepassword ; RgxAddress 192.168.
 
 #warning **** USE_WIFI_RANGE_EXTENDER is enabled ****
 
-#ifdef ESP8266
-#if LWIP_FEATURES
-// All good
-#else
-#error LWIP_FEATURES required, add "-D PIO_FRAMEWORK_ARDUINO_LWIP2_HIGHER_BANDWIDTH" to build_flags
-#endif // LWIP_FEATURES
-#endif // ESP8266
 
 #ifdef ESP32
 #ifdef CONFIG_LWIP_IP_FORWARD
@@ -117,15 +110,11 @@ void (*const DrvRgxCommand[])(void) PROGMEM = {
 };
 
 #ifdef USE_WIFI_RANGE_EXTENDER_NAPT
-#ifdef ESP8266
-#include <lwip/napt.h>
-#endif // ESP8266
+
 #endif // USE_WIFI_RANGE_EXTENDER_NAPT
 
 #include <lwip/dns.h>
-#ifdef ESP8266
-#include <dhcpserver.h>
-#endif // ESP8266
+
 #ifdef ESP32
 #include "lwip/lwip_napt.h"
 #include <dhcpserver/dhcpserver.h>
@@ -394,10 +383,7 @@ void rngxSetup()
     AddLog(LOG_LEVEL_DEBUG, PSTR("RGX: Range Extender config incomplete"));
     return;
   }
-#ifdef ESP8266
-  dhcps_set_dns(0, WiFi.dnsIP(0));
-  dhcps_set_dns(1, WiFi.dnsIP(1));
-#endif // ESP8266
+
 #ifdef ESP32
   esp_err_t err;
   esp_netif_t* esp_netif_STA = get_esp_interface_netif(ESP_IF_WIFI_STA);
@@ -425,26 +411,7 @@ void rngxSetupNAPT(void)
 #ifdef USE_WIFI_RANGE_EXTENDER_NAPT
   if (Settings->sbflag1.range_extender_napt && !RgxSettings.napt_enabled)
   {
-#ifdef ESP8266
-    // ip_napt_init can only be called once, however device will reboot when disabled
-    // so no need to limit calls to init separately.
-    err_t ret = ip_napt_init(NAPT, NAPT_PORT);
-    if (ret == ERR_OK)
-    {
-      AddLog(LOG_LEVEL_INFO, PSTR("RGX: NAPT initialization complete"));
-      err_t ret = ip_napt_enable_no(SOFTAP_IF, 1);
-      if (ret == ERR_OK)
-      {
-        AddLog(LOG_LEVEL_INFO, PSTR("RGX: NAPT Enabled"));
-        RgxSettings.napt_enabled = true;
-      }
-    }
-    else
-    {
-      AddLog(LOG_LEVEL_ERROR, PSTR("RGX: NAPT initialization failed! (%d)"), ret);
-    }
 
-#endif // ESP8266
 #ifdef ESP32
     ip_napt_enable(WiFi.softAPIP(), 1);
     AddLog(LOG_LEVEL_INFO, PSTR("RGX: NAPT Enabled"));
@@ -456,14 +423,7 @@ void rngxSetupNAPT(void)
   /*
   else if (!Settings->sbflag1.range_extender_napt && RgxSettings.napt_enabled)
   {
-#ifdef ESP8266
-    err_t ret = ip_napt_enable_no(SOFTAP_IF, 0);
-    if (ret == ERR_OK)
-    {
-      AddLog(LOG_LEVEL_INFO, "RGX: NAPT Disabled");
-      RgxSettings.napt_enabled = false;
-    }
-#endif // ESP8266
+
 #ifdef ESP32
     ip_napt_enable(WiFi.softAPIP(), 0);
     AddLog(LOG_LEVEL_INFO, "RGX: NAPT Disabled, reboot maybe required");

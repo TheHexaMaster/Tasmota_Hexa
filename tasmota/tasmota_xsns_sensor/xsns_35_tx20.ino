@@ -278,11 +278,7 @@ static void IRAM_ATTR TX2xStartRead(void) {
   }
 #endif  // USE_TX23_WIND_SENSOR
 
-#ifdef ESP8266
-  // Must clear this bit in the interrupt register,
-  // it gets set even when interrupts are disabled
-  GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, 1 << Pin(GPIO_TX2X_TXD_BLACK));
-#endif
+
 }
 
 bool Tx2xAvailable(void)

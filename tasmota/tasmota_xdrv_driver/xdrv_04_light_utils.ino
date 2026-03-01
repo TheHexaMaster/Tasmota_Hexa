@@ -204,11 +204,8 @@ void HsToRgb(uint16_t hue, uint8_t sat, uint8_t *r_r, uint8_t *r_g, uint8_t *r_b
   if (r_b)  *r_b = b;
 }
 
-#ifdef ESP8266
-  #define POW FastPrecisePowf
-#else
+
   #define POW powf
-#endif
 
 //
 // Matrix 3x3 multiplied to a 3 vector, result in a 3 vector

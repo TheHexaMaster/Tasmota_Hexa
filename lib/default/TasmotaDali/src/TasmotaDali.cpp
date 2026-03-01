@@ -22,11 +22,7 @@ bool TasmotaDali::IsValidGPIOpin(int pin) {
 TasmotaDali::TasmotaDali(int receive_pin, int transmit_pin, bool receive_invert, bool transmit_invert, int buffer_size) {
   m_valid = false;
   if ((receive_pin < 0) || (transmit_pin < 0)) { return; }
-#ifdef ESP8266
-  if (!((IsValidGPIOpin(receive_pin)) && (IsValidGPIOpin(transmit_pin) || transmit_pin == 16))) {
-    return;
-  }
-#endif  // ESP8266
+
 #ifdef ESP32
   if (!GPIO_IS_VALID_GPIO(receive_pin)) { return; }
   if (!GPIO_IS_VALID_OUTPUT_GPIO(transmit_pin)) { return; }

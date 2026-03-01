@@ -55,9 +55,7 @@ void LoraWanPublishFooter(uint32_t node, bool decoded) {
   InfluxDbProcess(1);                                 // Use a copy of ResponseData
 #endif
 
-#ifdef ESP8266
-  if (!Settings->flag6.mqtt_disable_publish) {        // SetOption147 - If it is activated, Tasmota will not publish MQTT messages, but it will proccess event trigger rules
-#else  // ESP32
+
   bool decode_successful = false;
   if (!decoded) {
     String mqtt_data = TasmotaGlobal.mqtt_data;       // Backup as being destroyed by berry
@@ -70,7 +68,7 @@ void LoraWanPublishFooter(uint32_t node, bool decoded) {
   }
   if (!decode_successful &&
       !Settings->flag6.mqtt_disable_publish) {        // SetOption147 - If it is activated, Tasmota will not publish MQTT messages, but it will proccess event trigger rules
-#endif  // ESP32
+
     if (Settings->flag4.zigbee_distinct_topics) {     // SetOption89  - (MQTT, Zigbee) Distinct MQTT topics per device for Zigbee (1) (#7835)
       char subtopic[TOPSZ];
       // Clean special characters

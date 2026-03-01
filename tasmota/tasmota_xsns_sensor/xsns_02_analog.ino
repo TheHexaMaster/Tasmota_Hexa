@@ -76,10 +76,7 @@
 #include "esp32-hal-adc.h"
 #endif
 
-#ifdef ESP8266
-#define ANALOG_RESOLUTION             10               // 12 = 4095, 11 = 2047, 10 = 1023
-#define ANALOG_RANGE                  1023             // 4095 = 12, 2047 = 11, 1023 = 10
-#endif  // ESP8266
+
 
 #ifdef ESP32
 #undef ANALOG_RESOLUTION
@@ -281,9 +278,7 @@ void AdcSaveSettings(uint32_t channel) {
     Adc[channel].param[0], Adc[channel].param[1], Adc[channel].param[2], Adc[channel].param[3],
     Adc[channel].pin);
 
-#ifdef ESP8266
-  SettingsUpdateText(SET_ADC_PARAM1, parameters);                    // Save in only slot
-#else  // ESP32
+
   // Find used slot based on channel pin. If not find a free slot.
   int param_idx = AdcFindSlot(channel);
   if (-1 == param_idx) {
@@ -294,7 +289,6 @@ void AdcSaveSettings(uint32_t channel) {
     }
   }
   SettingsUpdateText(SET_ADC_PARAM1 + param_idx, parameters);       // Save in current slot
-#endif  // ESP32
 }
 
 uint32_t AdcGetType(uint32_t channel, uint32_t param_idx) {
@@ -414,9 +408,7 @@ void AdcInit(void) {
   memset(&Adc, 0, sizeof(Adc));
 
   uint32_t pin = 0;                           // ESP32 full range of GPIOs possible for ADC channels
-#ifdef ESP8266  
-  pin = ADC0_PIN;                             // ESP8266 single ADC channel
-#endif
+
   for (pin; pin < nitems(TasmotaGlobal.gpio_pin); pin++) {
     uint32_t adc_type = TasmotaGlobal.gpio_pin[pin] >> 5;
     switch(adc_type) {
@@ -558,19 +550,13 @@ float AdcGetTemperature(uint32_t channel) {
   // MAX_ADC_V in ESP8266 is 1
   // MAX_ADC_V in ESP32 is 3.3
   float Rt;
-#ifdef ESP8266
-  if (param3) { // Alternate mode
-    Rt = (float)param0 * (ANALOG_RANGE * ANALOG_V33 - (float)adc) / (float)adc;
-  } else {
-    Rt = (float)param0 * (float)adc / (ANALOG_RANGE * ANALOG_V33 - (float)adc);
-  }
-#else
+
   if (param3) { // Alternate mode
     Rt = (float)param0 * (ANALOG_RANGE - (float)adc) / (float)adc;
   } else {
     Rt = (float)param0 * (float)adc / (ANALOG_RANGE - (float)adc);
   }
-#endif
+
   float BC = (float)param2;                                              // Shelly param3 = 3350 (ANALOG_NTC_B_COEFFICIENT)
   float T = BC / (BC / ANALOG_T0 + TaylorLog(Rt / (float)param1));       // Shelly param2 = 10000 (ANALOG_NTC_RESISTANCE)
   return ConvertTemp(TO_CELSIUS(T));
@@ -981,10 +967,7 @@ void CmndAdcGpio(void) {
   // AdcGpio33 1                           Set to default 
   // AdcGpio33 32000, 10000, 3350          ADC_TEMP Shelly mode
   for (uint32_t channel = 0; channel < Adcs.present; channel++) {
-#ifdef ESP8266
-    // AdcGpio 32000, 10000, 3350          ADC_TEMP Shelly mode
-    XdrvMailbox.index = Adc[channel].pin;
-#endif
+
     if (XdrvMailbox.index == Adc[channel].pin) {
       XdrvMailbox.index = channel +1;
       if (XdrvMailbox.data_len) {
@@ -1096,11 +1079,7 @@ void CmndAdcParam(void) {
     AdcGetSettings(channel);
     Response_P(PSTR("{\"%s"), XdrvMailbox.command);                                 // {"AdcParam or {"AdcGpio
     if (strstr_P(XdrvMailbox.command, PSTR(D_CMND_ADCGPIO))) {
-#ifdef ESP8266
-      ResponseAppend_P(PSTR("\":["));
-#else
-      ResponseAppend_P(PSTR("%d\":["), Adc[channel].pin);
-#endif      
+      ResponseAppend_P(PSTR("%d\":["), Adc[channel].pin);    
     } else {
       ResponseAppend_P(PSTR("%d\":[%d,"), channel +1, Adc[channel].pin);
     }

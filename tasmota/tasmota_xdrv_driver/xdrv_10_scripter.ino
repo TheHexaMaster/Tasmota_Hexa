@@ -320,15 +320,6 @@ void Script_ticker4_end(void) {
 #define EEP_WRITE(A,B,C) eeprom_writeBytes(A, B, (uint8_t*)C);
 #define EEP_READ(A,B,C) eeprom_readBytes(A, B, (uint8_t*)C);
 
-#ifdef ESP8266
-#ifdef USE_24C256
-#undef EEP_INIT
-#define EEP_INIT(A) eeprom_init(A)
-#else
-#undef EEP_INIT
-#define EEP_INIT(A) alt_eeprom_init(A)
-#endif
-#endif
 
 
 #if defined(EEP_SCRIPT_SIZE) && !defined(ESP32)
@@ -736,9 +727,7 @@ typedef struct {
     uint8_t wsp;
 #endif
 
-#ifdef ESP8266
-    uint8_t pwmpin[5];
-#endif
+
 
 #ifdef ESP32
     uint8_t pwmpin[8];
@@ -1730,11 +1719,8 @@ void Script_Init_UDP() {
 
   glob_script_mem.packet_buffer = (char*)malloc(glob_script_mem.pb_size);
 
-#ifdef ESP8266
-  if (glob_script_mem.Script_PortUdp.beginMulticast(WiFi.localIP(), IPAddress(239,255,255,250), SCRIPT_UDP_PORT)) {
-#else
+
   if (glob_script_mem.Script_PortUdp.beginMulticast(IPAddress(239,255,255,250), SCRIPT_UDP_PORT)) {
-#endif
 
 
 #ifdef SCRIPT_DEBUG_UDP
@@ -6308,10 +6294,7 @@ int32_t I2SPlayFile(const char *path, uint32_t decoder_type);
                 glob_script_mem.spi.settings = SPISettings(fvar, MSBFIRST, SPI_MODE0);
 
                 if (TasmotaGlobal.spi_enabled) {
-#ifdef ESP8266
-                  SPI.begin();
-                  glob_script_mem.spi.spip = &SPI;
-#endif // ESP8266
+
 
 #ifdef ESP32
                   if (glob_script_mem.spi.sclk == -1) {
@@ -7299,16 +7282,6 @@ char *getop(char *lp, uint8_t *operand) {
 
 #if defined(USE_PLAY_WAVE) && defined(USE_UFILESYS)
 
-#ifdef ESP8266
-#include <i2s.h>
-#include <i2s_reg.h>
-/*
-i2S on ESP8266
-dout  = 3   	(RX)
-clk   = 15	  (D8)
-ws    = 2		  (D4)
-*/
-#endif // ESP8266
 
 
 // RIFF header
@@ -7420,24 +7393,6 @@ int32_t play_wave(char *path) {
   }
   fsize -= sizeof(wav_header_t);
 
-#ifdef ESP8266
-  i2s_begin();
-  i2s_set_rate(wh->Fmt.SampleRate);
-
-  while (wf.position() < fsize) {
-    int numBytes = _min(sizeof(buffer), fsize - wf.position() - 1);
-    int bytesread = wf.readBytes((char*)buffer, numBytes);
-    if (!bytesread) {
-      break;
-    }
-    for (int i = 0; i < numBytes / 2; i++) {
-      i2s_write_sample(buffer[i]);
-      OsWatchLoop();
-    }
-  }
-
-  i2s_end();
-#endif // ESP8266
 
 #ifdef ESP32
   i2s_channel_enable(glob_script_mem.tx_handle);
@@ -7527,21 +7482,12 @@ int32_t script_logfile_write(char *path, char *payload, uint32_t size) {
 #endif // USE_UFILESYS
 #endif // USE_SCRIPT_FATFS_EXT
 
-#ifdef ESP8266
-extern "C" {
-#include <cont.h>
-  extern cont_t* g_pcont;
-}
-uint16_t GetStack(void) {
-  register uint32_t *sp asm("a1");
-  return (4 * (sp - g_pcont->stack));
-}
-#else
+
 uint16_t GetStack(void) {
   register uint8_t *sp asm("a1");
   return (sp - pxTaskGetStackStart(NULL));
 }
-#endif //ESP8266
+
 
 char *GetStringArgument(char *lp, uint8_t lastop, char *cp, struct GVARS *gv) {
   uint8_t operand = 0;
@@ -8814,9 +8760,7 @@ chk_switch:
             else if (!strncmp(lp, "pwm", 3) && lp[4] == '(') {
               lp += 3;
               uint8_t channel = *lp & 0x0f;
-#ifdef ESP8266
-              if (channel > 5) {channel = 5;}
-#endif // ESP8266
+
 #ifdef ESP32
               if (channel > 8) {channel = 8;}
 #endif // ESP32
@@ -9423,16 +9367,7 @@ ScriptOneWire *ow = &glob_script_mem.ow;
 
           ow->ts->begin(9600);
 
-#ifdef ESP8266
-          if (ow->ts->hardwareSerial()) {
-            ClaimSerial();
-#ifdef ALLOW_OW_INVERT
-            if (invert == true) {
-              U0C0 = U0C0 | BIT(UCRXI) | BIT(UCTXI); // Inverse RX, TX
-            }
-#endif
-          }
-#endif // ESP8266
+
 
 #ifdef ESP32
 #ifdef ALLOW_OW_INVERT
@@ -11230,9 +11165,7 @@ extern uint8_t *buffer;
 
 int32_t SendFile(char *fname) {
 
-#ifdef ESP8266
-  return SendFile_sub(fname, 0);
-#endif // ESP8266
+
 
 #ifdef ESP32
 #ifdef USE_DLTASK
@@ -13657,11 +13590,7 @@ int32_t call2pwl(const char *url) {
 #endif // TESLA_POWERWALL
 
 
-//#ifdef ESP8266
 
-//#else
-//#include <WiFiClientSecure.h>
-//#endif //ESP8266
 
 // get https info page json string
 uint32_t call2https(const char *host, const char *path) {

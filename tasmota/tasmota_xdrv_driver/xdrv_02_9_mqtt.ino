@@ -207,14 +207,10 @@ void MqttNonTLSWarning(void) {
 PubSubClient MqttClient;
 
 void MqttSetClientTimeout(void) {
-#ifdef ESP8266
-  // setTimeout in msecs
-  EspClient.setTimeout(Settings->mqtt_wifi_timeout * 100);
-#else
+
   // setTimeout in secs
   uint32_t timeout = (Settings->mqtt_wifi_timeout < 10) ? 1 : Settings->mqtt_wifi_timeout / 10;
   EspClient.setTimeout(timeout);
-#endif
 }
 
 void MqttInit(void) {
@@ -1253,13 +1249,13 @@ void MqttReconnect(void) {
                          Settings->flag5.mqtt_persistent ? 0 : 1)) {     // Clean Session
 #ifdef USE_MQTT_TLS
     if (Mqtt.mqtt_tls) {
-#ifdef ESP8266
+
       AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_MQTT "TLS connected in %d ms, max ThunkStack used %d"),
         millis() - mqtt_connect_time, tlsClient->getMaxThunkStackUse());
-#elif defined(ESP32)
+
       AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_MQTT "TLS connected in %d ms, stack low mark %d"),
         millis() - mqtt_connect_time, uxTaskGetStackHighWaterMark(nullptr));
-#endif
+
       if (!tlsClient->getMFLNStatus()) {
         AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_MQTT "MFLN not supported by TLS server"));
       }

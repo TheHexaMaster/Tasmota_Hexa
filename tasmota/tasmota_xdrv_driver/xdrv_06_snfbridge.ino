@@ -555,41 +555,7 @@ bool Xdrv06(uint32_t function)
 {
   bool result = false;
 
-#ifdef ESP8266
-  if (SONOFF_BRIDGE == TasmotaGlobal.module_type) {
-    switch (function) {
-      case FUNC_SERIAL:
-        result = SonoffBridgeSerialInput();
-        break;
-      case FUNC_COMMAND:
-        result = DecodeCommand(kSonoffBridgeCommands, SonoffBridgeCommand);
-        break;
-#ifdef USE_WEBSERVER
-#ifndef FIRMWARE_MINIMAL
-      case FUNC_WEB_ADD_MAIN_BUTTON:
-        SonoffBridgeAddButton();
-        break;
-      case FUNC_WEB_GET_ARG:
-        SonoffBridgeWebGetArg();
-        break;
-#endif  // not FIRMWARE_MINIMAL
-#endif  // USE_WEBSERVER
-      case FUNC_INIT:
-        if (Settings->rf_duplicate_time < 10) {
-          Settings->rf_duplicate_time = SFB_TIME_AVOID_DUPLICATE;
-        }
-        SnfBridge.receive_raw_flag = 0;
-        SonoffBridgeSendCommand(0xA7);  // Stop reading RF signals enabling iTead default RF handling
-        break;
-      case FUNC_PRE_INIT:
-        SetSerial(19200, TS_SERIAL_8N1);
-        break;
-      case FUNC_ACTIVE:
-        result = true;
-        break;
-    }
-  }
-#endif  // ESP8266
+
   return result;
 }
 

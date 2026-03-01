@@ -80,14 +80,6 @@ void smtpCallback(SMTP_Status status);
 
 unsigned long sendMillis = 0;
 
-#ifdef ESP8266_CORE_SDK_V3_X_X
-
-#define ETH_CS_PIN 16 // D0
-ENC28J60lwIP eth(ETH_CS_PIN);
-// Wiznet5100lwIP eth(ETH_CS_PIN);
-// Wiznet5500lwIP eth(ETH_CS_PIN);
-
-#endif
 
 void sendMail()
 {
@@ -98,16 +90,7 @@ void sendMail()
 
   Session_Config config;
 
-  /* Assign the pointer to Ethernet module lwip interface */
-#ifdef ESP8266_CORE_SDK_V3_X_X
-#if defined(ENABLE_ESP8266_ENC28J60_ETH)
-  config.spi_ethernet_module.enc28j60 = &eth;
-#elif defined(ENABLE_ESP8266_W5100_ETH)
-  config.spi_ethernet_module.w5100 = &eth;
-#elif defined(ENABLE_ESP8266_W5500_ETH)
-  config.spi_ethernet_module.w5500 = &eth;
-#endif
-#endif
+
 
   config.server.host_name = SMTP_HOST;
   config.server.port = SMTP_PORT;
@@ -157,48 +140,14 @@ void setup()
   Serial.begin(115200);
   Serial.println();
 
-#ifdef ESP8266_CORE_SDK_V3_X_X
 
-  SPI.begin();
-  SPI.setClockDivider(SPI_CLOCK_DIV4); // 4 MHz?
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setDataMode(SPI_MODE0);
-  eth.setDefault(); // use ethernet for default route
-  if (!eth.begin())
-  {
-    Serial.println("ethernet hardware not found ... sleeping");
-    while (1)
-    {
-      delay(1000);
-    }
-  }
-  else
-  {
-    Serial.print("connecting ethernet");
-    while (!eth.connected())
-    {
-      Serial.print(".");
-      delay(1000);
-    }
-  }
-  Serial.println();
-  Serial.print("ethernet IP address: ");
-  Serial.println(eth.localIP());
-
-#else
   Serial.println("This example requires ESP8266 Arduino Core SDK v3.x.x, please update.");
-#endif
+
 }
 
 void loop()
 {
-#ifdef ESP8266_CORE_SDK_V3_X_X
-  if (millis() - sendMillis > 300000 || sendMillis == 0)
-  {
-    sendMillis = millis();
-    sendMail();
-  }
-#endif
+
 }
 
 void smtpCallback(SMTP_Status status)

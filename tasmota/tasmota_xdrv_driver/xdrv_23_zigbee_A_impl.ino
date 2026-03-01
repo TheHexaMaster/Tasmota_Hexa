@@ -88,9 +88,7 @@ void ZigbeeInit(void)
       uint64_t mac64 = 0;     // stuff mac address into 64 bits
       WiFi.macAddress((uint8_t*) &mac64);
       uint32_t esp_id = ESP_getChipId();
-#ifdef ESP8266
-      uint32_t flash_id = ESP.getFlashChipId();
-#endif  // ESP8266
+
 #ifdef ESP32
       uint32_t flash_id = 0;
 #endif  // ESP32

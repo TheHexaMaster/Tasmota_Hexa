@@ -251,9 +251,7 @@ enum tuyamcubr_parser_state {
 	TUYAMCUBR_P_SKIP_CKSUM,
 };
 
-//#ifdef ESP8266
-//#define TUYAMCUBR_BUFLEN	256
-//#else
+
 #define TUYAMCUBR_BUFLEN	1024
 //#endif
 

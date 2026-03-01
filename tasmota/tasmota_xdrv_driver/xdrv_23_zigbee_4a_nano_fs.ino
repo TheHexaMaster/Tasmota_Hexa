@@ -522,16 +522,7 @@ public:
   }
 #endif
 
-#ifdef ESP8266
-  // == Buffer ================================================
-  // binary buffer
-  const uint8_t * buffer = nullptr;
-  void init(const uint8_t * buf, size_t buflen) {
-    buffer = buf;
-    len = buflen;
-    is_valid = (buffer != nullptr) && (len > 0);
-  }
-#endif // ESP8266
+
   
 
   // ==================================================
@@ -566,15 +557,7 @@ int32_t Univ_Read_File::readBytes(uint8_t* buf, size_t btr) {
   }
 #endif // USE_ZIGBEE_EEPROM
 
-#ifdef ESP8266
-  // binary buffer
-  if (buffer != nullptr)  {
-    if (btr > len - cursor) { btr = len - cursor; }
-    memcpy_P(buf, buffer + cursor, btr);
-    cursor += btr;
-    return btr;
-  }
-#endif // ESP8266
+
 
   return -1;
 }
@@ -617,18 +600,6 @@ public:
   }
 #endif
 
-#ifdef ESP8266
-  // == Buffer ================================================
-  // binary buffer
-  size_t buflen = 0;
-  uint8_t * buffer = nullptr;
-  uint16_t  cursor = 0;
-  void init(uint8_t * buf, size_t _buflen) {
-    buffer = buf;
-    buflen = _buflen;
-    is_valid = (buffer != nullptr) && (buflen > 0);
-  }
-#endif // ESP8266
 
   // ==================================================
   inline bool valid(void) const { return is_valid; }       // does the file exist?
@@ -666,11 +637,7 @@ int32_t Univ_Write_File::getCursor(void) {
   }
 #endif // USE_ZIGBEE_EEPROM
 
-#ifdef ESP8266
-  if (buffer != nullptr) {
-    return cursor;
-  }
-#endif // ESP8266
+
 
   return -1;
 }
@@ -691,15 +658,7 @@ int32_t Univ_Write_File::writeBytes(uint8_t* buf, size_t btw) {
   }
 #endif // USE_ZIGBEE_EEPROM
 
-#ifdef ESP8266
-  if (buffer != nullptr) {
-    // binary buffer
-    if (btw > buflen - cursor) { btw = buflen - cursor; }
-    memcpy_P(buffer + cursor, buf, btw);
-    cursor += btw;
-    return btw;
-  }
-#endif // ESP8266
+
 
   return -1;
 }

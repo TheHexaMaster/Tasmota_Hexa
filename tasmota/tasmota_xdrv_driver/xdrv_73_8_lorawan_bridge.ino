@@ -428,11 +428,9 @@ void LoraWanTickerSend(void) {
       Lora->Config(false);
     }
     Lora->send_request = true;                       // Send in loop fixing watchdogs
-#ifdef ESP8266
-    SleepSkip();                                     // Skip sleep
-#else   // ESP32
+
     LoRaWanSend();
-#endif  // ESP8266/ESP32
+
   }
 }
 

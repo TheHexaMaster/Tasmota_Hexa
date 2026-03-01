@@ -960,16 +960,12 @@ void CmndStatus(void)
     Response_P(PSTR("{\"" D_CMND_STATUS D_STATUS1_PARAMETER "\":{\"" D_JSON_BAUDRATE "\":%d,\"" D_CMND_SERIALCONFIG "\":\"%s\",\"" D_CMND_GROUPTOPIC "\":\"%s\",\"" D_CMND_OTAURL "\":\"%s\",\""
                           D_JSON_RESTARTREASON "\":\"%s\",\"" D_JSON_UPTIME "\":\"%s\",\"" D_JSON_STARTUPUTC "\":\"%s\",\"" D_CMND_SLEEP "\":%d,\""
                           D_JSON_CONFIG_HOLDER "\":%d,\"" D_JSON_BOOTCOUNT "\":%d,\"BCResetTime\":\"%s\",\"" D_JSON_SAVECOUNT "\":%d"
-#ifdef ESP8266
-                          ",\"" D_JSON_SAVEADDRESS "\":\"%X\""
-#endif
+
                           "}}"),
                           TasmotaGlobal.baudrate, GetSerialConfig().c_str(), SettingsText(SET_MQTT_GRP_TOPIC), SettingsText(SET_OTAURL),
                           GetResetReason().c_str(), GetUptime().c_str(), GetDateAndTime(DT_RESTART).c_str(), Settings->sleep,
                           Settings->cfg_holder, Settings->bootcount, GetDateAndTime(DT_BOOTCOUNT).c_str(), Settings->save_flag
-#ifdef ESP8266
-                          , GetSettingsAddress()
-#endif
+
                           );
     CmndStatusResponse(1);
   }
@@ -977,9 +973,7 @@ void CmndStatus(void)
   // Status 2 - StatusFWR
   if ((0 == payload) || (2 == payload)) {
     Response_P(PSTR("{\"" D_CMND_STATUS D_STATUS2_FIRMWARE "\":{\"" D_JSON_VERSION "\":\"%s%s%s\",\"" D_JSON_BUILDDATETIME "\":\"%s\""
-#ifdef ESP8266
-                          ",\"" D_JSON_BOOTVERSION "\":%d"
-#endif
+
                           ",\"" D_JSON_COREVERSION "\":\"" ARDUINO_CORE_RELEASE "\",\"" D_JSON_SDKVERSION "\":\"%s\","
                           "\"CpuFrequency\":%d,\"Hardware\":\"%s\""
 #ifdef CONFIG_ESP_WIFI_REMOTE_ENABLED
@@ -987,9 +981,7 @@ void CmndStatus(void)
 #endif  // CONFIG_ESP_WIFI_REMOTE_ENABLED
                           "%s}}"),
                           TasmotaGlobal.version, TasmotaGlobal.image_name, GetCodeCores().c_str(), GetBuildDateAndTime().c_str()
-#ifdef ESP8266
-                          , ESP.getBootVersion()
-#endif
+
                           , ESP.getSdkVersion(),
                           ESP.getCpuFreqMHz(), GetDeviceHardwareRevision().c_str(),
 #ifdef CONFIG_ESP_WIFI_REMOTE_ENABLED
@@ -1394,9 +1386,7 @@ void CmndRestart(void)
 
 void CmndPowerOnState(void)
 {
-#ifdef ESP8266
-  if (TasmotaGlobal.module_type != MOTOR)
-#endif  // ESP8266
+
   {
     /* 0 = Keep relays off after power on
       * 1 = Turn relays on after power on, if PulseTime set wait for PulseTime seconds, and turn relays off
@@ -2074,11 +2064,7 @@ void CmndGpios(void) {
     ShowGpios(nullptr, GPIO_SENSOR_END, 0, lines);
   } else {
     ShowGpios(kGpioNiceList, nitems(kGpioNiceList), 0, lines);
-#ifdef ESP8266
-#ifndef USE_ADC_VCC
-    ShowGpios(kAdcNiceList, nitems(kAdcNiceList), 1, lines);
-#endif  // USE_ADC_VCC
-#endif  // ESP8266
+
   }
   ResponseClear();
 }
@@ -2109,10 +2095,7 @@ void CmndTemplate(void)
       SettingsUpdateText(SET_TEMPLATE_NAME, PSTR("Merged"));
       uint32_t j = 0;
       for (uint32_t i = 0; i < nitems(Settings->user_template.gp.io); i++) {
-#ifdef ESP8266
-        if (6 == i) { j = 9; }
-        if (8 == i) { j = 12; }
-#endif  // ESP8266
+
 #ifdef ESP32
 #if CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6
         // No change
@@ -2207,9 +2190,7 @@ void CmndSerialBuffer(void) {
     }
     Serial.setRxBufferSize(size);
   }
-#ifdef ESP8266
-  ResponseCmndNumber(Serial.getRxBufferSize());
-#endif
+
 #ifdef ESP32
   if (size) {
     ResponseCmndNumber(size);

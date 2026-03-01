@@ -102,10 +102,7 @@ extern "C" void IRAM_ATTR ACDimmerTimer_intr() {
 
     if (time_since_zc + TRIGGER_PERIOD + 30 >= ac_zero_cross_dimmer.enable_time_us[i]){
       // Very close to the fire event. Loop the last µseconds to wait.
-#ifdef ESP8266
-      // on ESP8266 we can change dynamically the trigger interval.
-      ac_zero_cross_dimmer.actual_tigger_Period = tmin(ac_zero_cross_dimmer.actual_tigger_Period*2,ac_zero_cross_dimmer.enable_time_us[i] - time_since_zc);
-#endif 
+
 #ifdef ESP32         
       while (time_since_zc < ac_zero_cross_dimmer.enable_time_us[i]) {
         time_since_zc =  micros() - ac_zero_cross_dimmer.crossed_zero_at;
@@ -123,12 +120,7 @@ extern "C" void IRAM_ATTR ACDimmerTimer_intr() {
   }
 }
 
-#ifdef ESP8266
-extern "C" uint32_t IRAM_ATTR ACDimmerTimer_intr_ESP8266() {
-  ACDimmerTimer_intr();
-  return ac_zero_cross_dimmer.actual_tigger_Period * 80;
-}
-#endif // ESP8266
+
 
 void ACDimmerInterruptDisable(bool disable)
 { 
@@ -290,9 +282,7 @@ bool Xdrv68(uint32_t function)
 #ifdef ESP32      
         //ACDimmerInterruptDisable(false);
 #endif      
-#ifdef ESP8266
-        setTimer1Callback(&ACDimmerTimer_intr_ESP8266);       
-#endif   
+
         break;
       case FUNC_EVERY_SECOND:
         ACDimmerLogging();

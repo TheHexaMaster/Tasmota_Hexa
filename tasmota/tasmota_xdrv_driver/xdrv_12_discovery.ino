@@ -57,9 +57,6 @@ void TasDiscoverMessage(void) {
 
   bool TuyaMod = false;
   bool iFanMod = false;
-#ifdef ESP8266
-  iFanMod = ((SONOFF_IFAN02 == TasmotaGlobal.module_type) || (SONOFF_IFAN03 == TasmotaGlobal.module_type));
-#endif  // ESP8266
 
   ResponseAppend_P(PSTR("],"                                   // Friendly Names (end)
                    "\"hn\":\"%s\","                            // Host Name
@@ -155,9 +152,7 @@ void TasDiscoverMessage(void) {
   bool SerialButton = false;
   // Enable Discovery for Buttons only if SetOption73 is enabled
   for (uint32_t i = 0; i < MAX_KEYS_SET; i++) {
-#ifdef ESP8266
-    SerialButton = ((0 == i) && (SONOFF_DUAL == TasmotaGlobal.module_type ));
-#endif  // ESP8266
+
     ResponseAppend_P(PSTR("%s%d"), (i > 0 ? "," : ""), (SerialButton ? 1 : (ButtonUsed(i)) && Settings->flag3.mqtt_buttons));
   }
 

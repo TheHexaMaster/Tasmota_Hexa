@@ -47,9 +47,7 @@
 #endif
 
 const uint8_t rotary_offset = 128;
-#ifdef ESP8266
-const int8_t rotary_state_pos[16] = { 0, 1, -1, 2, -1, 0, -2, 1, 1, -2, 0, -1, 2, -1, 1, 0 };
-#endif  // ESP8266
+
 
 struct ROTARY {
   uint8_t no_pullup_mask_a = 0;                // Rotary A pull-up bitmask flags
@@ -151,11 +149,7 @@ void RotaryInit(void) {
   Rotary.present = false;
 
   Rotary.model = !TasmotaGlobal.gpio_optiona.rotary_mi_desk;  // Option_A5
-#ifdef ESP8266
-  if (MI_DESK_LAMP == TasmotaGlobal.module_type) {
-    Rotary.model = 0;
-  }
-#endif  // ESP8266
+
 
   AddLog(LOG_LEVEL_DEBUG, PSTR("ROT: Mode %d"), Rotary.model);
 

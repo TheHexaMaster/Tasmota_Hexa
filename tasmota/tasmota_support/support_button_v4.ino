@@ -242,16 +242,10 @@ void ButtonInit(void) {
 */
   for (uint32_t i = 0; i < MAX_KEYS_SET; i++) {
     Button.last_state[i] = NOT_PRESSED;
-#ifdef ESP8266
-    if ((0 == i) && ((SONOFF_DUAL == TasmotaGlobal.module_type) || (CH4 == TasmotaGlobal.module_type))) {
-      bitSet(Button.used, i);            // This pin is used
-    } else
-#endif  // ESP8266
+
     if (PinUsed(GPIO_KEY1, i)) {
       bitSet(Button.used, i);            // This pin is used
-#ifdef ESP8266
-      pinMode(Pin(GPIO_KEY1, i), bitRead(Button.no_pullup_mask, i) ? INPUT : ((16 == Pin(GPIO_KEY1, i)) ? INPUT_PULLDOWN_16 : INPUT_PULLUP));
-#endif  // ESP8266
+
 #ifdef ESP32
       pinMode(Pin(GPIO_KEY1, i), bitRead(Button.pulldown_mask, i) ? INPUT_PULLDOWN : bitRead(Button.no_pullup_mask, i) ? INPUT : INPUT_PULLUP);
 #endif  // ESP32
@@ -371,21 +365,7 @@ void ButtonHandler(void) {
 
     uint8_t button = Button.debounced_state[button_index];
 
-#ifdef ESP8266
-    if (!button_index && ((SONOFF_DUAL == TasmotaGlobal.module_type) || (CH4 == TasmotaGlobal.module_type))) {
-      if (Button.dual_code) {
-        AddLog(LOG_LEVEL_DEBUG, PSTR("BTN: Code %04X"), Button.dual_code);
-        button = PRESSED;
-        if (0xF500 == Button.dual_code) {                      // Button hold
-          Button.hold_timer[button_index] = (loops_per_second * Settings->param[P_HOLD_TIME] / 10) -1;  // SetOption32 (40)
-          hold_time_extent = 1;
-        }
-        Button.dual_code = 0;
-      } else {
-        button = NOT_PRESSED;
-      }
-    } else
-#endif  // ESP8266
+
     if (PinUsed(GPIO_KEY1, button_index)) {
 
 #if defined(SOC_TOUCH_VERSION_1) || defined(SOC_TOUCH_VERSION_2)
@@ -423,31 +403,7 @@ void ButtonHandler(void) {
     if (XdrvCall(FUNC_BUTTON_PRESSED)) {
       // Serviced
     }
-#ifdef ESP8266
-    else if (SONOFF_4CHPRO == TasmotaGlobal.module_type) {
-      if (Button.hold_timer[button_index]) { Button.hold_timer[button_index]--; }
 
-      bool button_pressed = false;
-      if ((PRESSED == button) && (NOT_PRESSED == Button.last_state[button_index])) {
-        AddLog(LOG_LEVEL_DEBUG, PSTR("BTN: Button%d level 1-0"), button_index +1);
-        Button.hold_timer[button_index] = loops_per_second;
-        button_pressed = true;
-      }
-      if ((NOT_PRESSED == button) && (PRESSED == Button.last_state[button_index])) {
-        AddLog(LOG_LEVEL_DEBUG, PSTR("BTN: Button%d level 0-1"), button_index +1);
-        if (!Button.hold_timer[button_index]) { button_pressed = true; }  // Do not allow within 1 second
-      }
-      if (button_pressed) {
-        if (!Settings->flag3.mqtt_buttons) {                 // SetOption73 (0) - Decouple button from relay and send just mqtt topic
-          if (!SendKey(KEY_BUTTON, button_index +1, POWER_TOGGLE)) {  // Execute Toggle command via MQTT if ButtonTopic is set
-            ExecuteCommandPower(button_index +1, POWER_TOGGLE, SRC_BUTTON);  // Execute Toggle command internally
-          }
-        } else {
-          MqttButtonTopic(button_index +1, 1, 0);            // SetOption73 (0) - Decouple button from relay and send just mqtt topic
-        }
-      }
-    }
-#endif  // ESP8266
     else {
       if ((PRESSED == button) && (NOT_PRESSED == Button.last_state[button_index])) {
 
@@ -515,11 +471,7 @@ void ButtonHandler(void) {
 
             bool single_press = false;
             if (Button.press_counter[button_index] < 3) {    // Single or Double press
-#ifdef ESP8266
-              if ((SONOFF_DUAL_R2 == TasmotaGlobal.module_type) || (SONOFF_DUAL == TasmotaGlobal.module_type) || (CH4 == TasmotaGlobal.module_type)) {
-                single_press = true;
-              } else
-#endif  // ESP8266
+
               {
                 single_press = (Settings->flag.button_swap +1 == Button.press_counter[button_index]);  // SetOption11 (0)
                 if ((1 == Button.used) && (2 == TasmotaGlobal.devices_present)) {  // Single Button with two devices only

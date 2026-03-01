@@ -235,9 +235,7 @@ void SwitchInit(void) {
     Switch.last_state[i] = NOT_PRESSED;
     if (PinUsed(GPIO_SWT1, i)) {
       bitSet(Switch.used, i);            // This pin is used
-#ifdef ESP8266
-      pinMode(Pin(GPIO_SWT1, i), bitRead(Switch.no_pullup_mask, i) ? INPUT : ((16 == Pin(GPIO_SWT1, i)) ? INPUT_PULLDOWN_16 : INPUT_PULLUP));
-#endif  // ESP8266
+
 #ifdef ESP32
       pinMode(Pin(GPIO_SWT1, i), bitRead(Switch.pulldown_mask, i) ? INPUT_PULLDOWN : bitRead(Switch.no_pullup_mask, i) ? INPUT : INPUT_PULLUP);
 #endif  // ESP32
