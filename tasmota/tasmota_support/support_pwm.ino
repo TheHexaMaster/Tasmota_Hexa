@@ -19,9 +19,9 @@
 
 int16_t analog_write_state[MAX_GPIO_PIN] = { -1 };
 
-void analogWritePhase(uint8_t pin, int val, uint32_t phase) {
+void AnalogWrite(uint8_t pin, int val) {
   analog_write_state[pin] = val;
-  analogWritePhase(pin, val, 0);
+  analogWrite(pin, val);
 }
 
 uint32_t AnalogRead(uint8_t pin) {
@@ -230,7 +230,7 @@ void CmndPwm(void)
       } else {
         Settings->pwm_value_ext[pwm_index - MAX_PWMS_LEGACY] = XdrvMailbox.payload;
       }
-      analogWritePhase(Pin(GPIO_PWM1, pwm_index), bitRead(TasmotaGlobal.pwm_inverted, pwm_index) ? Settings->pwm_range - XdrvMailbox.payload : XdrvMailbox.payload);
+      AnalogWrite(Pin(GPIO_PWM1, pwm_index), bitRead(TasmotaGlobal.pwm_inverted, pwm_index) ? Settings->pwm_range - XdrvMailbox.payload : XdrvMailbox.payload);
     }
     Response_P(PSTR("{"));
     MqttShowPWMState();  // Render the PWM status to MQTT
@@ -247,13 +247,13 @@ void GpioInitPwm(void) {
       pinMode(Pin(GPIO_PWM1, i), OUTPUT);
       if (i < TasmotaGlobal.light_type) {
         // force PWM GPIOs to low or high mode if belongs to the light (always <5), see #7165
-        analogWritePhase(Pin(GPIO_PWM1, i), bitRead(TasmotaGlobal.pwm_inverted, i) ? Settings->pwm_range : 0, 0);
+        AnalogWrite(Pin(GPIO_PWM1, i), bitRead(TasmotaGlobal.pwm_inverted, i) ? Settings->pwm_range : 0);
       } else {
         TasmotaGlobal.pwm_present = true;
         if (i < MAX_PWMS_LEGACY) {
-          analogWritePhase(Pin(GPIO_PWM1, i), bitRead(TasmotaGlobal.pwm_inverted, i) ? Settings->pwm_range - Settings->pwm_value[i] : Settings->pwm_value[i], 0);
+          AnalogWrite(Pin(GPIO_PWM1, i), bitRead(TasmotaGlobal.pwm_inverted, i) ? Settings->pwm_range - Settings->pwm_value[i] : Settings->pwm_value[i]);
         } else {
-          analogWritePhase(Pin(GPIO_PWM1, i), bitRead(TasmotaGlobal.pwm_inverted, i) ? Settings->pwm_range - Settings->pwm_value_ext[i] : Settings->pwm_value_ext[i], 0);
+          AnalogWrite(Pin(GPIO_PWM1, i), bitRead(TasmotaGlobal.pwm_inverted, i) ? Settings->pwm_range - Settings->pwm_value_ext[i] : Settings->pwm_value_ext[i]);
         }
       }
     }
@@ -266,7 +266,8 @@ void ResetPwm(void)
 {
   for (uint32_t i = 0; i < MAX_PWMS; i++) {     // Basic PWM control only
     if (PinUsed(GPIO_PWM1, i)) {
-      analogWritePhase(Pin(GPIO_PWM1, i), bitRead(TasmotaGlobal.pwm_inverted, i) ? Settings->pwm_range : 0, 0);
+      AnalogWrite(Pin(GPIO_PWM1, i), bitRead(TasmotaGlobal.pwm_inverted, i) ? Settings->pwm_range : 0);
+//      AnalogWrite(Pin(GPIO_PWM1, i), bitRead(TasmotaGlobal.pwm_inverted, i) ? Settings->pwm_range - Settings->pwm_value[i] : Settings->pwm_value[i]);
     }
   }
 }

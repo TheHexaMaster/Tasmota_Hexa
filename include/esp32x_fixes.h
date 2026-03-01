@@ -1,3 +1,4 @@
+#pragma once
 /*
   esp32x_fixes.h - fix esp32x toolchain
 
@@ -29,6 +30,10 @@
  *                            -I$PROJECT_DIR/include
  *                            -include "esp32x_fixes.h"
  */
+
+#include <stdint.h>
+#include <string.h>   // memcpy, memcmp
+
 #ifdef __riscv
 
 #undef __INT32_TYPE__
@@ -39,37 +44,71 @@
 
 #endif // __riscv
 
-//alias, deprecated for the chips after esp32s2
+// alias, deprecated for the chips after esp32s2
 #ifdef CONFIG_IDF_TARGET_ESP32
-#define SPI_HOST    SPI1_HOST
-#define HSPI_HOST   SPI2_HOST
-#define VSPI_HOST   SPI3_HOST
+  #define SPI_HOST    SPI1_HOST
+  #define HSPI_HOST   SPI2_HOST
+  #define VSPI_HOST   SPI3_HOST
 
 #elif CONFIG_IDF_TARGET_ESP32S2
-// SPI_HOST (SPI1_HOST) is not supported by the SPI Master and SPI Slave driver on ESP32-S2 and later
-#define SPI_HOST    SPI1_HOST
-#define FSPI_HOST   SPI2_HOST
-#define HSPI_HOST   SPI3_HOST
-#define VSPI_HOST   SPI3_HOST
+  #define SPI_HOST    SPI1_HOST
+  #define FSPI_HOST   SPI2_HOST
+  #define HSPI_HOST   SPI3_HOST
+  #define VSPI_HOST   SPI3_HOST
 
 #elif CONFIG_IDF_TARGET_ESP32S3
-// SPI_HOST (SPI1_HOST) is not supported by the SPI Master and SPI Slave driver on ESP32-S2 and later
-#define SPI_HOST    SPI1_HOST
-#define FSPI_HOST   SPI2_HOST
-#define HSPI_HOST   SPI3_HOST
-#define VSPI_HOST   SPI3_HOST
-// SPI_MOSI_DLEN_REG is not defined anymore in esp32s3
-#define SPI_MOSI_DLEN_REG(x) SPI_MS_DLEN_REG(x)
+  #define SPI_HOST    SPI1_HOST
+  #define FSPI_HOST   SPI2_HOST
+  #define HSPI_HOST   SPI3_HOST
+  #define VSPI_HOST   SPI3_HOST
+  #define SPI_MOSI_DLEN_REG(x) SPI_MS_DLEN_REG(x)
 
 #elif CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32P4
-#define SPI_HOST    SPI1_HOST
-#define HSPI_HOST   SPI2_HOST
-#define VSPI_HOST   SPI2_HOST  /* No SPI3_host on C2/C6 */
-#define VSPI        SPI
-// SPI_MOSI_DLEN_REG is not defined anymore
-#define SPI_MOSI_DLEN_REG(x) SPI_MS_DLEN_REG(x)
+  #define SPI_HOST    SPI1_HOST
+  #define HSPI_HOST   SPI2_HOST
+  #define VSPI_HOST   SPI2_HOST  /* No SPI3_host on C2/C6/P4 */
+  #define VSPI        SPI
+  #define SPI_MOSI_DLEN_REG(x) SPI_MS_DLEN_REG(x)
 
 #endif // TARGET
+
+// ---- legacy type aliases (ESP8266 style) ----
+#ifdef __cplusplus
+  using uint8  = uint8_t;
+  using uint16 = uint16_t;
+  using uint32 = uint32_t;
+
+  using sint8_t  = int8_t;
+  using sint16_t = int16_t;
+  using sint32_t = int32_t;
+#else
+  typedef uint8_t  uint8;
+  typedef uint16_t uint16;
+  typedef uint32_t uint32;
+
+  typedef int8_t   sint8_t;
+  typedef int16_t  sint16_t;
+  typedef int32_t  sint32_t;
+#endif
+
+// ---- legacy PROGMEM helpers (ESP8266 style) ----
+#ifndef memcpy_P
+  #define memcpy_P memcpy
+#endif
+#ifndef memcmp_P
+  #define memcmp_P memcmp
+#endif
+
+// ---- commonly used buffer sizes ----
+#ifndef BUFFER_LENGTH
+  #define BUFFER_LENGTH 128
+#endif
+#ifndef HTTP_UPLOAD_BUFLEN
+  #define HTTP_UPLOAD_BUFLEN 2048
+#endif
+#ifndef MQTT_MAX_PACKET_SIZE
+  #define MQTT_MAX_PACKET_SIZE 1200
+#endif
 
 // CANCELLED - MAIN CAUSE OF COMPILATION ERRORS AND UNIDENTIFIED CRASH BEHAVIOURS WHEN COMPILING IN DIFFERENT MODES / DIFFERENT LINKERS!!!!
 // This trick makes sure that 'lto' optimizer does not inline `delay()
@@ -78,3 +117,4 @@
 // extern "C"
 // #endif // _cplusplus
 // void  delay(__UINT32_TYPE__ ms) __attribute__((noinline)) __attribute__ ((noclone));
+
