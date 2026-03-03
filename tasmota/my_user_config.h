@@ -516,12 +516,12 @@
 //  #define USE_WEBRUN                             // Enable executing a tasmota command file from external web server (+0.4 code)
 //  #define USE_GPIO_VIEWER                        // Enable GPIO Viewer to see realtime GPIO states (+6k code)
     #define GV_USE_ESPINFO                       // Add ESP8266 info (+2k1 code)
-//    #define GV_SAMPLING_INTERVAL  100            // [GvSampling] milliseconds - Use Tasmota Scheduler (100) or Ticker (20..99,101..1000)
+    #define GV_SAMPLING_INTERVAL  100            // [GvSampling] milliseconds - Use Tasmota Scheduler (100) or Ticker (20..99,101..1000)
   // #define USE_CCLOADER                           // Enable CCLoader FW upgrade tool (for CC25xx devices)
 
 // -- mDNS ----------------------------------------
 //#define USE_DISCOVERY                            // Enable mDNS for the following services (+8k code or +23.5k code with core 2_5_x, +0.3k mem)
-  #define WEBSERVER_ADVERTISE                    // Provide access to webserver by name <Hostname>.local/
+//  #define WEBSERVER_ADVERTISE                    // Provide access to webserver by name <Hostname>.local/
   // #define MQTT_HOST_DISCOVERY                    // Find MQTT host server (overrides MQTT_HOST if found) - disabled by default because it causes blocked repeated 3000ms pauses
 
 // -- Time ----------------------------------------
@@ -1070,7 +1070,7 @@
 
 //#define USE_SONOFF_SPM                           // Add support for ESP32 based Sonoff Smart Stackable Power Meter (+11k code)
 
-#define USE_ETHERNET                             // Add support for ethernet (+20k code)
+// #define USE_ETHERNET                             // Add support for ethernet (+20k code)
 //  #define USE_WT32_ETH01                         // Add support for Wireless-Tag WT32-ETH01
 //  #define ETH_TYPE          0                    // [EthType] 0 = LAN8720, 1 = TLK110/IP101, 2 = RTL8201, 3 = DP83848, 4 = DM9051, 5 = KSZ8081, 6 = KSZ8041, 7 = JL1101, 8 = W5500, 9 = KSZ8851
 //  #define ETH_ADDRESS       1                    // [EthAddress] 0 = PHY0 .. 31 = PHY31
@@ -1263,10 +1263,6 @@
  * Mutual exclude options
 \*********************************************************************************************/
 
-#if defined(ESP8266) && defined(USE_DISCOVERY) && (defined(USE_MQTT_CLIENT_CERT) || defined(USE_MQTT_AWS_IOT_LIGHT))
-  #error "Select either USE_DISCOVERY or USE_MQTT_CLIENT_CERT/USE_MQTT_AWS_IOT, mDNS takes too much code space and is not needed for AWS IoT"
-#endif
-
 #if defined(USE_RULES) && defined(USE_SCRIPT)
   #error "Select either USE_RULES or USE_SCRIPT. They can't both be used at the same time"
 #endif
@@ -1287,9 +1283,6 @@
   #endif
 #endif // USE_AUTOCONF
 
-#ifdef USE_SONOFF_SPM
-  #define USE_ETHERNET
-#endif
 
 /*********************************************************************************************\
  * Post-process compile options for TLS

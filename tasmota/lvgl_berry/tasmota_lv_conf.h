@@ -146,8 +146,9 @@
  * and can't be drawn in chunks. */
 
 /** The target buffer size for simple layer chunks. */
+#ifndef LV_DRAW_LAYER_SIMPLE_BUF_SIZE
 #define LV_DRAW_LAYER_SIMPLE_BUF_SIZE    (4096 * 1024)    /**< [bytes]*/
-
+#endif
 /* Limit the max allocated memory for simple and transformed layers.
  * It should be at least `LV_DRAW_LAYER_SIMPLE_BUF_SIZE` sized but if transformed layers are also used
  * it should be enough to store the largest widget too (width x height x 4 area).
@@ -157,7 +158,9 @@
 /** Stack size of drawing thread.
  * NOTE: If FreeType or ThorVG is enabled, it is recommended to set it to 32KB or more.
  */
+#ifndef LV_DRAW_THREAD_STACK_SIZE
 #define LV_DRAW_THREAD_STACK_SIZE    (128 * 1024)         /**< [bytes]*/
+#endif
 
 /** Thread priority of the drawing task.
  *  Higher values mean higher priority.

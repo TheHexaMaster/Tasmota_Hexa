@@ -20,6 +20,8 @@ managed_components
 .dummy
 import/*
 import
+imports3/*
+imports3
 sdkconfig.*
 sdkconfig.defaults
 CMakeLists.txt

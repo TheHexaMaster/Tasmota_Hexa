@@ -432,14 +432,17 @@ static void InitTasConsole(uint32_t baudrate) {
   HWCDCSerial.~HWCDC();                     // Deinit CDC
 #endif  // SOC_USB_SERIAL_JTAG_SUPPORTED
 
-  // Fallback to UART
+  // Fallback to VIRTUAL CONSOLE (NO-UART)
 
+  TasConsole = NullConsole;
+  tasconsole_serial = false;
+  AddLog(LOG_LEVEL_INFO, PSTR("CMD: Fall to virtual console, no SOF packet detected on USB port"));
 
-  Serial.begin(baudrate);
-  Serial.println();
-  TasConsole = Serial;
-  tasconsole_serial = true;
-  AddLog(LOG_LEVEL_INFO, PSTR("CMD: Fall back to serial port, no SOF packet detected on USB port"));
+//  Serial.begin(baudrate);
+//  Serial.println();
+//  TasConsole = Serial;
+//  tasconsole_serial = true;
+//  AddLog(LOG_LEVEL_INFO, PSTR("CMD: Fall back to serial port, no SOF packet detected on USB port"));
   return;
 #else   // !USE_USB_CDC_CONSOLE
 

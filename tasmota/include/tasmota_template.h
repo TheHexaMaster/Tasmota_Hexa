@@ -38,41 +38,62 @@ enum UserSelectablePins {
   GPIO_SSPI_MISO, GPIO_SSPI_MOSI, GPIO_SSPI_SCLK, GPIO_SSPI_CS, GPIO_SSPI_DC,  // Software SPI
   GPIO_BACKLIGHT,                      // Display backlight control
   GPIO_OLED_RESET,                     // OLED Display Reset
+  GPIO_IRSEND, GPIO_IRRECV,            // IR interface
   GPIO_RFSEND, GPIO_RFRECV,            // RF interface
   GPIO_DHT11, GPIO_DHT22, GPIO_SI7021, GPIO_DHT11_OUT,  // DHT11, DHT21, DHT22, AM2301, AM2302, AM2321
   GPIO_DSB, GPIO_DSB_OUT,              // DS18B20 or DS18S20
+  GPIO_WS2812,                         // WS2812 Led string
   GPIO_MHZ_TXD, GPIO_MHZ_RXD,          // MH-Z19 Serial interface
+  GPIO_PZEM0XX_TX, GPIO_PZEM004_RX, GPIO_PZEM016_RX, GPIO_PZEM017_RX, // PZEM Serial Modbus interface
   GPIO_SAIR_TX, GPIO_SAIR_RX,          // SenseAir Serial interface
   GPIO_PMS5003_TX, GPIO_PMS5003_RX,    // Plantower PMS5003 Serial interface
   GPIO_SDS0X1_TX, GPIO_SDS0X1_RX,      // Nova Fitness SDS011 Serial interface
   GPIO_SBR_TX, GPIO_SBR_RX,            // Serial Bridge Serial interface
   GPIO_SR04_TRIG, GPIO_SR04_ECHO,      // SR04 interface
+  GPIO_SDM120_TX, GPIO_SDM120_RX,      // SDM120 Serial interface
+  GPIO_SDM630_TX, GPIO_SDM630_RX,      // SDM630 Serial interface
+  GPIO_TM1638CLK, GPIO_TM1638DIO, GPIO_TM1638STB,  // TM1638 interface
   GPIO_MP3_DFR562,                     // RB-DFR-562, DFPlayer Mini MP3 Player
   GPIO_HX711_SCK, GPIO_HX711_DAT,      // HX711 Load Cell interface
   GPIO_TX2X_TXD_BLACK,                 // TX20/TX23 Transmission Pin
+  GPIO_TUYA_TX, GPIO_TUYA_RX,          // Tuya Serial interface
   GPIO_MGC3130_XFER, GPIO_MGC3130_RESET,  // MGC3130 interface
   GPIO_RF_SENSOR,                      // Rf receiver with sensor decoding
   GPIO_AZ_TXD, GPIO_AZ_RXD,            // AZ-Instrument 7798 Serial interface
   GPIO_MAX31855CS, GPIO_MAX31855CLK, GPIO_MAX31855DO,  // MAX31855 Serial interface
+  GPIO_NRG_SEL, GPIO_NRG_SEL_INV, GPIO_NRG_CF1, GPIO_HLW_CF, GPIO_HJL_CF,  // HLW8012/HJL-01/BL0937 energy monitoring
+  GPIO_MCP39F5_TX, GPIO_MCP39F5_RX, GPIO_MCP39F5_RST,  // MCP39F501 Energy monitoring (Shelly2)
   GPIO_PN532_TXD, GPIO_PN532_RXD,      // PN532 NFC Serial interface
+  GPIO_SM16716_CLK, GPIO_SM16716_DAT, GPIO_SM16716_SEL,  // SM16716 SELECT
+  GPIO_DI, GPIO_DCKI,                  // my92x1 PWM controller
+  GPIO_CSE7766_TX, GPIO_CSE7766_RX,    // CSE7766 Serial interface (S31 and Pow R2)
+  GPIO_ARIRFRCV, GPIO_ARIRFSEL,        // Arilux RF Receive input
   GPIO_TXD, GPIO_RXD,                  // Serial interface
   GPIO_ROT1A, GPIO_ROT1B,              // Rotary switch
   GPIO_ADC_JOY,                        // Analog joystick
   GPIO_SSPI_MAX31865_CS1,              // MAX31865 Chip Select
   GPIO_HRE_CLOCK, GPIO_HRE_DATA,       // HR-E Water Meter
+  GPIO_ADE7953_IRQ,                    // ADE7953 IRQ
+  GPIO_SOLAXX1_TX, GPIO_SOLAXX1_RX,    // Solax Inverter Serial interface
   GPIO_ZIGBEE_TX, GPIO_ZIGBEE_RX,      // Zigbee Serial interface
   GPIO_RDM6300_RX,                     // RDM6300 RX
   GPIO_IBEACON_TX, GPIO_IBEACON_RX,    // HM17 IBEACON Serial interface
   GPIO_A4988_DIR, GPIO_A4988_STP, GPIO_A4988_ENA, GPIO_A4988_MS1,  // A4988 interface
   GPIO_OUTPUT_HI, GPIO_OUTPUT_LO,      // Fixed output state
+  GPIO_DDS2382_TX, GPIO_DDS2382_RX,    // DDS2382 Serial interface
+  GPIO_DDSU666_TX, GPIO_DDSU666_RX,    // DDSU666 Serial interface
+  GPIO_SM2135_CLK, GPIO_SM2135_DAT,    // SM2135 PWM controller
   GPIO_DEEPSLEEP,                      // Kill switch for deepsleep
+  GPIO_EXS_ENABLE,                     // EXS MCU Enable
   GPIO_TASMOTACLIENT_TXD, GPIO_TASMOTACLIENT_RXD,      // Client Serial interface
   GPIO_TASMOTACLIENT_RST, GPIO_TASMOTACLIENT_RST_INV,  // Client Reset
   GPIO_HPMA_RX, GPIO_HPMA_TX,          // Honeywell HPMA115S0 Serial interface
   GPIO_GPS_RX, GPIO_GPS_TX,            // GPS Serial interface
   GPIO_HM10_RX, GPIO_HM10_TX,          // HM10-BLE-Mijia-bridge Serial interface
+  GPIO_LE01MR_RX, GPIO_LE01MR_TX,      // F&F LE-01MR energy meter
   GPIO_CC1101_GDO0, GPIO_CC1101_GDO2,  // CC1101 Serial interface
   GPIO_HRXL_RX,                        // Data from MaxBotix HRXL sonar range sensor
+  GPIO_ELECTRIQ_MOODL_TX,              // ElectriQ iQ-wifiMOODL Serial TX
   GPIO_AS3935,                         // Franklin Lightning Sensor
   GPIO_ADC_INPUT,                      // Analog input
   GPIO_ADC_TEMP,                       // Analog Thermistor
@@ -92,22 +113,33 @@ enum UserSelectablePins {
   GPIO_BOILER_OT_RX, GPIO_BOILER_OT_TX,  // OpenTherm Boiler TX pin
   GPIO_WINDMETER_SPEED,                // WindMeter speed counter pin
   GPIO_KEY1_TC,                        // Touch pin as button
+  GPIO_BL0940_RX,                      // BL0940 serial interface
   GPIO_TCP_TX, GPIO_TCP_RX,            // TCP to serial bridge
 #ifdef ESP32
   GPIO_ETH_PHY_POWER, GPIO_ETH_PHY_MDC, GPIO_ETH_PHY_MDIO,  // Ethernet
 #endif
+  GPIO_TELEINFO_RX,                    // Teleinfo telemetry data receive pin
+  GPIO_TELEINFO_ENABLE,                // Teleinfo Enable Receive Pin
   GPIO_LMT01,                          // LMT01 input counting pin
+  GPIO_IEM3000_TX, GPIO_IEM3000_RX,    // IEM3000 Serial interface
   GPIO_ZIGBEE_RST,                     // Zigbee reset
   GPIO_DYP_RX,
   GPIO_MIEL_HVAC_TX, GPIO_MIEL_HVAC_RX,  // Mitsubishi Electric HVAC
+  GPIO_WE517_TX, GPIO_WE517_RX,        // ORNO WE517 Serial interface
   GPIO_AS608_TX, GPIO_AS608_RX,        // Serial interface AS608 / R503
+  GPIO_SHELLY_DIMMER_BOOT0, GPIO_SHELLY_DIMMER_RST_INV,
   GPIO_RC522_RST,                      // RC522 reset
+  GPIO_P9813_CLK, GPIO_P9813_DAT,      // P9813 Clock and Data
   GPIO_OPTION_A,                       // Specific device options to be served in code
   GPIO_FTC532,                         // FTC532 touch ctrlr serial input
   GPIO_RC522_CS,
   GPIO_NRF24_CS, GPIO_NRF24_DC,
   GPIO_ILI9341_CS, GPIO_ILI9341_DC,
+  GPIO_ILI9488_CS,
+  GPIO_EPAPER29_CS,
+  GPIO_EPAPER42_CS,
   GPIO_SSD1351_CS,
+  GPIO_RA8876_CS,
   GPIO_ST7789_CS, GPIO_ST7789_DC,
   GPIO_SSD1331_CS, GPIO_SSD1331_DC,
   GPIO_SDCARD_CS,
@@ -116,11 +148,16 @@ enum UserSelectablePins {
   GPIO_BS814_CLK, GPIO_BS814_DAT,      // Holtek BS814A2 touch ctrlr
   GPIO_WIEGAND_D0, GPIO_WIEGAND_D1,    // Wiegand Data lines
   GPIO_NEOPOOL_TX, GPIO_NEOPOOL_RX,    // Sugar Valley RS485 interface
+  GPIO_SDM72_TX, GPIO_SDM72_RX,        // SDM72 Serial interface
+  GPIO_TM1637CLK, GPIO_TM1637DIO,      // TM1637 interface
   GPIO_PROJECTOR_CTRL_TX, GPIO_PROJECTOR_CTRL_RX,  // LCD/DLP Projector Serial Control
   GPIO_SSD1351_DC,
   GPIO_XPT2046_CS,                     // XPT2046 SPI Chip Select
+  GPIO_CSE7761_TX, GPIO_CSE7761_RX,    // CSE7761 Serial interface (Dual R3)
   GPIO_VL53LXX_XSHUT1,                 // VL53LXX_XSHUT (the max number of sensors is VL53LXX_MAX_SENSORS)- Used when connecting multiple VL53LXX
+  GPIO_MAX7219CLK, GPIO_MAX7219DIN, GPIO_MAX7219CS, // MAX7219 interface
   GPIO_TFMINIPLUS_TX, GPIO_TFMINIPLUS_RX,  // TFmini Plus ToF sensor
+  GPIO_ZEROCROSS,
 #ifdef ESP32
   GPIO_HALLEFFECT,
   GPIO_EPD_DATA,                       // Base connection EPD driver
@@ -135,27 +172,40 @@ enum UserSelectablePins {
   GPIO_MCP2515_CS,                     // MCP2515 Chip Select
   GPIO_HRG15_TX, GPIO_HRG15_RX,        // Hydreon RG-15 rain sensor serial interface
   GPIO_VINDRIKTNING_RX,                // IKEA VINDRIKTNING Serial interface
+  GPIO_BL0939_RX,                      // BL0939 Serial interface (Dual R3 v2)
+  GPIO_BL0942_RX,                      // BL0942 Serial interface
   GPIO_HM330X_SET,                     // HM330X SET pin (sleep when low)
   GPIO_HEARTBEAT, GPIO_HEARTBEAT_INV,
   GPIO_SHIFT595_SRCLK, GPIO_SHIFT595_RCLK, GPIO_SHIFT595_OE, GPIO_SHIFT595_SER,   // 74x595 Shift register
+  GPIO_SOLAXX1_RTS,                    // Solax Inverter Serial interface
   GPIO_OPTION_E,                       // Emulated module
+  GPIO_SDM230_TX, GPIO_SDM230_RX,      // SDM230 Serial interface
   GPIO_ADC_MQ,                         // Analog MQ Sensor
   GPIO_CM11_TXD, GPIO_CM11_RXD,        // CM11 Serial interface
+  GPIO_BL6523_TX, GPIO_BL6523_RX,      // BL6523 based Watt meter Serial interface
   GPIO_ADE7880_IRQ,                    // ADE7880 IRQ
   GPIO_RESET,                          // Generic reset
   GPIO_MS01,                           // Sonoff MS01 Moisture Sensor 1wire interface
   GPIO_SDIO_CMD, GPIO_SDIO_CLK, GPIO_SDIO_D0, GPIO_SDIO_D1, GPIO_SDIO_D2, GPIO_SDIO_D3, // SD Card SDIO interface, including 1-bit and 4-bit modes
   GPIO_FLOWRATEMETER_IN,               // Flowrate Meter
+  GPIO_BP5758D_CLK, GPIO_BP5758D_DAT,  // BP5758D PWM controller
+  GPIO_SM2335_CLK, GPIO_SM2335_DAT,    // SM2335 PWM controller
   GPIO_MP3_DFR562_BUSY,                // RB-DFR-562, DFPlayer Mini MP3 Player busy flag
+  GPIO_TM1621_CS, GPIO_TM1621_WR, GPIO_TM1621_RD, GPIO_TM1621_DAT,  // Sonoff POWR3xxD and THR3xxD LCD display
   GPIO_REL1_BI, GPIO_REL1_BI_INV,      // 8 x Relays bistable
   GPIO_I2S_MCLK,
   GPIO_MBR_TX, GPIO_MBR_RX,            // Modbus Bridge Serial interface
+  GPIO_ADE7953_RST,                    // ADE7953 Reset
+  GPIO_NRG_MBS_TX, GPIO_NRG_MBS_RX,    // Generic Energy Modbus device
+  GPIO_ADE7953_CS,                     // ADE7953 SPI Chip Select
   GPIO_DALI_RX, GPIO_DALI_TX,          // DALI
+  GPIO_BP1658CJ_CLK, GPIO_BP1658CJ_DAT,// BP1658CJ
   GPIO_DINGTIAN_CLK, GPIO_DINGTIAN_SDI, GPIO_DINGTIAN_Q7, GPIO_DINGTIAN_PL, GPIO_DINGTIAN_RCK,  // Dingtian relay board - 595's & 165's pins
   GPIO_LD2410_TX, GPIO_LD2410_RX,      // HLK-LD2410
-  GPIO_MBR_TX_ENA,                      // Modbus Bridge Serial Transmit Enable
+  GPIO_MBR_TX_ENA, GPIO_NRG_MBS_TX_ENA, // Modbus Bridge Serial Transmit Enable
   GPIO_ME007_TRIG, GPIO_ME007_RX,       // ME007 Serial/Trigger interface
   GPIO_TUYAMCUBR_TX, GPIO_TUYAMCUBR_RX, // TuyaMCU Bridge
+  GPIO_BIOPDU_PZEM0XX_TX, GPIO_BIOPDU_PZEM016_RX, GPIO_BIOPDU_BIT, // Biomine BioPDU 625x12
   GPIO_MCP23XXX_INT, GPIO_MCP23SXX_CS,  // MCP23xxx Int and SPI Chip select
   GPIO_PCF8574_INT,                     // PCF8574 interrupt
   GPIO_LOX_O2_RX,                       // LOX-O2 RX
@@ -173,16 +223,20 @@ enum UserSelectablePins {
   GPIO_ASR650X_TX, GPIO_ASR650X_RX,     // ASR650X LoRaWan node Serial interface
   GPIO_WOOLIIS_RX,                      // Wooliis Battery capacity monitor Serial RX
   GPIO_ADC_VOLTAGE, GPIO_ADC_CURRENT,   // Analog Voltage and Current
+  GPIO_BL0906_RX,                       // BL0906 Serial interface
   GPIO_DALI_RX_INV, GPIO_DALI_TX_INV,   // DALI
   GPIO_LD2410S_TX, GPIO_LD2410S_RX,     // HLK-LD2410S
   GPIO_I2C_SER_TX, GPIO_I2C_SER_RX,     // I2C via Serial using SC18IM704 protocol (xdrv74)
+  GPIO_TM1640CLK, GPIO_TM1640DIN,       // TM1640 (16 x seven-segment LED controler)
   GPIO_TWAI_TX, GPIO_TWAI_RX, GPIO_TWAI_BO, GPIO_TWAI_CLK,  // ESP32 TWAI serial interface
   GPIO_C8_CO2_5K_TX, GPIO_C8_CO2_5K_RX, // C8-CO2-5K CO2 Sensor
+  GPIO_V9240_TX, GPIO_V9240_RX,         //  V9240 serial interface
   GPIO_LD2402_TX, GPIO_LD2402_RX,       // HLK-LD2402
 #ifdef ESP32
   GPIO_HSDIO_CMD, GPIO_HSDIO_CLK, GPIO_HSDIO_RST, GPIO_HSDIO_D0, GPIO_HSDIO_D1, GPIO_HSDIO_D2, GPIO_HSDIO_D3, // Hosted MCU SDIO interface, including 1-bit and 4-bit modes
 #endif
   GPIO_VID6608_F, GPIO_VID6608_CW,      // VID6608
+  GPIO_MKSKYBLU_TX, GPIO_MKSKYBLU_RX,   // MakeSkyBlue solar charge controller
   GPIO_SENSOR_END };
 
 // Error as warning to rethink GPIO usage with max 2045
@@ -246,7 +300,13 @@ enum SupportedEmulationModules {
   MAXMODULE_EMULATION };
 
 
+#define MAX_OPTIONS_E  1                   // Increase if more emulated modules are supported from kModuleEmulationList
+
+const uint8_t kModuleEmulationList[] PROGMEM = {
+  PWM_DIMMER                               // (v10.1.0.4)  - Option_E1 - (Light) USE_PWM_DIMMER support
+};
 #endif  // ESP32
+
 
 // Text in webpage Module Parameters and commands GPIOS and GPIO
 const char kSensorNames[] PROGMEM =
@@ -291,6 +351,7 @@ const char kSensorNames[] PROGMEM =
   D_SENSOR_PN532_TX "|" D_SENSOR_PN532_RX "|"
   D_SENSOR_SM16716_CLK "|" D_SENSOR_SM16716_DAT "|" D_SENSOR_SM16716_POWER "|"
   D_SENSOR_MY92X1_DI "|" D_SENSOR_MY92X1_DCKI "|"
+  D_SENSOR_CSE7766_TX "|" D_SENSOR_CSE7766_RX "|"
   D_SENSOR_ARIRFRCV "|" D_SENSOR_ARIRFSEL "|"
   D_SENSOR_TXD "|" D_SENSOR_RXD "|"
   D_SENSOR_ROTARY " A|" D_SENSOR_ROTARY " B|"
@@ -369,6 +430,7 @@ const char kSensorNames[] PROGMEM =
   D_SENSOR_WIEGAND_D0 "|" D_SENSOR_WIEGAND_D1 "|"
   D_SENSOR_NEOPOOL_TX "|" D_SENSOR_NEOPOOL_RX "|"
   D_SENSOR_SDM72_TX "|" D_SENSOR_SDM72_RX "|"
+  D_SENSOR_TM1637_CLK "|" D_SENSOR_TM1637_DIO "|"
   D_SENSOR_PROJECTOR_CTRL_TX "|" D_SENSOR_PROJECTOR_CTRL_RX "|"
   D_SENSOR_SSD1351_DC "|"
   D_SENSOR_XPT2046_CS "|"
@@ -410,6 +472,7 @@ const char kSensorNames[] PROGMEM =
   D_SENSOR_BP5758D_CLK "|" D_SENSOR_BP5758D_DAT "|"
   D_SENSOR_SM2335_CLK "|" D_SENSOR_SM2335_DAT "|"
   D_SENSOR_DFR562_BUSY "|"
+  D_GPIO_TM1621_CS "|" D_GPIO_TM1621_WR "|" D_GPIO_TM1621_RD "|" D_GPIO_TM1621_DAT "|"
   D_SENSOR_RELAY "_b|" D_SENSOR_RELAY "_bi|"
   D_SENSOR_I2S_MCLK "|"
   D_SENSOR_MBR_TX "|" D_SENSOR_MBR_RX "|"
@@ -457,6 +520,7 @@ const char kSensorNames[] PROGMEM =
   D_SENSOR_MKSKYBLU_TX "|" D_SENSOR_MKSKYBLU_RX "|"
 ;
 
+
 const char kSensorNamesFixed[] PROGMEM =
   D_SENSOR_USER;
 
@@ -473,16 +537,30 @@ const char kSensorNamesFixed[] PROGMEM =
 #define MAX_A4988_MSS            3
 #define MAX_WEBCAM_DATA          8
 #define MAX_WEBCAM_HSD           3
+#define MAX_SM2135_DAT          10
+#define MAX_SM2335_DAT          16
 #define MAX_DSB                  4
+#define MAX_BP1658CJ_DAT        16
 #define MAX_DINGTIAN_SHIFT       4
 #define MAX_MAGIC_SWITCH_MODES   2
+#define MAX_BL0906_RX            6  // Model number of phases, 2 (EM2), 6 (EM6)
+#define MAX_BL0942_RX            8  // Baudrates 1/5 (4800), 2/6 (9600), 3/7 (19200), 4/8 (38400), Support Positive values only 1..4, Support also negative values 5..8
+#define MAX_CSE7761              2  // Model 1/2 (DUALR3), 2/2 (POWCT)
 #define MAX_TWAI                 SOC_TWAI_CONTROLLER_NUM
 #define MAX_GPS_RX               3  // Baudrates 1 (9600), 2 (19200), 3 (38400)
+#ifdef ESP32
+#define MAX_MKSKYBLU_IF          8  // MakeSkyBlue solar charger: ESP32-NRG supports up to 8 phases
+#else
+#define MAX_MKSKYBLU_IF          3  // MakeSkyBlue solar charger: ESP82xx-NRG supports up to 3 phases
+#endif
 
 
 const uint16_t kGpioNiceList[] PROGMEM = {
   GPIO_NONE,                                     // Not used
   AGPIO(GPIO_OPTION_A) + AGMAX(MAX_OPTIONS_A),   // Device specific options
+#ifdef ESP32
+  AGPIO(GPIO_OPTION_E) + AGMAX(MAX_OPTIONS_E),   // Device module emulation
+#endif
   AGPIO(GPIO_KEY1) + AGMAX(MAX_KEYS),            // Buttons
   AGPIO(GPIO_KEY1_NP) + AGMAX(MAX_KEYS),
 #ifdef ESP32
@@ -634,7 +712,56 @@ const uint16_t kGpioNiceList[] PROGMEM = {
   AGPIO(GPIO_XPT2046_CS),                        // XPT2046 SPI Chip Select
 #endif
 
-
+#ifdef USE_DISPLAY_ILI9488
+  AGPIO(GPIO_ILI9488_CS),
+#endif  // USE_DISPLAY_ILI9488
+#ifdef USE_DISPLAY_EPAPER_29
+  AGPIO(GPIO_EPAPER29_CS),
+#endif  // USE_DISPLAY_EPAPER_29
+#ifdef USE_DISPLAY_EPAPER_42
+  AGPIO(GPIO_EPAPER42_CS),
+#endif  // USE_DISPLAY_EPAPER_42
+// REMOVED
+// #ifdef USE_DISPLAY_SSD1351
+//   AGPIO(GPIO_SSD1351_CS),
+//   AGPIO(GPIO_SSD1351_DC),
+// #endif  // USE_DISPLAY_SSD1351
+#ifdef USE_DISPLAY_RA8876
+  AGPIO(GPIO_RA8876_CS),
+#endif  // USE_DISPLAY_RA8876
+// REMOVED
+// #ifdef USE_DISPLAY_ST7789
+//   AGPIO(GPIO_ST7789_CS),
+//   AGPIO(GPIO_ST7789_DC),
+// #endif  // USE_DISPLAY_ST7789
+// REMOVED
+// #ifdef USE_DISPLAY_SSD1331
+//   AGPIO(GPIO_SSD1331_CS),
+//   AGPIO(GPIO_SSD1331_DC),
+// #endif  // USE_DISPLAY_SSD1331
+#ifdef USE_DISPLAY_MAX7219_MATRIX
+  #undef USE_DISPLAY_MAX7219
+  #undef USE_DISPLAY_TM1637
+  AGPIO(GPIO_MAX7219CLK),
+  AGPIO(GPIO_MAX7219DIN),
+  AGPIO(GPIO_MAX7219CS),
+#endif  // USE_DISPLAY_MAX7219_MATRIX
+#ifdef USE_DISPLAY_MAX7219
+  AGPIO(GPIO_MAX7219CLK),
+  AGPIO(GPIO_MAX7219DIN),
+  AGPIO(GPIO_MAX7219CS),
+#endif  // USE_DISPLAY_MAX7219
+#ifdef USE_DISPLAY_TM1637
+  AGPIO(GPIO_TM1637CLK),
+  AGPIO(GPIO_TM1637DIO),
+  AGPIO(GPIO_TM1638CLK),
+  AGPIO(GPIO_TM1638DIO),
+  AGPIO(GPIO_TM1638STB),
+#endif  // USE_DISPLAY_TM1637
+#ifdef USE_DISPLAY_TM1640
+  AGPIO(GPIO_TM1640CLK),
+  AGPIO(GPIO_TM1640DIN),
+#endif  // USE_DISPLAY_TM1640
   AGPIO(GPIO_BACKLIGHT),                         // Display backlight control
   AGPIO(GPIO_OLED_RESET),                        // OLED Display Reset
 #ifdef ESP32
@@ -642,7 +769,13 @@ const uint16_t kGpioNiceList[] PROGMEM = {
 #endif
 #endif  // USE_DISPLAY
 
-
+#ifdef USE_DISPLAY_TM1621_SONOFF
+// Initial support outside display driver
+  AGPIO(GPIO_TM1621_CS),
+  AGPIO(GPIO_TM1621_WR),
+  AGPIO(GPIO_TM1621_RD),
+  AGPIO(GPIO_TM1621_DAT),
+#endif  // USE_DISPLAY_TM1621_SONOFF
 
 #ifdef USE_MAX31865
   AGPIO(GPIO_SSPI_MAX31865_CS1) + AGMAX(MAX_MAX31865S),
@@ -678,6 +811,64 @@ const uint16_t kGpioNiceList[] PROGMEM = {
   AGPIO(GPIO_LMT01),                             // LMT01, count pulses on GPIO
 #endif
 
+/*-------------------------------------------------------------------------------------------*\
+ * Light
+\*-------------------------------------------------------------------------------------------*/
+
+#ifdef USE_LIGHT
+#ifdef USE_WS2812
+#if (USE_WS2812_HARDWARE == NEO_HW_P9813)
+  AGPIO(GPIO_P9813_CLK),                         // P9813 CLOCK
+  AGPIO(GPIO_P9813_DAT),                         // P9813 DATA
+#else
+  AGPIO(GPIO_WS2812) + AGMAX(MAX_RMT),           // WS2812 Led string, using RMT on ESP32
+#endif  // NEO_HW_P9813
+#endif
+#ifdef USE_ARILUX_RF
+  AGPIO(GPIO_ARIRFRCV),                          // AriLux RF Receive input
+  AGPIO(GPIO_ARIRFSEL),                          // Arilux RF Receive input selected
+#endif
+#ifdef USE_MY92X1
+  AGPIO(GPIO_DI),                                // my92x1 PWM input
+  AGPIO(GPIO_DCKI),                              // my92x1 CLK input
+#endif  // USE_MY92X1
+#ifdef USE_SM16716
+  AGPIO(GPIO_SM16716_CLK),                       // SM16716 CLOCK
+  AGPIO(GPIO_SM16716_DAT),                       // SM16716 DATA
+  AGPIO(GPIO_SM16716_SEL),                       // SM16716 SELECT
+#endif  // USE_SM16716
+#ifdef USE_SM2135
+  AGPIO(GPIO_SM2135_CLK),                        // SM2135 CLOCK
+  AGPIO(GPIO_SM2135_DAT) + AGMAX(MAX_SM2135_DAT),  // SM2135 DATA
+#endif  // USE_SM2135
+#ifdef USE_SM2335
+  AGPIO(GPIO_SM2335_CLK),                        // SM2335 CLOCK
+  AGPIO(GPIO_SM2335_DAT) + AGMAX(MAX_SM2335_DAT),  // SM2335 DATA
+#endif  // USE_SM2335
+#ifdef USE_BP1658CJ
+  AGPIO(GPIO_BP1658CJ_CLK),                      // BP1658CJ CLOCK
+  AGPIO(GPIO_BP1658CJ_DAT) + AGMAX(MAX_BP1658CJ_DAT), // BP1658CJ DATA
+#endif  // USE_BP1658CJ
+#ifdef USE_BP5758D
+  AGPIO(GPIO_BP5758D_CLK),                       // BP5758D CLOCK
+  AGPIO(GPIO_BP5758D_DAT),                       // BP5758D DATA
+#endif  // USE_BP5758D
+#ifdef USE_TUYA_MCU
+  AGPIO(GPIO_TUYA_TX),                           // Tuya Serial interface
+  AGPIO(GPIO_TUYA_RX),                           // Tuya Serial interface
+#endif
+#ifdef USE_EXS_DIMMER
+  AGPIO(GPIO_EXS_ENABLE),                        // EXS MCU Enable
+#endif
+#ifdef USE_ELECTRIQ_MOODL
+  AGPIO(GPIO_ELECTRIQ_MOODL_TX),
+#endif
+#ifdef USE_SHELLY_DIMMER
+  AGPIO(GPIO_SHELLY_DIMMER_BOOT0),
+  AGPIO(GPIO_SHELLY_DIMMER_RST_INV),
+#endif
+#endif  // USE_LIGHT
+
 #ifdef USE_DALI
   AGPIO(GPIO_DALI_TX),                           // DALI TX
   AGPIO(GPIO_DALI_TX_INV),                       // DALI TX inverted
@@ -689,6 +880,12 @@ const uint16_t kGpioNiceList[] PROGMEM = {
  * Transmission sensors
 \*-------------------------------------------------------------------------------------------*/
 
+#if defined(USE_IR_REMOTE) || defined(USE_IR_REMOTE_FULL)
+  AGPIO(GPIO_IRSEND) + AGMAX(MAX_IRSEND),        // IR remote
+#if defined(USE_IR_RECEIVE) || defined(USE_IR_REMOTE_FULL)
+  AGPIO(GPIO_IRRECV),                            // IR receiver
+#endif
+#endif
 #ifdef USE_RC_SWITCH
   AGPIO(GPIO_RFSEND),                            // RF transmitter
   AGPIO(GPIO_RFRECV),                            // RF receiver
@@ -704,6 +901,11 @@ const uint16_t kGpioNiceList[] PROGMEM = {
   AGPIO(GPIO_ME007_TRIG),                        // ME007 Trigger pin (xsns_23_me007.ino)
   AGPIO(GPIO_ME007_RX),                          // ME007 Rx pin (xsns_23_me007.ino)
 #endif
+#ifdef USE_TM1638
+  AGPIO(GPIO_TM1638CLK),                         // TM1638 Clock
+  AGPIO(GPIO_TM1638DIO),                         // TM1638 Data I/O
+  AGPIO(GPIO_TM1638STB),                         // TM1638 Strobe
+#endif
 #ifdef USE_HX711
   AGPIO(GPIO_HX711_SCK),                         // HX711 Load Cell clock
   AGPIO(GPIO_HX711_DAT),                         // HX711 Load Cell data
@@ -713,6 +915,125 @@ const uint16_t kGpioNiceList[] PROGMEM = {
   AGPIO(GPIO_TFMINIPLUS_RX),                     // TFmini Plus RX pin
 #endif
 
+/*-------------------------------------------------------------------------------------------*\
+ * Energy sensors
+\*-------------------------------------------------------------------------------------------*/
+
+#ifdef USE_ENERGY_SENSOR
+#ifdef USE_HLW8012
+  AGPIO(GPIO_NRG_SEL),                           // HLW8012/HLJ-01 Sel output (1 = Voltage)
+  AGPIO(GPIO_NRG_SEL_INV),                       // HLW8012/HLJ-01 Sel output (0 = Voltage)
+  AGPIO(GPIO_NRG_CF1),                           // HLW8012/HLJ-01 CF1 voltage / current
+  AGPIO(GPIO_HLW_CF),                            // HLW8012 CF power
+  AGPIO(GPIO_HJL_CF),                            // HJL-01/BL0937 CF power
+#endif
+#if defined(USE_I2C) && defined(USE_ADE7880)
+  AGPIO(GPIO_ADE7880_IRQ) + AGMAX(2),            // ADE7880 IRQ - (1 = IRQ1, 2 = IRQ2)
+#endif
+#ifdef USE_ADE7953
+#if defined(USE_I2C) || defined(USE_SPI)
+  AGPIO(GPIO_ADE7953_IRQ) + AGMAX(6),            // ADE7953 IRQ - (1 = Shelly 2.5, 2 = Shelly EM, 3 = Shelly Plus 2PM, 4 = Shelly Pro 1PM, 5 = Shelly Pro 2PM, 6 = Shelly Pro 4PM)
+  AGPIO(GPIO_ADE7953_RST),                       // ADE7953 Reset
+#ifdef USE_SPI
+  AGPIO(GPIO_ADE7953_CS) + AGMAX(2),             // ADE7953 SPI Chip Select (1 = CS1 (1PM, 2PM), 2 = CS2 (2PM))
+#endif  // USE_SPI
+#endif  // USE_I2C or USE_SPI
+#endif  // USE_ADE7953
+#ifdef USE_CSE7761
+  AGPIO(GPIO_CSE7761_TX),                        // CSE7761 Serial interface (Dual R3)
+  AGPIO(GPIO_CSE7761_RX) + AGMAX(MAX_CSE7761),   // CSE7761 Serial interface (1 = Dual R3, 2 = POWCT)
+#endif
+#ifdef USE_CSE7766
+  AGPIO(GPIO_CSE7766_TX),                        // CSE7766 Serial interface (S31 and Pow R2)
+  AGPIO(GPIO_CSE7766_RX),                        // CSE7766 Serial interface (S31 and Pow R2)
+#endif
+#ifdef USE_MCP39F501
+  AGPIO(GPIO_MCP39F5_TX),                        // MCP39F501 Serial interface (Shelly2)
+  AGPIO(GPIO_MCP39F5_RX),                        // MCP39F501 Serial interface (Shelly2)
+  AGPIO(GPIO_MCP39F5_RST),                       // MCP39F501 Reset (Shelly2)
+#endif
+  AGPIO(GPIO_NRG_MBS_TX_ENA),                    // Generic Energy Modbus Transmit Enable
+#if defined(USE_PZEM004T) || defined(USE_PZEM_AC) || defined(USE_PZEM_DC)
+  AGPIO(GPIO_PZEM0XX_TX),                        // PZEM0XX Serial interface
+#endif
+#ifdef USE_PZEM004T
+  AGPIO(GPIO_PZEM004_RX),                        // PZEM004T Serial interface
+#endif
+#ifdef USE_PZEM_AC
+  AGPIO(GPIO_PZEM016_RX),                        // PZEM-014,016 Serial Modbus interface
+#endif
+#ifdef USE_PZEM_DC
+  AGPIO(GPIO_PZEM017_RX),                        // PZEM-003,017 Serial Modbus interface
+#endif
+#ifdef USE_MODBUS_ENERGY
+  AGPIO(GPIO_NRG_MBS_TX),                        // Generic Energy Modbus device
+  AGPIO(GPIO_NRG_MBS_RX),
+#endif
+#ifdef USE_SDM120
+  AGPIO(GPIO_SDM120_TX),                         // SDM120 Serial interface
+  AGPIO(GPIO_SDM120_RX),                         // SDM120 Serial interface
+#endif
+#ifdef USE_SDM630
+  AGPIO(GPIO_SDM630_TX),                         // SDM630 Serial interface
+  AGPIO(GPIO_SDM630_RX),                         // SDM630 Serial interface
+#endif
+#ifdef USE_DDS2382
+  AGPIO(GPIO_DDS2382_TX),                        // DDS2382 Serial interface
+  AGPIO(GPIO_DDS2382_RX),                        // DDS2382 Serial interface
+#endif
+#ifdef USE_DDSU666
+  AGPIO(GPIO_DDSU666_TX),                        // DDSU666 Serial interface
+  AGPIO(GPIO_DDSU666_RX),                        // DDSU666 Serial interface
+#endif  // USE_DDSU666
+#ifdef USE_SOLAX_X1
+  AGPIO(GPIO_SOLAXX1_TX),                        // Solax Inverter tx pin
+  AGPIO(GPIO_SOLAXX1_RX),                        // Solax Inverter rx pin
+  AGPIO(GPIO_SOLAXX1_RTS),                       // Solax Inverter RTS pin
+#endif  // USE_SOLAX_X1
+#ifdef USE_LE01MR
+  AGPIO(GPIO_LE01MR_TX),                         // F7F LE-01MR energy meter tx pin
+  AGPIO(GPIO_LE01MR_RX),                         // F7F LE-01MR energy meter rx pin
+#endif  // USE_LE01MR
+#ifdef ESP32
+#ifdef USE_BL0906
+  AGPIO(GPIO_BL0906_RX) + AGMAX(MAX_BL0906_RX),  // BL0906 Serial interface (Athom EM6)
+#endif  // USE_BL0906
+#endif  // ESP32
+#if defined(USE_BL0940) || defined(USE_BL09XX)
+  AGPIO(GPIO_BL0939_RX),                         // BL0939 Serial interface (Dual R3 v2)
+  AGPIO(GPIO_BL0940_RX),                         // BL0940 Serial interface
+  AGPIO(GPIO_BL0942_RX) + AGMAX(MAX_BL0942_RX),  // BL0942 Serial interface
+#endif
+#ifdef USE_IEM3000
+  AGPIO(GPIO_IEM3000_TX),                        // IEM3000 Serial interface
+  AGPIO(GPIO_IEM3000_RX),                        // IEM3000 Serial interface
+#endif
+#ifdef USE_WE517
+  AGPIO(GPIO_WE517_TX),                          // WE517 Serial interface
+  AGPIO(GPIO_WE517_RX),                          // WE517 Serial interface
+#endif
+#ifdef USE_SDM72
+  AGPIO(GPIO_SDM72_TX),                          // SDM72 Serial interface
+  AGPIO(GPIO_SDM72_RX),                          // SDM72 Serial interface
+#endif
+  AGPIO(GPIO_ZEROCROSS),
+#ifdef USE_SDM230
+  AGPIO(GPIO_SDM230_TX),                         // SDM230 Serial interface
+  AGPIO(GPIO_SDM230_RX),                         // SDM230 Serial interface
+#endif
+#ifdef USE_BL6523
+  AGPIO(GPIO_BL6523_TX),                         // BL6523 based Watt meter Serial interface
+  AGPIO(GPIO_BL6523_RX),                         // BL6523 based Watt meter Serial interface
+#endif
+#ifdef USE_V9240
+  AGPIO(GPIO_V9240_TX),                          //  Serial V9240 interface
+  AGPIO(GPIO_V9240_RX),                          //  Serial V9240 interface
+#endif
+#ifdef USE_MAKE_SKY_BLUE
+  AGPIO(GPIO_MKSKYBLU_TX) + AGMAX(MAX_MKSKYBLU_IF),
+  AGPIO(GPIO_MKSKYBLU_RX) + AGMAX(MAX_MKSKYBLU_IF),
+#endif
+#endif  // USE_ENERGY_SENSOR
 
 /*-------------------------------------------------------------------------------------------*\
  * Serial sensors
@@ -908,6 +1229,10 @@ const uint16_t kGpioNiceList[] PROGMEM = {
 #ifdef USE_AS3935
   AGPIO(GPIO_AS3935),                            // AS3935 IRQ Pin
 #endif
+#ifdef USE_TELEINFO
+  AGPIO(GPIO_TELEINFO_RX),
+  AGPIO(GPIO_TELEINFO_ENABLE),
+#endif
 #ifdef USE_MIEL_HVAC
   AGPIO(GPIO_MIEL_HVAC_TX),                      // Mitsubishi Electric HVAC TX pin
   AGPIO(GPIO_MIEL_HVAC_RX),                      // Mitsubishi Electric HVAC RX pin
@@ -984,9 +1309,18 @@ const uint16_t kGpioNiceList[] PROGMEM = {
 #endif  // USE_WEBCAM
 #ifdef USE_ETHERNET
   AGPIO(GPIO_ETH_PHY_POWER),
+#if CONFIG_SOC_SPI_PERIPH_NUM > 2                // This count differs from available usable SPI count based on SPIx_HOST
+  AGPIO(GPIO_ETH_PHY_MDC) + AGMAX(MAX_SPI),
+#else
   AGPIO(GPIO_ETH_PHY_MDC),
+#endif  // CONFIG_SOC_SPI_PERIPH_NUM > 2
   AGPIO(GPIO_ETH_PHY_MDIO),                      // Ethernet
 #endif  // USE_ETHERNET
+#ifdef USE_BIOPDU
+  AGPIO(GPIO_BIOPDU_PZEM0XX_TX),                 // Biomine BioPDU pins
+  AGPIO(GPIO_BIOPDU_PZEM016_RX),
+  AGPIO(GPIO_BIOPDU_BIT) + AGMAX(3),
+#endif
 #ifdef CONFIG_ESP_WIFI_REMOTE_ENABLED
   AGPIO(GPIO_HSDIO_CMD),                         // Hosted MCU SDIO interface, including 1-bit and 4-bit modes
   AGPIO(GPIO_HSDIO_CLK),
@@ -1022,7 +1356,6 @@ const uint16_t kGpioNiceList[] PROGMEM = {
 #endif
 
 };
-
 
 /*********************************************************************************************\
  * ATTENTION: No user changeable features beyond this point - do not add templates !!!
@@ -1523,6 +1856,7 @@ const mytmplt kModules[] PROGMEM = {
   },
 };
 
+
 /*********************************************************************************************\
  Known templates
 \*********************************************************************************************/
@@ -1637,8 +1971,8 @@ const mytmplt kModules[] PROGMEM = {
     AGPIO(GPIO_USER),            // 2       AO                  RTC_GPIO2, GPIO2, TOUCH2, ADC1_CH1
     AGPIO(GPIO_USER),            // 3       AO                  RTC_GPIO3, GPIO3, TOUCH3, ADC1_CH2, Strapping
     AGPIO(GPIO_USER),            // 4       AO                  RTC_GPIO4, GPIO4, TOUCH4, ADC1_CH3
-    AGPIO(GPIO_USER),            // 5       AO                  RTC_GPIO5, GPIO5, TOUCH5, ADC1_CH4
-    AGPIO(GPIO_USER),            // 6       AO                  RTC_GPIO6, GPIO6, TOUCH6, ADC1_CH5
+    AGPIO(GPIO_I2C_SCL),         // 5       AO                  RTC_GPIO5, GPIO5, TOUCH5, ADC1_CH4
+    AGPIO(GPIO_I2C_SDA),         // 6       AO                  RTC_GPIO6, GPIO6, TOUCH6, ADC1_CH5
     AGPIO(GPIO_USER),            // 7       AO                  RTC_GPIO7, GPIO7, TOUCH7, ADC1_CH6
     AGPIO(GPIO_USER),            // 8       AO                  RTC_GPIO8, GPIO8, TOUCH8, ADC1_CH7, SUBSPICS1
     AGPIO(GPIO_USER),            // 9       AO                  RTC_GPIO9, GPIO9, TOUCH9, ADC1_CH8, SUBSPIHD, FSPIHD
@@ -1646,14 +1980,14 @@ const mytmplt kModules[] PROGMEM = {
     AGPIO(GPIO_USER),            // 11      AO                  RTC_GPIO11, GPIO11, TOUCH11, ADC2_CH0, FSPIIO5, SUBSPID, FSPID
     AGPIO(GPIO_USER),            // 12      AO                  RTC_GPIO12, GPIO12, TOUCH12, ADC2_CH1, FSPIIO6, SUBSPICLK, FSPICLK
     AGPIO(GPIO_USER),            // 13      AO                  RTC_GPIO13, GPIO13, TOUCH13, ADC2_CH2, FSPIIO7, SUBSPIQ, FSPIQ
-    AGPIO(GPIO_USER),            // 14      AO                  RTC_GPIO14, GPIO14, TOUCH14, ADC2_CH3, FSPIDQS, SUBSPIWP, FSPIWP
+    AGPIO(GPIO_I2C_SDA) + 1,     // 14      AO                  RTC_GPIO14, GPIO14, TOUCH14, ADC2_CH3, FSPIDQS, SUBSPIWP, FSPIWP
     AGPIO(GPIO_USER),            // 15      AO                  RTC_GPIO15, GPIO15, U0RTS, ADC2_CH4, XTAL_32K_P
     AGPIO(GPIO_USER),            // 16      AO                  RTC_GPIO16, GPIO16, U0CTS, ADC2_CH5, XTAL_32K_N
     AGPIO(GPIO_USER),            // 17      AO                  RTC_GPIO17, GPIO17, U1TXD, ADC2_CH6
     AGPIO(GPIO_USER),            // 18      AO                  RTC_GPIO18, GPIO18, U1RXD, ADC2_CH7, CLK_OUT3
     AGPIO(GPIO_USER),            // 19      AO                  RTC_GPIO19, GPIO19, U1RTS, ADC2_CH8, CLK_OUT2, USB_D­
     AGPIO(GPIO_USER),            // 20      AO                  RTC_GPIO20, GPIO20, U1CTS, ADC2_CH9, CLK_OUT1, USB_D+
-    AGPIO(GPIO_USER),            // 21      IO                  RTC_GPIO21, GPIO21
+    AGPIO(GPIO_I2C_SCL) + 1,     // 21      IO                  RTC_GPIO21, GPIO21
                                  // 22      --                  Unused
                                  // 23      --                  Unused
                                  // 24      --                  Unused
@@ -1670,7 +2004,7 @@ const mytmplt kModules[] PROGMEM = {
     AGPIO(GPIO_NONE),            // 35      IO                  SPIIO6, GPIO35, FSPID, SUBSPID
     AGPIO(GPIO_NONE),            // 36      IO                  SPIIO7, GPIO36, FSPICLK, SUBSPICLK
     AGPIO(GPIO_NONE),            // 37      IO                  SPIDQS, GPIO37, FSPIQ, SUBSPIQ
-    AGPIO(GPIO_USER),            // 38      IO                  GPIO38, FSPIWP, SUBSPIWP
+    AGPIO(GPIO_OPTION_A) + 2,    // 38      IO                  GPIO38, FSPIWP, SUBSPIWP
     AGPIO(GPIO_USER),            // 39      IO                  MTCK, GPIO39, CLK_OUT3, SUBSPICS1
     AGPIO(GPIO_USER),            // 40      IO                  MTDO, GPIO40, CLK_OUT2
     AGPIO(GPIO_USER),            // 41      IO                  MTDI, GPIO41, CLK_OUT1
