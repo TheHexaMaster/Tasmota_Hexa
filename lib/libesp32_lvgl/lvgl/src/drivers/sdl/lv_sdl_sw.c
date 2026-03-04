@@ -9,7 +9,9 @@
 
 /* for aligned_alloc */
 #ifndef __USE_ISOC11
+#ifndef _ISOC11_SOURCE
     #define _ISOC11_SOURCE
+#endif
 #endif
 
 #include "lv_sdl_private.h"

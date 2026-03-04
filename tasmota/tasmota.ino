@@ -72,9 +72,11 @@
 
 #include "include/tasconsole.h"
 #if SOC_USB_SERIAL_JTAG_SUPPORTED
+#ifndef DISABLE_HW_SERIAL_CONSOLE
 #include "hal/usb_serial_jtag_ll.h"
 #include "esp_private/rtc_clk.h"
 #endif  // SOC_USB_SERIAL_JTAG_SUPPORTED
+#endif
 #ifdef CONFIG_IDF_TARGET_ESP32
 #include "driver/gpio.h"
 #include "soc/efuse_reg.h"
