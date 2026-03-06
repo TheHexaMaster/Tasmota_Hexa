@@ -102,12 +102,7 @@ void C8CO2_Show(bool json)
     if (json)
     {
         ResponseAppend_P(PSTR(",\"%s\":{\"" D_JSON_CO2 "\":%d}"), c8cp2_type, c8co2_ppm);
-#ifdef USE_DOMOTICZ
-        if (0 == TasmotaGlobal.tele_period)
-        {
-            DomoticzSensor(DZ_AIRQUALITY, c8co2_ppm);
-        }
-#endif // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
     }
     else

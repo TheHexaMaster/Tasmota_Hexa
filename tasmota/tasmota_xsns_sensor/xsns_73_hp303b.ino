@@ -119,12 +119,7 @@ void HP303B_Show(bool json) {
           ResponseAppend_P(PSTR(",\"" D_JSON_PRESSUREATSEALEVEL "\":%s"), sea_pressure);
         }
         ResponseJsonEnd();
-#ifdef USE_DOMOTICZ
-        // Domoticz and knx only support one temp sensor
-        if ((0 == TasmotaGlobal.tele_period) && (0 == i)) {
-          DomoticzFloatSensor(DZ_TEMP, hp303b_sensor[i].temperature);
-        }
-#endif // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
       } else {
         WSContentSend_Temp(sensor_name, hp303b_sensor[i].temperature);

@@ -457,13 +457,7 @@ void PmsShow(bool json) {
 #endif  // No PMS_MODEL_PMS3003
       ResponseJsonEnd();
 
-#ifdef USE_DOMOTICZ
-      if (0 == TasmotaGlobal.tele_period) {
-        DomoticzSensor(DZ_COUNT, pms_data.pm10_env);     // PM1
-        DomoticzSensor(DZ_VOLTAGE, pms_data.pm25_env);   // PM2.5
-        DomoticzSensor(DZ_CURRENT, pms_data.pm100_env);  // PM10
-      }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
     } else {
 //      WSContentSend_PD(HTTP_SNS_STANDARD_CONCENTRATION, types, "1", pms_data.pm10_standard);

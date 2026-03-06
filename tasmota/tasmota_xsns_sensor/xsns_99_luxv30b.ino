@@ -171,11 +171,7 @@ void LuxV30b::Show(uint32_t function) {
     dtostrfd(Lux(), 2, lux);
     if (FUNC_JSON_APPEND == function) {
       ResponseAppend_P(PSTR(",\"LUXV30B\":{\"" D_JSON_ILLUMINANCE "\":%s}"), lux);
-#ifdef USE_DOMOTICZ
-//    Instead of below code use a rule like 'on tele-luxv30b#illuminance do dzsend1 9988,%value% endon'
-//      where 9988 is the domoticz sensor Idx
-//      if (0 == TasmotaGlobal.tele_period) { DomoticzSensor(DZ_ILLUMINANCE, lux); }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
     } else {
       WSContentSend_PD(PSTR("{s}LUXV30B " D_ILLUMINANCE "{m}%s " D_UNIT_LUX "{e}"), lux);

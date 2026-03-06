@@ -650,12 +650,7 @@ void Ina3221Show(bool json)
       , energy_wh
       #endif
       );
-#ifdef USE_DOMOTICZ
-      if (0 == TasmotaGlobal.tele_period) {
-        DomoticzSensor(DZ_VOLTAGE, voltage);
-        DomoticzSensor(DZ_CURRENT, current);
-      }
-#endif  // USE_DOMOTICZ
+
     } // for device
  } // if json
 #ifdef USE_WEBSERVER

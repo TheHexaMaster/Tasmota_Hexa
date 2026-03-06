@@ -194,19 +194,7 @@ void Vl53l0Every_250MSecond(void) {
   }
 }
 
-#ifdef USE_DOMOTICZ
-void Vl53l0Every_Second(void) {
-#ifdef USE_DEEPSLEEP
-  // Prevent updating measurments once VL53L0X has been put to sleep (just before ESP enters deepsleep)
-  if (VL53L0X_standby) return;
-#endif
-  if (abs(Vl53l0x_data[0].distance - Vl53l0x_data[0].distance_prev) > 8) {
-    Vl53l0x_data[0].distance_prev = Vl53l0x_data[0].distance;
-    float distance = (float)Vl53l0x_data[0].distance / 10;  // cm
-    DomoticzFloatSensor(DZ_ILLUMINANCE, distance);
-  }
-}
-#endif  // USE_DOMOTICZ
+
 
 void Vl53l0Show(boolean json) {
   for (uint32_t i = 0; i < VL53LXX_MAX_SENSORS; i++) {
@@ -229,12 +217,7 @@ void Vl53l0Show(boolean json) {
     }
     if (!VL53L0X_xshut) { break; }
   }
-#ifdef USE_DOMOTICZ
-  if (json && (0 == TasmotaGlobal.tele_period)){
-    float distance = (float)Vl53l0x_data[0].distance / 10;  // cm
-    DomoticzFloatSensor(DZ_ILLUMINANCE, distance);
-  }
-#endif  // USE_DOMOTICZ
+
 }
 
 #ifdef USE_DEEPSLEEP
@@ -276,11 +259,6 @@ bool Xsns45(uint32_t function) {
       case FUNC_EVERY_250_MSECOND:
         Vl53l0Every_250MSecond();
         break;
-#ifdef USE_DOMOTICZ
-     case FUNC_EVERY_SECOND:
-        Vl53l0Every_Second();
-        break;
-#endif  // USE_DOMOTICZ
       case FUNC_JSON_APPEND:
         Vl53l0Show(1);
         break;

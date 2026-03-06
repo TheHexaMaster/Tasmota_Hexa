@@ -114,9 +114,7 @@ void SonoffIFanSetFanspeed(uint8_t fanspeed, bool sequence) {
     fans >>= 1;
   }
 
-#ifdef USE_DOMOTICZ
-  if (sequence) { DomoticzUpdateFanState(); }      // Command FanSpeed feedback
-#endif  // USE_DOMOTICZ
+
 }
 
 /*********************************************************************************************/

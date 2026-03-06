@@ -343,12 +343,7 @@ void MhzShow(bool json)
   if (json) {
     ResponseAppend_P(PSTR(",\"%s\":{\"" D_JSON_MODEL "\":\"%s\",\"" D_JSON_CO2 "\":%d,\"" D_JSON_TEMPERATURE "\":%*_f}"),
       types, model, mhz_last_ppm, Settings->flag2.temperature_resolution, &mhz_temperature);
-#ifdef USE_DOMOTICZ
-    if (0 == TasmotaGlobal.tele_period) {
-      DomoticzSensor(DZ_AIRQUALITY, mhz_last_ppm);
-      DomoticzFloatSensor(DZ_TEMP, mhz_temperature);
-    }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
   } else {
     WSContentSend_PD(HTTP_SNS_CO2, types, mhz_last_ppm);

@@ -613,15 +613,11 @@ bool SendKey(uint32_t key, uint32_t device, uint32_t state)
       }
       Response_P(GetStateText(state));
     }
-#ifdef USE_DOMOTICZ
-    if (!(DomoticzSendKey(key, device, state, ResponseLength()))) {
-#endif  // USE_DOMOTICZ
+
       MqttPublish(stopic, ((key) ? Settings->flag.mqtt_switch_retain                         // CMND_SWITCHRETAIN
                                  : Settings->flag.mqtt_button_retain) &&                     // CMND_BUTTONRETAIN
                                  (state != POWER_HOLD || !Settings->flag3.no_hold_retain));  // SetOption62 - Don't use retain flag on HOLD messages
-#ifdef USE_DOMOTICZ
-    }
-#endif  // USE_DOMOTICZ
+
     result = !Settings->flag3.button_switch_force_local;  // SetOption61 - Force local operation when button/switch topic is set
   } else {
     Response_P(PSTR("{\"%s%d\":{\"State\":%d}}"), (key) ? PSTR("Switch") : PSTR("Button"), device, state);
@@ -743,9 +739,7 @@ void ExecuteCommandPower(uint32_t device, uint32_t state, uint32_t source)
     }
 #endif  // USE_DEVICE_GROUPS
     SetDevicePower(TasmotaGlobal.power, source);
-#ifdef USE_DOMOTICZ
-    DomoticzUpdatePowerState(device);
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_KNX
     KnxUpdatePowerState(device, TasmotaGlobal.power);
 #endif  // USE_KNX
@@ -875,11 +869,7 @@ void TempHumDewShow(bool json, bool pass_on, const char *types, float f_temperat
     ResponseAppend_P(PSTR(",\"%s\":{"), types);
     ResponseAppendTHD(f_temperature, f_humidity);
     ResponseJsonEnd();
-#ifdef USE_DOMOTICZ
-    if (pass_on) {
-      DomoticzTempHumPressureSensor(f_temperature, f_humidity);
-    }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_KNX
     if (pass_on) {
       KnxSensor(KNX_TEMPERATURE, f_temperature);

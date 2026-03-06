@@ -399,12 +399,7 @@ void Qmp6988Show(bool json) {
       ResponseAppend_P(PSTR(",\"" D_JSON_PRESSUREATSEALEVEL "\":%s"), sea_pressure);
     }
     ResponseJsonEnd();
-#ifdef USE_DOMOTICZ
-    // Domoticz and knx only support one temp sensor
-    if ((0 == TasmotaGlobal.tele_period)) {
-      DomoticzFloatSensor(DZ_TEMP, qmp_temperature);
-    }
-#endif // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
   } else {
     WSContentSend_Temp("QMP6988", qmp_temperature);

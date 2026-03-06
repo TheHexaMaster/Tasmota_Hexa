@@ -281,13 +281,7 @@ void HM330XShow(bool json) {
         HM330Xdata->rx_buffer.pm1_0_env, HM330Xdata->rx_buffer.pm2_5_env, HM330Xdata->rx_buffer.pm10_0_env,
         HM330Xdata->rx_buffer.particles_0_3um, HM330Xdata->rx_buffer.particles_0_5um, HM330Xdata->rx_buffer.particles_1_0um,
         HM330Xdata->rx_buffer.particles_2_5um, HM330Xdata->rx_buffer.particles_5_0um, HM330Xdata->rx_buffer.particles_10_0um);
-#ifdef USE_DOMOTICZ
-      if (0 == TasmotaGlobal.tele_period) {
-        DomoticzSensor(DZ_COUNT, HM330Xdata->rx_buffer.pm1_0_env);     // PM1
-        DomoticzSensor(DZ_VOLTAGE, HM330Xdata->rx_buffer.pm2_5_env);   // PM2.5
-        DomoticzSensor(DZ_CURRENT, HM330Xdata->rx_buffer.pm10_0_env);  // PM10
-      }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
     } else {
 //      WSContentSend_PD(HTTP_SNS_STANDARD_CONCENTRATION, types, "1", HM330Xdata->rx_buffer.pm1_0_standard);

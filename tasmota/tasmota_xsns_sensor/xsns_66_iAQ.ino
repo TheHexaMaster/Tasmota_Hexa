@@ -120,9 +120,7 @@ void IAQ_Show(uint8_t json)
   }
   else {
     ResponseAppend_P(PSTR(",\"IAQ\":{\"" D_JSON_ECO2 "\":%u,\"" D_JSON_TVOC "\":%u,\"" D_JSON_RESISTANCE "\":%u}"), iAQ.pred, iAQ.Tvoc, iAQ.resistance);
-#ifdef USE_DOMOTICZ
-      if (0 == TasmotaGlobal.tele_period) DomoticzSensor(DZ_AIRQUALITY, iAQ.pred);
-#endif  // USE_DOMOTICZ
+
   }
 #ifdef USE_WEBSERVER
     } else {

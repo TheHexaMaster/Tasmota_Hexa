@@ -84,9 +84,7 @@ void MCP9808Show(bool json) {
     if (json) {
       ResponseAppend_P(JSON_SNS_F_TEMP, sensor_name, Settings->flag2.temperature_resolution, &mcp9808_sensors[i].temperature);
       if ((0 == TasmotaGlobal.tele_period) && (0 == i)) {
-#ifdef USE_DOMOTICZ
-        DomoticzFloatSensor(DZ_TEMP, mcp9808_sensors[i].temperature);
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_KNX
         KnxSensor(KNX_TEMPERATURE, mcp9808_sensors[i].temperature);
 #endif // USE_KNX

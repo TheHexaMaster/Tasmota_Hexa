@@ -918,9 +918,6 @@ void MqttPublishPowerState(uint32_t device) {
 #ifdef USE_SONOFF_IFAN
   if (IsModuleIfan() && (device > 1)) {
     if (GetFanspeed() < MaxFanspeed()) {  // 4 occurs when fanspeed is 3 and RC button 2 is pressed
-#ifdef USE_DOMOTICZ
-      DomoticzUpdateFanState();  // RC Button feedback
-#endif  // USE_DOMOTICZ
       snprintf_P(scommand, sizeof(scommand), PSTR(D_CMND_FANSPEED));
       GetTopic_P(stopic, STAT, TasmotaGlobal.mqtt_topic, (Settings->flag.mqtt_response) ? scommand : S_RSLT_RESULT);  // SetOption4 - Switch between MQTT RESULT or COMMAND
       Response_P(S_JSON_COMMAND_NVALUE, scommand, GetFanspeed());

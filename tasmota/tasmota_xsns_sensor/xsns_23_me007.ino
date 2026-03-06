@@ -468,13 +468,7 @@ void me007_show( const ME007_SHOW_TYPE type_e )
                           &me007_data_s.temperature_deg_f32,
                           me007_data_s.error_cnt_current_u8,
                           me007_data_s.error_cnt_total_u16 );
-#ifdef USE_DOMOTICZ
-        if ( 0U == TasmotaGlobal.tele_period )
-        {
-            DomoticzFloatSensor( DZ_COUNT, me007_data_s.distance_cm_f32 );    /**< @details Send distance as Domoticz counter value */
-            DomoticzFloatSensor( DZ_TEMP, me007_data_s.temperature_deg_f32 ); /**< @details Send distance as Domoticz temperature value */
-        }
-#endif /* USE_DOMOTICZ */
+
         break;
 #ifdef USE_WEBSERVER
     case ME007_SHOW_TYPE_WS:

@@ -171,9 +171,7 @@ void MAX31855_Show(bool Json) {
           Settings->flag2.temperature_resolution, &MAX31855_Result[i].ReferenceTemperature,
           MAX31855_Result[i].ErrorCode);
         if ((0 == TasmotaGlobal.tele_period) && (!report_once)) {
-#ifdef USE_DOMOTICZ
-          DomoticzFloatSensor(DZ_TEMP, MAX31855_Result[i].ProbeTemperature);
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_KNX
           KnxSensor(KNX_TEMPERATURE, MAX31855_Result[i].ProbeTemperature);
 #endif  // USE_KNX

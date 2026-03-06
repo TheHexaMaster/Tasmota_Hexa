@@ -123,9 +123,7 @@ void Sgp30Show(bool json)
         ResponseAppend_P(PSTR(",\"" D_JSON_AHUM "\":%s"),abs_hum);
       }
       ResponseJsonEnd();
-#ifdef USE_DOMOTICZ
-      if (0 == TasmotaGlobal.tele_period) DomoticzSensor(DZ_AIRQUALITY, sgp.eCO2);
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
     } else {
       WSContentSend_PD(HTTP_SNS_SGP30, sgp.eCO2, sgp.TVOC);

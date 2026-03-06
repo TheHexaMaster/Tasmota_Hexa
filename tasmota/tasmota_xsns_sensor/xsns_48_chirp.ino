@@ -442,12 +442,7 @@ void ChirpShow(bool json)
         else {
           ResponseAppend_P(PSTR(",\"%s%u\":{\"sleeping\"}"),chirp_name, i);
         }
-  #ifdef USE_DOMOTICZ
-      if (0 == TasmotaGlobal.tele_period) {
-        DomoticzTempHumPressureSensor(t_temperature, chirp_sensor[i].moisture);
-        DomoticzSensor(DZ_ILLUMINANCE,chirp_sensor[i].light); // this is not LUX!!
-      }
-  #endif  // USE_DOMOTICZ
+
   #ifdef USE_WEBSERVER
       } else {
         WSContentSend_PD(HTTP_SNS_CHIRPVER, i, chirp_sensor[i].address, str_version);

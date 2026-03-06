@@ -1262,24 +1262,7 @@ void ThermostatTimerDisarm(uint8_t ctr_output)
   Thermostat[ctr_output].status.thermostat_mode = THERMOSTAT_OFF;
 }
 
-#ifdef DEBUG_THERMOSTAT
 
-void ThermostatVirtualSwitch(uint8_t ctr_output)
-{
-  char domoticz_in_topic[] = DOMOTICZ_IN_TOPIC;
-  if (ctr_output < DOMOTICZ_MAX_IDX) {
-    Response_P(DOMOTICZ_MES, Domoticz_Virtual_Switches[ctr_output], (0 == Thermostat[ctr_output].status.command_output) ? 0 : 1, "");
-    MqttPublish(domoticz_in_topic);
-  }
-}
-
-void ThermostatVirtualSwitchCtrState(uint8_t ctr_output)
-{
-  char domoticz_in_topic[] = DOMOTICZ_IN_TOPIC;
-  Response_P(DOMOTICZ_MES, DOMOTICZ_IDX2, (0 == Thermostat[0].status.phase_hybrid_ctr) ? 0 : 1, "");
-  MqttPublish(domoticz_in_topic);
-}
-#endif // DEBUG_THERMOSTAT
 
 void ThermostatDebug(uint8_t ctr_output)
 {

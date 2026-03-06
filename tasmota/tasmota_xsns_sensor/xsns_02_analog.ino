@@ -778,10 +778,7 @@ void AdcShow(bool json) {
           AdcShowContinuation(&jsonflg);
           ResponseAppend_P(PSTR("\"" D_JSON_TEMPERATURE "%s\":%*_f"), adc_channel, Settings->flag2.temperature_resolution, &temperature);
           if ((0 == TasmotaGlobal.tele_period) && (!domo_flag[ADC_TEMP])) {
-#ifdef USE_DOMOTICZ
-            DomoticzFloatSensor(DZ_TEMP, temperature);
-            domo_flag[ADC_TEMP] = true;
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_KNX
             KnxSensor(KNX_TEMPERATURE, temperature);
 #endif  // USE_KNX
@@ -800,12 +797,7 @@ void AdcShow(bool json) {
         if (json) {
           AdcShowContinuation(&jsonflg);
           ResponseAppend_P(PSTR("\"" D_JSON_ILLUMINANCE "%s\":%d"), adc_channel, adc_light);
-#ifdef USE_DOMOTICZ
-          if ((0 == TasmotaGlobal.tele_period) && (!domo_flag[ADC_LIGHT])) {
-            DomoticzSensor(DZ_ILLUMINANCE, adc_light);
-            domo_flag[ADC_LIGHT] = true;
-          }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
         } else {
           WSContentSend_PD(HTTP_SNS_ILLUMINANCE, adc_name, adc_light);
@@ -845,14 +837,7 @@ void AdcShow(bool json) {
           AdcShowContinuation(&jsonflg);
           ResponseAppend_P(PSTR("\"CTEnergy%s\":{\"" D_JSON_ENERGY "\":%s,\"" D_JSON_POWERUSAGE "\":%s,\"" D_JSON_VOLTAGE "\":%s,\"" D_JSON_CURRENT "\":%s}"),
             adc_channel, energy_chr, power_chr, voltage_chr, current_chr);
-#ifdef USE_DOMOTICZ
-          if ((0 == TasmotaGlobal.tele_period) && (!domo_flag[ADC_CT_POWER])) {
-            DomoticzSensor(DZ_POWER_ENERGY, power_chr);
-            DomoticzSensor(DZ_VOLTAGE, voltage_chr);
-            DomoticzSensor(DZ_CURRENT, current_chr);
-            domo_flag[ADC_CT_POWER] = true;
-          }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
         } else {
           WSContentSend_PD(HTTP_SNS_VOLTAGE, voltage_chr);

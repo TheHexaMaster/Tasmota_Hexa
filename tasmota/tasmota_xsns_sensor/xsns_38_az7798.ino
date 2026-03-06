@@ -282,9 +282,7 @@ void AzShow(bool json)
     ResponseAppend_P(PSTR(",\"%s\":{\"" D_JSON_CO2 "\":%d,"), ktype, az_co2);
     ResponseAppendTHD(az_temperature, az_humidity);
     ResponseJsonEnd();
-#ifdef USE_DOMOTICZ
-    if (0 == TasmotaGlobal.tele_period) DomoticzSensor(DZ_AIRQUALITY, az_co2);
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
   } else {
     WSContentSend_PD(HTTP_SNS_CO2, ktype, az_co2);

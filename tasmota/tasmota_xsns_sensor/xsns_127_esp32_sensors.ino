@@ -42,15 +42,7 @@ void Esp32SensorShow(bool json) {
       ResponseAppend_P(PSTR(",\"ESP32\":{\"" D_JSON_TEMPERATURE "\":%*_f"), Settings->flag2.temperature_resolution, &t);
       json_end = true;
 
-#ifdef USE_DOMOTICZ
-//    Instead of below code use a rule like 'on tele-esp32#temperature do dzsend1 9988,%value% endon'
-//      where 9988 is the domoticz sensor Idx
-//    if (0 == TasmotaGlobal.tele_period) {
-//      if (!ResponseContains_P(PSTR(D_JSON_TEMPERATURE))) {  // Only send if no other sensor already did
-//        DomoticzFloatSensor(DZ_TEMP, t);
-//      }
-//    }
-#endif  // USE_DOMOTICZ
+
 
 #ifdef USE_WEBSERVER
     } else {

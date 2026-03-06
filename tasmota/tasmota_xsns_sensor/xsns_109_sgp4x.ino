@@ -270,11 +270,7 @@ void Sgp4xShow(bool json)
         ResponseAppend_P(PSTR(",\"SGP40\":{\"VOC_" D_JSON_RAW "\":%d,\"" D_TVOC "\":%d"), srawVoc, voc_index_sgp4x);
       }
       ResponseJsonEnd();
-#ifdef USE_DOMOTICZ
-      if (0 == TasmotaGlobal.tele_period) {
-        DomoticzSensor(DZ_AIRQUALITY, voc_index_sgp4x);
-      }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
     } else {
 	      if (sgp4x_type == TYPE_SGP41) {

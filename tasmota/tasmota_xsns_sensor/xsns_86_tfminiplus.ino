@@ -196,11 +196,7 @@ void TfmpShow(bool json) {
     if (json) {
         ResponseAppend_P(PSTR(",\"%s\":{\"" D_JSON_DISTANCE "\":%1_f,\"" D_JSON_SIGNALSTRENGTH "\":%d,\"" D_JSON_CHIPTEMPERATURE "\":%d}"),
             sensor_name, &distance, tfminiplus_sensor.sigstrength, tfminiplus_sensor.chiptemp);
-#ifdef USE_DOMOTICZ
-        if (0 == TasmotaGlobal.tele_period) {
-            DomoticzFloatSensor(DZ_COUNT, distance);
-        }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
     } else {
         WSContentSend_P(HTTP_SNS_F_DISTANCE_CM, sensor_name, &distance);

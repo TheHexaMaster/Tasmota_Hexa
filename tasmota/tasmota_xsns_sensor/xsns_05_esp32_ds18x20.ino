@@ -331,11 +331,7 @@ void Ds18x20Show(bool json) {
         ResponseAppend_P(PSTR(",\"%s\":{\"" D_JSON_ID "\":\"%s\",\"" D_JSON_TEMPERATURE "\":%*_f}"),
           DS18X20Data.name, address, Settings->flag2.temperature_resolution, &t);
         dsxflg++;
-#ifdef USE_DOMOTICZ
-        if ((0 == TasmotaGlobal.tele_period) && (1 == dsxflg)) {
-          DomoticzFloatSensor(DZ_TEMP, t);
-        }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_KNX
         if ((0 == TasmotaGlobal.tele_period) && (1 == dsxflg)) {
           KnxSensor(KNX_TEMPERATURE, t);

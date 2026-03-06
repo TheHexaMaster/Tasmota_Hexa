@@ -66,9 +66,7 @@ constexpr uint32_t feature[] = {
 //  0x00020000 |  // xdrv_05_irremote.ino USE_IR_REMOTE_FULL USE_IR_REMOTE - DELETED
 //  0x00040000 |  // xdrv_05_irremote.ino - USE_IR_HVAC - DELETED
 //  0x00080000 |  // USE_IR_REMOTE USE_IR_RECEIVE xdrv_05_irremote.ino  - DELETED
-#ifdef USE_DOMOTICZ
-  0x00100000 |  // xdrv_07_domoticz.ino
-#endif
+//  0x00100000 |  // xdrv_07_domoticz.ino - USE_DOMOTICZ - DELETED
 #ifdef USE_DISPLAY
   0x00200000 |  // xdrv_13_display.ino
 #endif
@@ -650,9 +648,7 @@ constexpr uint32_t feature[] = {
 #ifdef USE_HRG15
   0x00001000 |  // xsns_90_hrg15.ino
 #endif
-#ifdef USE_VINDRIKTNING
-  0x00002000 |  // xsns_91_vindriktning.ino
-#endif
+//  0x00002000 |  // xsns_91_vindriktning.ino - USE_VINDRIKTNING - DELETED
 #if defined(USE_I2C) && defined(USE_SCD40)
   0x00004000 |  // xsns_92_scd40.ino
 #endif

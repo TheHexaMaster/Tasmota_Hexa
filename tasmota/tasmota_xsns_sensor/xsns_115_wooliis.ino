@@ -152,16 +152,7 @@ void WooliisShow(bool json) {
       ResponseAppend_P(PSTR("\"" D_JSON_IMPORT "\":%*_f,"), Settings->flag2.energy_resolution, &Wooliis->energy_in);
       ResponseAppend_P(PSTR("\"" D_JSON_EXPORT "\":%*_f"), Settings->flag2.energy_resolution, &Wooliis->energy_out);
       ResponseJsonEnd();
-#ifdef USE_DOMOTICZ
-      if (0 == TasmotaGlobal.tele_period) {
-        char pe[16];
-        snprintf_P(pe, sizeof(pe), PSTR("%d;%d"), Wooliis->voltage*Wooliis->current, Wooliis->energy_out);
-        DomoticzSensor(DZ_COUNT, Wooliis->charge_percent);
-        DomoticzSensor(DZ_VOLTAGE, Wooliis->voltage);
-        DomoticzSensor(DZ_CURRENT, Wooliis->current);
-        DomoticzSensor(DZ_POWER_ENERGY, pe);
-      }
-#endif  // USE_DOMOTICZ
+
     }   // if json
 #ifdef USE_WEBSERVER
     else {

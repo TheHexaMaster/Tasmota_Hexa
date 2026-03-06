@@ -204,11 +204,7 @@ void Sr04Show(uint32_t i, bool json) {
     }
     if(json) {
       ResponseAppend_P(PSTR(",\"%s\":{\"" D_JSON_DISTANCE "\":%1_f}"), types, &SR04[i].distance);
-#ifdef USE_DOMOTICZ
-      if (0 == TasmotaGlobal.tele_period) {
-        DomoticzFloatSensor(DZ_COUNT, SR04[i].distance);  // Send distance as Domoticz Counter value
-      }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
     } else {
       WSContentSend_PD(HTTP_SNS_F_DISTANCE_CM, types, &SR04[i].distance);

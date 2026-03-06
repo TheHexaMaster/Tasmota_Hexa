@@ -143,11 +143,7 @@ void Ags02maShow(bool json)
     if (json) {
       ResponseAppend_P(PSTR(",\"AGS02MA\":{\"" D_JSON_TVOC "\":%d}"), 
                        ags02ma_ppb_value);
-#ifdef USE_DOMOTICZ
-      if (0 == TasmotaGlobal.tele_period) {
-        DomoticzSensor(DZ_AIRQUALITY, ags02ma_ppb_value);
-      }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
     } else {
       WSContentSend_PD(HTTP_SNS_AGS02MA, ags02ma_ppb_value);

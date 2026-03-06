@@ -110,11 +110,7 @@ struct SeesawSoil : public SeesawDevice {
         name, address,
         Settings->flag2.temperature_resolution, &temperature,
         (uint32_t) moisture);
-#ifdef USE_DOMOTICZ
-      if (0 == TasmotaGlobal.tele_period) {
-        DomoticzTempHumPressureSensor(temperature, moisture, -42.0f);
-      }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_KNX
       if (0 == TasmotaGlobal.tele_period) {
         KnxSensor(KNX_TEMPERATURE, temperature);

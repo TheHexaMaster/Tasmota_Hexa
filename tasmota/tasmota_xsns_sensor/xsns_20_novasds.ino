@@ -236,12 +236,7 @@ void NovaSdsShow(bool json) {
     float pm2_5 = (float)(novasds_data.pm25) / 10.0f;
     if (json) {
       ResponseAppend_P(PSTR(",\"%s\":{\"PM2.5\":%1_f,\"PM10\":%1_f}"), types, &pm2_5, &pm10);
-#ifdef USE_DOMOTICZ
-      if (0 == TasmotaGlobal.tele_period) {
-        DomoticzFloatSensor(DZ_VOLTAGE, pm2_5);  // PM2.5 - VoltRes 1
-        DomoticzFloatSensor(DZ_CURRENT, pm10);   // PM10  - AmpRes 1
-      }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
     } else {
       WSContentSend_PD(HTTP_SNS_F_ENVIRONMENTAL_CONCENTRATION, types, "2.5", &pm2_5);

@@ -318,12 +318,7 @@ void Scd30Show(bool json) {
       ResponseAppend_P(PSTR(",\"SCD30\":{\"" D_JSON_CO2 "\":%d,\"" D_JSON_ECO2 "\":%d,"), Scd30.co2, Scd30.co2e_avg);
       ResponseAppendTHD(t, h);
       ResponseJsonEnd();
-#ifdef USE_DOMOTICZ
-      if (0 == TasmotaGlobal.tele_period) {
-        DomoticzSensor(DZ_AIRQUALITY, Scd30.co2);
-        DomoticzTempHumPressureSensor(t, h);
-      }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
     } else {
       WSContentSend_PD(HTTP_SNS_CO2EAVG, "SCD30", Scd30.co2e_avg);

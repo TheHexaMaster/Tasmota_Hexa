@@ -280,14 +280,7 @@ void CCS811Show(bool json)
         pdevicename++;
       }
     }
-#ifdef USE_DOMOTICZ
-    if (0 == TasmotaGlobal.tele_period) {
-      if (pccsd->device_ready) {
-        pccsd = ccsd;
-        DomoticzSensor(DZ_AIRQUALITY, pccsd->eCO2);
-      }
-    }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
   } else {
     for (i = 0, pccsd = ccsd, pdevicename = pdevicename_first; i < MAXDEVICECOUNT; i++, pccsd++) {

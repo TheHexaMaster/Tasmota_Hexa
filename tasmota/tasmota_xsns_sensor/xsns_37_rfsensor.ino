@@ -272,13 +272,7 @@ void RfSnsTheoV2Show(bool json) {
         if (json) {
           ResponseAppend_P(PSTR(",\"%s\":{\"" D_JSON_TEMPERATURE "\":%*_f,\"" D_JSON_ILLUMINANCE "\":%d,\"" D_JSON_VOLTAGE "\":%s}"),
             sensor, Settings->flag2.temperature_resolution, &temp, rfsns_theo_v2_t1[i].lux, voltage);
-#ifdef USE_DOMOTICZ
-          if ((0 == TasmotaGlobal.tele_period) && !sensor_once) {
-            DomoticzFloatSensor(DZ_TEMP, temp);
-            DomoticzSensor(DZ_ILLUMINANCE, rfsns_theo_v2_t1[i].lux);
-            sensor_once = true;
-          }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
         } else {
           WSContentSend_Temp(sensor, temp);
@@ -312,9 +306,7 @@ void RfSnsTheoV2Show(bool json) {
           ResponseAppend_P(PSTR(",\"" D_JSON_VOLTAGE "\":%s}"), voltage);
 
           if ((0 == TasmotaGlobal.tele_period) && !sensor_once) {
-#ifdef USE_DOMOTICZ
-            DomoticzTempHumPressureSensor(temp, humi);  //
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_KNX
             KnxSensor(KNX_TEMPERATURE, temp);
             KnxSensor(KNX_HUMIDITY, humi);
@@ -565,12 +557,7 @@ void RfSnsAlectoV2Show(bool json) {
         ResponseAppend_P(PSTR(",\"Rain\":%s,\"Wind\":%s,\"Gust\":%s%s}"), rain, wind, gust, (rfsns_alecto_v2->type) ? direction : "");
 
         if (0 == TasmotaGlobal.tele_period) {
-#ifdef USE_DOMOTICZ
-        // Use a rules to send data to Domoticz where also a local BMP280 is connected:
-        // on tele-alectov2#temperature do var1 %value% endon on tele-alectov2#humidity do var2 %value% endon on tele-bmp280#pressure do publish domoticz/in {"idx":68,"svalue":"%var1%;%var2%;0;%value%;0"} endon
-        // on tele-alectov2#wind do var1 %value% endon on tele-alectov2#gust do publish domoticz/in {"idx":69,"svalue":"0;N;%var1%;%value%;22;24"} endon"}
-        // on tele-alectov2#rain do publish domoticz/in {"idx":70,"svalue":"0;%value%"} endon
-#endif  // USE_DOMOTICZ
+
         }
 #ifdef USE_WEBSERVER
       } else {

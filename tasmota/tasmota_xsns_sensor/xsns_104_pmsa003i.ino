@@ -94,13 +94,7 @@ void Pmsa003iShow(bool json) {
         Pmsa003i.data.pm10_standard, Pmsa003i.data.pm25_standard, Pmsa003i.data.pm100_standard,
         Pmsa003i.data.pm10_env, Pmsa003i.data.pm25_env, Pmsa003i.data.pm100_env,
         Pmsa003i.data.particles_03um, Pmsa003i.data.particles_05um, Pmsa003i.data.particles_10um, Pmsa003i.data.particles_25um, Pmsa003i.data.particles_50um, Pmsa003i.data.particles_100um);
-#ifdef USE_DOMOTICZ
-      if (0 == TasmotaGlobal.tele_period) {
-        DomoticzSensor(DZ_COUNT, Pmsa003i.data.pm10_env);     // PM1
-        DomoticzSensor(DZ_VOLTAGE, Pmsa003i.data.pm25_env);   // PM2.5
-        DomoticzSensor(DZ_CURRENT, Pmsa003i.data.pm100_env);  // PM10
-      }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
     } else {
 //      WSContentSend_PD(HTTP_SNS_STANDARD_CONCENTRATION, types, "1", Pmsa003i.data.pm10_standard);

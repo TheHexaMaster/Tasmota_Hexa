@@ -257,11 +257,7 @@ void D3231ShowSensor(bool json) {
 
     if (json) {
         ResponseAppend_P(PSTR(",\"DS3231\":{\"" D_JSON_TEMPERATURE "\":%*_f}"), Settings->flag2.temperature_resolution, &f_temperature);
-#ifdef USE_DOMOTICZ
-        if (0 == TasmotaGlobal.tele_period) {
-          DomoticzFloatSensor(DZ_TEMP, f_temperature);
-        }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_KNX
         if (0 == TasmotaGlobal.tele_period) {
           KnxSensor(KNX_TEMPERATURE, f_temperature);

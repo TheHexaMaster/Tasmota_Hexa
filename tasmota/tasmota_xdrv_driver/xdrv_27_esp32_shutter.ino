@@ -2407,11 +2407,7 @@ bool Xdrv27(uint32_t function)
             if (Shutter[i].direction != 0) {
               ShutterGlobal.sensor_data_reported = false;
             }
-  #ifdef USE_DOMOTICZ
-            if ((0 == TasmotaGlobal.tele_period) && (0 == i)) {
-              DomoticzSensor(DZ_SHUTTER, position);
-            }
-  #endif  // USE_DOMOTICZ
+
           }
         }
         break;

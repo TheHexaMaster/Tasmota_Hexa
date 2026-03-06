@@ -121,12 +121,7 @@ void Vl53l1Every_250MSecond(void) {
   } // for
 }
 
-#ifdef USE_DOMOTICZ
-void Vl53l1Every_Second(void) {
-  float distance = (float)vl53l1x_data[0].distance / 10;  // cm
-  DomoticzFloatSensor(DZ_ILLUMINANCE, distance);
-}
-#endif  // USE_DOMOTICZ
+
 
 void Vl53l1Show(bool json) {
   uint32_t i, xshut;
@@ -139,11 +134,7 @@ void Vl53l1Show(bool json) {
     if (xshut & VL53L1X_detected) {
       if (json) {
         ResponseAppend_P(PSTR(",\"%s\":{\"" D_JSON_DISTANCE "\":%1_f}"), types, &distance);
-#ifdef USE_DOMOTICZ
-        if (0 == TasmotaGlobal.tele_period) {
-          Vl53l1Every_Second();
-        }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
       } else {
         WSContentSend_PD(HTTP_SNS_F_DISTANCE_CM, types, &distance);
@@ -171,11 +162,7 @@ bool Xsns77(uint32_t function) {
       case FUNC_EVERY_250_MSECOND:
         Vl53l1Every_250MSecond();
         break;
-#ifdef USE_DOMOTICZ
-     case FUNC_EVERY_SECOND:
-        Vl53l1Every_Second();
-        break;
-#endif  // USE_DOMOTICZ
+
       case FUNC_JSON_APPEND:
         Vl53l1Show(1);
         break;

@@ -251,9 +251,6 @@ void SonoffBridgeReceived(void)
         ResponseTime_P(PSTR(",\"" D_JSON_RFRECEIVED "\":{\"" D_JSON_SYNC "\":%d,\"" D_JSON_LOW "\":%d,\"" D_JSON_HIGH "\":%d,\"" D_JSON_DATA "\":%s,\"" D_CMND_PREFIX_RF D_CMND_RFKEY "\":%s}}"),
           sync_time, low_time, high_time, stemp, rfkey);
         MqttPublishPrefixTopicRulesProcess_P(RESULT_OR_TELE, PSTR(D_JSON_RFRECEIVED));
-  #ifdef USE_DOMOTICZ
-        DomoticzSensor(DZ_COUNT, received_id);  // Send rid as Domoticz Counter value
-  #endif  // USE_DOMOTICZ
       }
     }
   }
@@ -357,10 +354,6 @@ void SonoffBridgeSend(uint8_t idx, uint8_t key)
   Serial.write(code);
   Serial.write(0x55);  // End of Text
   Serial.flush();
-#ifdef USE_DOMOTICZ
-//  uint32_t rid = Settings->rf_code[idx][6] << 16 | Settings->rf_code[idx][7] << 8 | code;
-//  DomoticzSensor(DZ_COUNT, rid);  // Send rid as Domoticz Counter value
-#endif  // USE_DOMOTICZ
 }
 
 void SonoffBridgeLearn(uint8_t key)

@@ -617,14 +617,7 @@ void BmpShow(bool json) {
           name, Settings->flag2.temperature_resolution, &bmp_temperature, (bmp_sensors[bmp_idx].bmp_model >= 2) ? json_humidity : "", pressure, (Settings->altitude != 0) ? json_sealevel : "");
 #endif  // USE_BME68X
 
-#ifdef USE_DOMOTICZ
-        if ((0 == TasmotaGlobal.tele_period) && (0 == bmp_idx)) {  // We want the same first sensor to report to Domoticz in case a read is missed
-          DomoticzTempHumPressureSensor(bmp_temperature, bmp_humidity, bmp_pressure);
-#ifdef USE_BME68X
-          if (bmp_sensors[bmp_idx].bmp_model >= 3) { DomoticzSensor(DZ_AIRQUALITY, (uint32_t)bmp_sensors[bmp_idx].bmp_gas_resistance); }
-#endif  // USE_BME68X
-        }
-#endif  // USE_DOMOTICZ
+
 
 #ifdef USE_KNX
         if (0 == TasmotaGlobal.tele_period) {

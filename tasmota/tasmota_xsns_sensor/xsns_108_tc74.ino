@@ -223,9 +223,7 @@ void TC74Show(bool json) {
         // also send KNX and Domoticz if enabled...and first sensor reporting
         // might beed guarded by some sort of enable (compile time or otherwise)
         if ((0 == TasmotaGlobal.tele_period) && once) {
-#ifdef USE_DOMOTICZ
-          DomoticzFloatSensor(DZ_TEMP, tc74_sensors[i].temperature);
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_KNX
           KnxSensor(KNX_TEMPERATURE, tc74_sensors[i].temperature);
 #endif  // USE_KNX

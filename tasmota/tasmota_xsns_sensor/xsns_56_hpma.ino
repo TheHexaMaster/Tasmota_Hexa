@@ -88,12 +88,7 @@ void HpmaShow(bool json) {
 
     if (json) {
       ResponseAppend_P(PSTR(",\"%s\":{\"PM2.5\":%d,\"PM10\":%d}"), types, hpma_data.pm2_5, hpma_data.pm10);
-#ifdef USE_DOMOTICZ
-      if (0 == TasmotaGlobal.tele_period) {
-        DomoticzSensor(DZ_VOLTAGE, hpma_data.pm2_5);  // PM2.5
-        DomoticzSensor(DZ_CURRENT, hpma_data.pm10);   // PM10
-      }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
     } else {
       WSContentSend_PD(HTTP_SNS_ENVIRONMENTAL_CONCENTRATION, types, "2.5", hpma_data.pm2_5);

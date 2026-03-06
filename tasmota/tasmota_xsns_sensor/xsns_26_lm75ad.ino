@@ -106,11 +106,7 @@ void LM75ADShow(bool json) {
 
     if (json) {
       ResponseAppend_P(JSON_SNS_F_TEMP, name, Settings->flag2.temperature_resolution, &t);
-#ifdef USE_DOMOTICZ
-      if ((0 == TasmotaGlobal.tele_period) && (0 == sensor)) {
-        DomoticzFloatSensor(DZ_TEMP, t);
-      }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
     } else {
       WSContentSend_Temp(name, t);

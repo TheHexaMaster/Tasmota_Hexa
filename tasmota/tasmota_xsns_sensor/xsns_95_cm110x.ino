@@ -410,14 +410,7 @@ void CM11Show(bool json)
        Settings->flag2.temperature_resolution, &cm11_temperature);
     }
     ResponseAppend_P(PSTR("}"));
-#ifdef USE_DOMOTICZ
-    if (0 == TasmotaGlobal.tele_period) {
-      DomoticzSensor(DZ_AIRQUALITY, cm11_last_ppm);
-      if(cm11_type == 2) { // With temp and humidity
-        DomoticzFloatSensor(DZ_TEMP, cm11_temperature);
-      }
-    }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
   } else {
     WSContentSend_PD(HTTP_SNS_CO2, "CM11", cm11_last_ppm);

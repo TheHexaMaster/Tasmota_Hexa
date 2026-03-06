@@ -2858,17 +2858,7 @@ void SML_Show(boolean json) {
    }
 
 
-#ifdef USE_DOMOTICZ
-  if (json && !TasmotaGlobal.tele_period) {
-    char str[16];
-    DOUBLE2CHAR(sml_globs.meter_vars[0], 1, str);
-    DomoticzSensorPowerEnergy(sml_globs.meter_vars[1], str);  // PowerUsage, EnergyToday
-    DOUBLE2CHAR(sml_globs.meter_vars[2], 1, str);
-    DomoticzSensor(DZ_VOLTAGE, str);  // Voltage
-    DOUBLE2CHAR(sml_globs.meter_vars[3], 1, str);
-    DomoticzSensor(DZ_CURRENT, str);  // Current
-  }
-#endif  // USE_DOMOTICZ
+
 
 }
 

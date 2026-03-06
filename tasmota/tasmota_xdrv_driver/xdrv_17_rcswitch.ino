@@ -71,9 +71,7 @@ void RfReceiveCheck(void) {
       ResponseTime_P(PSTR(",\"" D_JSON_RFRECEIVED "\":{\"" D_JSON_RF_DATA "\":%s,\"" D_JSON_RF_BITS "\":%d,\"" D_JSON_RF_PROTOCOL "\":%d,\"" D_JSON_RF_PULSE "\":%d}}"),
         stemp, bits, protocol, delay);
       MqttPublishPrefixTopicRulesProcess_P(RESULT_OR_TELE, PSTR(D_JSON_RFRECEIVED));
-#ifdef USE_DOMOTICZ
-      DomoticzSensor(DZ_COUNT, data);  // Send data as Domoticz Counter value
-#endif  // USE_DOMOTICZ
+
     }
     mySwitch.resetAvailable();
   }

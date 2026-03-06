@@ -82,22 +82,13 @@ void Tof10120Every_250MSecond(void) {
   tof10120_sensor.distance = dist;
 }
 
-#ifdef USE_DOMOTICZ
-void Tof10120Every_Second(void) {
-  float distance = (float)tof10120_sensor.distance / 10;  // cm
-  DomoticzFloatSensor(DZ_ILLUMINANCE, distance);
-}
-#endif  // USE_DOMOTICZ
+
 
 void Tof10120Show(bool json) {
   float distance = (float)tof10120_sensor.distance / 10;  // cm
   if (json) {
     ResponseAppend_P(PSTR(",\"TOF10120\":{\"" D_JSON_DISTANCE "\":%1_f}"), &distance);
-#ifdef USE_DOMOTICZ
-    if (0 == TasmotaGlobal.tele_period) {
-      Tof10120Every_Second();
-    }
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
   } else {
     WSContentSend_PD(HTTP_SNS_F_DISTANCE_CM, PSTR("TOF10120"), &distance);
@@ -122,11 +113,7 @@ bool Xsns84(uint32_t function) {
       case FUNC_EVERY_250_MSECOND:
         Tof10120Every_250MSecond();
         break;
-#ifdef USE_DOMOTICZ
-     case FUNC_EVERY_SECOND:
-        Tof10120Every_Second();
-        break;
-#endif  // USE_DOMOTICZ
+
       case FUNC_JSON_APPEND:
         Tof10120Show(1);
         break;

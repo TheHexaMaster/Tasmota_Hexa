@@ -230,9 +230,7 @@ void MPU_6050Show(bool json)
     ResponseAppend_P(PSTR(",\"%s\":{\"" D_JSON_TEMPERATURE "\":%*_f%s%s%s%s%s%s}"),
       D_SENSOR_MPU6050, Settings->flag2.temperature_resolution, &tempConv, json_axis_ax, json_axis_ay, json_axis_az, json_axis_gx, json_axis_gy, json_axis_gz);
 #endif // USE_MPU6050_DMP
-#ifdef USE_DOMOTICZ
-    DomoticzFloatSensor(DZ_TEMP, tempConv);
-#endif // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
   } else {
     WSContentSend_Temp(D_SENSOR_MPU6050, tempConv);

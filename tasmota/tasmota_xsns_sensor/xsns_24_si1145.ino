@@ -353,9 +353,7 @@ void Si1145Show(bool json)
     if (json) {
       ResponseAppend_P(PSTR(",\"SI1145\":{\"" D_JSON_ILLUMINANCE "\":%d,\"" D_JSON_INFRARED "\":%d,\"" D_JSON_UV_INDEX "\":%d.%d}"),
         si1145_visible, si1145_infrared, si1145_uvindex /100, si1145_uvindex %100);
-#ifdef USE_DOMOTICZ
-      if (0 == TasmotaGlobal.tele_period) DomoticzSensor(DZ_ILLUMINANCE, si1145_visible);
-#endif  // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
     } else {
       WSContentSend_PD(HTTP_SNS_SI1145, si1145_visible, si1145_infrared, si1145_uvindex /100, si1145_uvindex %100);

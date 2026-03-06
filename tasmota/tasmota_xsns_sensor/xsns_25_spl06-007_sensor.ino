@@ -81,12 +81,7 @@ void spl007Show(bool json)
         ResponseAppend_P(PSTR(",\"" D_JSON_PRESSUREATSEALEVEL "\":%s"), sea_pressure);
     }
     ResponseJsonEnd();
-#ifdef USE_DOMOTICZ
-        // Domoticz and knx only support one temp sensor
-        if ((0 == TasmotaGlobal.tele_period)) {
-          DomoticzFloatSensor(DZ_TEMP, spl007_s.temperature);
-        }
-#endif // USE_DOMOTICZ
+
 #ifdef USE_WEBSERVER
       } else {
 
