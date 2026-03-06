@@ -216,28 +216,6 @@
 #undef USE_DEBUG_DRIVER                          // Disable debug code
 #endif  // FIRMWARE_SENSORS
 
-/*********************************************************************************************\
- * [tasmota-knx.bin]
- * Provide a dedicated KNX image allowing enough code and memory space
-\*********************************************************************************************/
-
-#ifdef FIRMWARE_KNX_NO_EMULATION
-
-#ifndef CODE_IMAGE_STR
-  #define CODE_IMAGE_STR "knx"
-#endif
-
-#ifndef USE_KNX
-#define USE_KNX                                  // Enable KNX IP Protocol Support (+23k code, +3k3 mem)
-#endif
-#undef USE_DEEPSLEEP                             // Disable support for deepsleep (+1k code)
-#undef USE_DEVICE_GROUPS                         // Disable support for device groups (+3k5 code)
-#undef USE_BLE_ESP32                             // (ESP32 only) Disable support for native BLE on ESP32 - use new driver
-#undef USE_MI_ESP32                              // (ESP32 only) Disable support for ESP32 as a BLE-bridge (+9k2 mem, +292k flash)
-
-#undef DEBUG_THEO                                // Disable debug code
-#undef USE_DEBUG_DRIVER                          // Disable debug code
-#endif  // FIRMWARE_KNX_NO_EMULATION
 
 /*********************************************************************************************\
  * [tasmota-display.bin]
@@ -321,7 +299,7 @@
   #define USE_MQTT_AWS_IOT_LIGHT                   // Enable MQTT for AWS IoT in light mode, with user/password instead of private certificate
 #endif                                             // USE_ZBBRIDGE_TLS
 
-//#undef USE_KNX                                   // Disable KNX IP Protocol Support
+
 //#undef USE_WEBSERVER                             // Disable Webserver
 #undef USE_ENHANCED_GUI_WIFI_SCAN                // Disable wifi scan output with BSSID (+0k5 code)
 //#undef USE_WEBSEND_RESPONSE                      // Disable command WebSend response message (+1k code)
@@ -424,7 +402,6 @@
 #undef USE_HOME_ASSISTANT                        // Disable Home Assistant
 #define USE_TASMOTA_DISCOVERY                    // Enable Tasmota Discovery support (+2k code)
 #undef USE_MQTT_TLS                              // Disable TLS support won't work as the MQTTHost is not set
-#undef USE_KNX                                   // Disable KNX IP Protocol Support
 #undef USE_DALI                                  // Disable support for DALI gateway (+5k code)
 //#undef USE_WEBSERVER                             // Disable Webserver
 #undef USE_ENHANCED_GUI_WIFI_SCAN                // Disable wifi scan output with BSSID (+0k5 code)
@@ -529,7 +506,6 @@
 
 #undef FIRMWARE_LITE                             // Disable tasmota-lite with no sensors
 #undef FIRMWARE_SENSORS                          // Disable tasmota-sensors with useful sensors enabled
-#undef FIRMWARE_KNX_NO_EMULATION                 // Disable tasmota-knx with KNX but without Emulation
 #undef FIRMWARE_DISPLAYS                         // Disable tasmota-display with display drivers enabled
 
 #undef USE_IMPROV                                // Disable support for IMPROV serial protocol as used by esp-web-tools (+2k code)
@@ -540,7 +516,6 @@
 #undef USE_TASMOTA_DISCOVERY                     // Disable Tasmota Discovery support (+2k code)
 #undef USE_TELEGRAM                              // Disable support for Telegram protocol (+49k code, +7.0k mem and +4.8k additional during connection handshake)
 //#undef USE_MQTT_TLS                              // Disable TLS support won't work as the MQTTHost is not set
-#undef USE_KNX                                   // Disable KNX IP Protocol Support
 #undef USE_DALI                                  // Disable support for DALI gateway (+5k code)
 //#undef USE_WEBSERVER                             // Disable Webserver
 #undef USE_GPIO_VIEWER                           // Disable GPIO Viewer to see realtime GPIO states (+5k6 code)
@@ -647,7 +622,6 @@
 
 #undef FIRMWARE_LITE                             // Disable tasmota-lite with no sensors
 #undef FIRMWARE_SENSORS                          // Disable tasmota-sensors with useful sensors enabled
-#undef FIRMWARE_KNX_NO_EMULATION                 // Disable tasmota-knx with KNX but without Emulation
 #undef FIRMWARE_DISPLAYS                         // Disable tasmota-display with display drivers enabled
 #undef FIRMWARE_WEBCAM
 #undef FIRMWARE_ODROID_GO

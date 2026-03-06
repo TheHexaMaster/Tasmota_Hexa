@@ -307,10 +307,7 @@ void RfSnsTheoV2Show(bool json) {
 
           if ((0 == TasmotaGlobal.tele_period) && !sensor_once) {
 
-#ifdef USE_KNX
-            KnxSensor(KNX_TEMPERATURE, temp);
-            KnxSensor(KNX_HUMIDITY, humi);
-#endif  // USE_KNX
+
             sensor_once = true;
           }
 #ifdef USE_WEBSERVER

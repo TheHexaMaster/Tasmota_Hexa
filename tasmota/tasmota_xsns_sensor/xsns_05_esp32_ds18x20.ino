@@ -332,11 +332,7 @@ void Ds18x20Show(bool json) {
           DS18X20Data.name, address, Settings->flag2.temperature_resolution, &t);
         dsxflg++;
 
-#ifdef USE_KNX
-        if ((0 == TasmotaGlobal.tele_period) && (1 == dsxflg)) {
-          KnxSensor(KNX_TEMPERATURE, t);
-        }
-#endif  // USE_KNX
+
 #ifdef USE_WEBSERVER
       } else {
         WSContentSend_Temp(DS18X20Data.name, t);

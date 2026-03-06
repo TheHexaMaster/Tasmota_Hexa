@@ -365,9 +365,7 @@ void MAX31865_Show(bool Json) {
           Settings->flag2.temperature_resolution, &MAX31865_Result[i].PtdResistance,
           MAX31865_Result[i].ErrorCode);
         if ((0 == TasmotaGlobal.tele_period) && (!report_once)) {
-#ifdef USE_KNX
-          KnxSensor(KNX_TEMPERATURE, MAX31865_Result[i].PtdTemp);
-#endif  // USE_KNX
+
           report_once++;
         }
 #ifdef USE_WEBSERVER

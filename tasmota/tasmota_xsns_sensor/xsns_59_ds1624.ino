@@ -184,9 +184,7 @@ void DS1624Show(bool json)
       ResponseAppend_P(JSON_SNS_F_TEMP, ds1624_sns[i].name, Settings->flag2.temperature_resolution, &ds1624_sns[i].value);
       if ((0 == TasmotaGlobal.tele_period) && once) {
 
-#ifdef USE_KNX
-        KnxSensor(KNX_TEMPERATURE, ds1624_sns[i].value);
-#endif // USE_KNX
+
         once = false;
       }
 #ifdef USE_WEBSERVER

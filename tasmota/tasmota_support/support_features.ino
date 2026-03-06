@@ -88,9 +88,7 @@ constexpr uint32_t feature[] = {
 #ifdef USE_RULES
   0x08000000 |  // xdrv_10_rules.ino
 #endif
-#ifdef USE_KNX
-  0x10000000 |  // xdrv_11_knx.ino
-#endif
+//  0x10000000 |  // xdrv_11_knx.ino - USE_KNX - DELETED
 #ifdef USE_WPS
   0x20000000 |  // support.ino - removed with version 6.6.0.21
 #endif
@@ -130,9 +128,7 @@ constexpr uint32_t feature[] = {
 // #if defined(USE_SPI) && defined(USE_DISPLAY) && defined(USE_DISPLAY_ILI9341)
 //   0x00000400 |  // xdsp_04_ili9341.ino
 // #endif
-#if defined(USE_SPI) && defined(USE_DISPLAY) && defined(USE_DISPLAY_EPAPER_29)
-  0x00000800 |  // xdsp_05_epaper.ino
-#endif
+//  0x00000800 |  // xdsp_05_epaper.ino - USE_DISPLAY_EPAPER_29 - DELETED
 // REMOVED
 // #if defined(USE_I2C) && defined(USE_DISPLAY) && defined(USE_DISPLAY_SH1106)
 //   0x00001000 |  // xdsp_07_sh1106.ino

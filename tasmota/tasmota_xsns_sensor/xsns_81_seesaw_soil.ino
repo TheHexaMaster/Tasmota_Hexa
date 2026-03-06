@@ -111,12 +111,7 @@ struct SeesawSoil : public SeesawDevice {
         Settings->flag2.temperature_resolution, &temperature,
         (uint32_t) moisture);
 
-#ifdef USE_KNX
-      if (0 == TasmotaGlobal.tele_period) {
-        KnxSensor(KNX_TEMPERATURE, temperature);
-        KnxSensor(KNX_HUMIDITY, moisture);
-      }
-#endif // USE_KNX
+
 #ifdef USE_WEBSERVER
     } else {
 #ifdef SEESAW_SOIL_RAW

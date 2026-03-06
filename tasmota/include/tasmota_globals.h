@@ -33,10 +33,6 @@ extern "C" {
 }
 #endif
 
-#include <esp-knx-ip.h> // KNX Header files have to be global else compile fails -> lib/headers
-#ifdef USE_KNX
-void KNX_CB_Action(message_t const &msg, void *arg);
-#endif  // USE_KNX
 
 void WifiShutdown(bool option = false);
 void DomoticzTempHumPressureSensor(float temp, float hum, float baro = -1);

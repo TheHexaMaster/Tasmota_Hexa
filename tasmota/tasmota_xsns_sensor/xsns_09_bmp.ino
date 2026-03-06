@@ -619,12 +619,7 @@ void BmpShow(bool json) {
 
 
 
-#ifdef USE_KNX
-        if (0 == TasmotaGlobal.tele_period) {
-          KnxSensor(KNX_TEMPERATURE, bmp_temperature);
-          KnxSensor(KNX_HUMIDITY, bmp_humidity);
-        }
-#endif  // USE_KNX
+
 
 #ifdef USE_WEBSERVER
       } else {

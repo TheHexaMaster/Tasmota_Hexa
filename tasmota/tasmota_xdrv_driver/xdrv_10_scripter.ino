@@ -5008,18 +5008,7 @@ _Pragma("GCC warning \"'EXT 1 wakeup' not supported using gpio mode\"")
 #endif // JPEG_PICTS
 #endif // ESP32
 
-#ifdef USE_KNX
-      case 'k':
-        if (!strncmp_XP(lp, XPSTR("knx("), 4)) {
-          TS_FLOAT type;
-          lp = GetNumericArgument(lp + 4, OPER_EQU, &type, gv);
-          lp = GetNumericArgument(lp, OPER_EQU, &fvar, gv);
-          SCRIPT_SKIP_SPACES
-          KnxSensor(type, fvar);
-          goto nfuncexit;
-        }
-        break;
-#endif
+
 
       case 'l':
 #ifdef SCRIPT_LOCAL_NVARS

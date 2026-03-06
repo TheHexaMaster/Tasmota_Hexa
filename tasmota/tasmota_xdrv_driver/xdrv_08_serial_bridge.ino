@@ -447,9 +447,7 @@ void SerialBridgeShow(bool json) {
     if (json) {
       ResponseAppend_P(PSTR(",\"WTS01\":{\"" D_JSON_TEMPERATURE "\":%*_f}"), Settings->flag2.temperature_resolution, &temperature);
 
-  #ifdef USE_KNX
-      if (0 == TasmotaGlobal.tele_period) { KnxSensor(KNX_TEMPERATURE, temperature); }
-  #endif  // USE_KNX
+
   #ifdef USE_WEBSERVER
     } else {
       WSContentSend_Temp("WTS01", temperature);

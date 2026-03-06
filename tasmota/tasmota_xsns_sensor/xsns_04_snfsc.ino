@@ -121,12 +121,7 @@ void SonoffScShow(bool json)
       ResponseAppend_P(PSTR(",\"" D_JSON_LIGHT "\":%d,\"" D_JSON_NOISE "\":%d,\"" D_JSON_AIRQUALITY "\":%d}"), sc_value[2], sc_value[3], sc_value[4]);
 
 
-#ifdef USE_KNX
-      if (0 == TasmotaGlobal.tele_period) {
-        KnxSensor(KNX_TEMPERATURE, t);
-        KnxSensor(KNX_HUMIDITY, h);
-      }
-#endif  // USE_KNX
+
 
 #ifdef USE_WEBSERVER
     } else {

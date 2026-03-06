@@ -740,9 +740,7 @@ void ExecuteCommandPower(uint32_t device, uint32_t state, uint32_t source)
 #endif  // USE_DEVICE_GROUPS
     SetDevicePower(TasmotaGlobal.power, source);
 
-#ifdef USE_KNX
-    KnxUpdatePowerState(device, TasmotaGlobal.power);
-#endif  // USE_KNX
+
     if (publish_power && Settings->flag3.hass_tele_on_power) {  // SetOption59 - Send tele/%topic%/STATE in addition to stat/%topic%/RESULT
       MqttPublishTeleState();
     }
@@ -870,12 +868,7 @@ void TempHumDewShow(bool json, bool pass_on, const char *types, float f_temperat
     ResponseAppendTHD(f_temperature, f_humidity);
     ResponseJsonEnd();
 
-#ifdef USE_KNX
-    if (pass_on) {
-      KnxSensor(KNX_TEMPERATURE, f_temperature);
-      KnxSensor(KNX_HUMIDITY, f_humidity);
-    }
-#endif  // USE_KNX
+
 #ifdef USE_WEBSERVER
   } else {
     WSContentSend_THD(types, f_temperature, f_humidity);

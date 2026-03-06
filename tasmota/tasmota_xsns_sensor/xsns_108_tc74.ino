@@ -224,9 +224,6 @@ void TC74Show(bool json) {
         // might beed guarded by some sort of enable (compile time or otherwise)
         if ((0 == TasmotaGlobal.tele_period) && once) {
 
-#ifdef USE_KNX
-          KnxSensor(KNX_TEMPERATURE, tc74_sensors[i].temperature);
-#endif  // USE_KNX
           once = false;
         } // tele_period, first reporter
 #ifdef USE_WEBSERVER

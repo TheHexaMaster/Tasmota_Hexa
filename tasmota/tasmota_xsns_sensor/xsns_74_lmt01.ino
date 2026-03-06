@@ -88,11 +88,7 @@ void LMT01_Show(bool Json) {
   if (Json) {
     ResponseAppend_P(JSON_SNS_F_TEMP, "LMT01", Settings->flag2.temperature_resolution, &lmt01_temperature);
 
-#ifdef USE_KNX
-    if (0 == TasmotaGlobal.tele_period) {
-      KnxSensor(KNX_TEMPERATURE, lmt01_temperature);
-    }
-#endif  // USE_KNX
+
 #ifdef USE_WEBSERVER
   } else {
     WSContentSend_Temp("LMT01", lmt01_temperature);

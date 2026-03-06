@@ -779,9 +779,7 @@ void AdcShow(bool json) {
           ResponseAppend_P(PSTR("\"" D_JSON_TEMPERATURE "%s\":%*_f"), adc_channel, Settings->flag2.temperature_resolution, &temperature);
           if ((0 == TasmotaGlobal.tele_period) && (!domo_flag[ADC_TEMP])) {
 
-#ifdef USE_KNX
-            KnxSensor(KNX_TEMPERATURE, temperature);
-#endif  // USE_KNX
+
           }
 #ifdef USE_WEBSERVER
         } else {
