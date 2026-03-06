@@ -269,16 +269,6 @@ String PCA9557TemplateLoadFile(void) {
 #ifdef USE_UFILESYS
   pcatmplt = TfsLoadString("/" PCA9557_NAME_LC ".dat");
 #endif  // USE_UFILESYS
-#ifdef USE_RULES
-  if (!pcatmplt.length()) {
-    pcatmplt = RuleLoadFile(PCA9557_NAME ".DAT");
-  }
-#endif  // USE_RULES
-#ifdef USE_SCRIPT
-  if (!pcatmplt.length()) {
-    pcatmplt = ScriptLoadSection(">y");
-  }
-#endif  // USE_SCRIPT
   return pcatmplt;
 }
 

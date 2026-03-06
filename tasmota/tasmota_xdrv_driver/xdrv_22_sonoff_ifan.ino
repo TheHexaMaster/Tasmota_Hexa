@@ -234,16 +234,6 @@ void SonoffIFanParameters(void) {
 #ifdef USE_UFILESYS
   ifantmplt = TfsLoadString("/ifan.dat");
 #endif  // USE_UFILESYS
-#ifdef USE_RULES
-  if (!ifantmplt.length()) {
-    ifantmplt = RuleLoadFile("IFAN.DAT");
-  }
-#endif  // USE_RULES
-#ifdef USE_SCRIPT
-  if (!ifantmplt.length()) {
-    ifantmplt = ScriptLoadSection(">y");
-  }
-#endif  // USE_SCRIPT
   if (ifantmplt.length() > 75) {
     JsonParser parser((char*)ifantmplt.c_str());
     JsonParserObject root = parser.getRootObject();

@@ -712,9 +712,6 @@ void setup(void) {
 #endif  // FIRMWARE_MINIMAL
 
   XdrvXsnsCall(FUNC_INIT);       // FUNC_INIT
-#ifdef USE_SCRIPT
-  if (bitRead(Settings->rule_enabled, 0)) Run_Scripter(">BS",3,0);
-#endif  // USE_SCRIPT
 
   TasmotaGlobal.rules_flag.system_init = 1;
 }

@@ -425,11 +425,6 @@ void SendReceiveDeviceGroupMessage(struct device_group * device_group, struct de
           case DGR_ITEM_NO_STATUS_SHARE:
             device_group->no_status_share = value;
             break;
-#ifdef USE_RULES
-          case DGR_ITEM_EVENT:
-            CmndEvent();
-            break;
-#endif
           case DGR_ITEM_COMMAND:
             ExecuteCommand(XdrvMailbox.data, SRC_REMOTE);
             break;

@@ -492,16 +492,6 @@ String MCP23xTemplateLoadFile(void) {
 #ifdef USE_UFILESYS
   mcptmplt = TfsLoadString("/mcp23x.dat");
 #endif  // USE_UFILESYS
-#ifdef USE_RULES
-  if (!mcptmplt.length()) {
-    mcptmplt = RuleLoadFile("MCP23X.DAT");
-  }
-#endif  // USE_RULES
-#ifdef USE_SCRIPT
-  if (!mcptmplt.length()) {
-    mcptmplt = ScriptLoadSection(">y");
-  }
-#endif  // USE_SCRIPT
   return mcptmplt;
 }
 

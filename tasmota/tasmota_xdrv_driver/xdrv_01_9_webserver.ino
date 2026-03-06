@@ -80,22 +80,14 @@ const char HTTP_SCRIPT_COUNTER[] PROGMEM =
   "wl(u);";
 
 #ifdef USE_UNISHOX_COMPRESSION
-  #ifdef USE_SCRIPT_WEB_DISPLAY
-    #include "./html_compressed/HTTP_SCRIPT_ROOT_WEB_DISPLAY.h"
-  #else
-    #include "./html_compressed/HTTP_SCRIPT_ROOT_NO_WEB_DISPLAY.h"
-  #endif
+  #include "./html_compressed/HTTP_SCRIPT_ROOT_NO_WEB_DISPLAY.h"
   #include "./html_compressed/HTTP_SCRIPT_ROOT_PART2.h"
 #else
-  #ifdef USE_SCRIPT_WEB_DISPLAY
-    #include "./html_uncompressed/HTTP_SCRIPT_ROOT_WEB_DISPLAY.h"
-  #else
     #ifdef USE_WEB_SSE
       #include "./html_uncompressed/HTTP_SCRIPT_ROOT_SSE_NO_WEB_DISPLAY.h"
     #else
       #include "./html_uncompressed/HTTP_SCRIPT_ROOT_NO_WEB_DISPLAY.h"
     #endif  // USE_WEB_SSE
-  #endif
   #include "./html_uncompressed/HTTP_SCRIPT_ROOT_PART2.h"
 #endif
 
@@ -1410,11 +1402,7 @@ void HandleRoot(void) {
   char stemp[33];
 
   WSContentStart_P(PSTR(D_MAIN_MENU));
-#ifdef USE_SCRIPT_WEB_DISPLAY
-  WSContentSend_P(HTTP_SCRIPT_ROOT, Settings->web_refresh, Settings->web_refresh);
-#else
   WSContentSend_P(HTTP_SCRIPT_ROOT, Settings->web_refresh);
-#endif
   WSContentSend_P(HTTP_SCRIPT_ROOT_PART2);
   WSContentSendStyle();
 
@@ -1587,10 +1575,6 @@ bool HandleRootStatusRefresh(void) {
   }
 
 #ifndef FIRMWARE_MINIMAL
-
-  #ifdef USE_SCRIPT_WEB_DISPLAY
-    Script_Check_HTML_Setvars();
-  #endif
 
   char tmp[8];                       // WebGetArg numbers only
   char svalue[32];                   // Command and number parameter
@@ -3817,11 +3801,6 @@ int WebQuery(char *buffer, int query_function = 0) {
             }
             if (!assume_json) { ResponseAppend_P(PSTR("\"")); }
             ResponseJsonEnd();
-#ifdef USE_SCRIPT
-            // recursive call must be possible in this case
-            void script_setaflg(uint8_t flg);
-            script_setaflg(0);
-#endif  // USE_SCRIPT
             status = WEBCMND_VALID_RESPONSE;
           } else {
 #endif  // USE_WEBSEND_RESPONSE

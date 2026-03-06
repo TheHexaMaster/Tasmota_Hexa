@@ -66,13 +66,8 @@
 #undef USE_WEBSEND_RESPONSE                      // Disable command WebSend response message (+1k code)
 #undef USE_CUSTOM                                // Disable Custom features
 #undef USE_DISCOVERY                             // Disable Discovery services for both MQTT and web server
-#undef USE_TIMERS                                // Disable support for up to 16 timers
-#undef USE_TIMERS_WEB                            // Disable support for timer webpage
-#undef USE_SUNRISE                               // Disable support for Sunrise and sunset tools
 #undef USE_PING                                  // Disable Ping command (+2k code)
 #undef USE_UNISHOX_COMPRESSION                   // Disable support for string compression in Rules or Scripts
-#undef USE_RULES                                 // Disable support for rules
-#undef USE_SCRIPT                                // Disable support for script
 
 // -- Optional modules ----------------------------
 #undef ROTARY_V1                                 // Disable support for MI Desk Lamp

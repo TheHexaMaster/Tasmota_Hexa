@@ -516,31 +516,12 @@
 //  #define WEBSERVER_ADVERTISE                    // Provide access to webserver by name <Hostname>.local/
   // #define MQTT_HOST_DISCOVERY                    // Find MQTT host server (overrides MQTT_HOST if found) - disabled by default because it causes blocked repeated 3000ms pauses
 
-// -- Time ----------------------------------------
-// #define USE_TIMERS                               // Add support for up to 16 timers (+2k2 code)
-//   #define USE_TIMERS_WEB                         // Add timer webpage support (+4k5 code)
-//   #define USE_SUNRISE                            // Add support for Sunrise and sunset tools (+16k)
-    #define SUNRISE_DAWN_ANGLE DAWN_NORMAL       // Select desired Dawn Angle from (DAWN_NORMAL, DAWN_CIVIL, DAWN_NAUTIC, DAWN_ASTRONOMIC)
-
 // -- Ping ----------------------------------------
 //  #define USE_PING                                 // Enable Ping command (+2k code)
 
 // -- Compression ---------------------------------
 // #define USE_UNISHOX_COMPRESSION                  // Add support for string compression in Rules or Scripts
 
-// -- Rules or Script  ----------------------------
-// Select none or only one of the below defines USE_RULES or USE_SCRIPT
-// #define USE_RULES                                // Add support for rules (+13k code, +768 bytes mem)
-//   #define SUPPORT_MQTT_EVENT                     // Support trigger event with MQTT subscriptions (+1k8 code)
-//   #define USE_EXPRESSION                         // Add support for expression evaluation in rules (+1k7 code)
-//    #define SUPPORT_IF_STATEMENT                 // Add support for IF statement in rules (+2k7)
-//  #define USER_RULE1 "<Any rule1 data>"          // Add rule1 data saved at initial firmware load or when command reset is executed
-//  #define USER_RULE2 "<Any rule2 data>"          // Add rule2 data saved at initial firmware load or when command reset is executed
-//  #define USER_RULE3 "<Any rule3 data>"          // Add rule3 data saved at initial firmware load or when command reset is executed
-
-//#define USE_SCRIPT                               // Add support for script (+36k code, +1k mem)
-//  #define USE_SCRIPT_FATFS 4                     // Script: Add FAT FileSystem Support
-//  #define SUPPORT_MQTT_EVENT                     // Support trigger event with MQTT subscriptions (+3k5 code)
 
 //#define USER_BACKLOG "<Any command separated by a semicolon (;)>"  // Add commands executed at firmware load or when command reset is executed
 
@@ -761,8 +742,6 @@
   #define USE_DISPLAY                            
 //    #define USE_DISPLAY_MODES1TO5                // Enable display mode 1 to 5 in addition to mode 0
 //    #define USE_DISPLAY_SH1106                   // [DisplayModel 7] [I2cDriver6] Enable SH1106 Oled 128x64 display (I2C addresses 0x3C and 0x3D)
-//    #define USE_DT_VARS                          // Display variables that are exposed in JSON MQTT strings e.g. in TelePeriod messages.
-//    #define MAX_DT_VARS     16                   // Defaults to 7
 //    #define USE_GRAPH                            // Enable line charts with displays
 //    #define NUM_GRAPHS     4                     // Max 16
 
@@ -1248,13 +1227,6 @@
 #define USE_SENDMAIL                             // USE_ESP32MAIL is replaced by USE_SENDMAIL
 #endif
 
-/*********************************************************************************************\
- * Mutual exclude options
-\*********************************************************************************************/
-
-#if defined(USE_RULES) && defined(USE_SCRIPT)
-  #error "Select either USE_RULES or USE_SCRIPT. They can't both be used at the same time"
-#endif
 
 /*********************************************************************************************\
  * Post-process compile options for Autoconf and others

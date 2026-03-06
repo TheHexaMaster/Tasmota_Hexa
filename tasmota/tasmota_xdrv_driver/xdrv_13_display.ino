@@ -891,50 +891,6 @@ void DisplayText(void)
               index_colors[temp - PREDEF_INDEXCOLORS] = ftemp;
               break;
             }
-#ifdef USE_DT_VARS
-          if (*cp == 'v') {
-            cp++;
-            { int16_t num, gxp, gyp, textbcol, textfcol, font, textsize, txlen, dp, time;
-              var=atoiv(cp,&num);
-              cp+=var;
-              cp++;
-              var=atoiv(cp,&gxp);
-              cp+=var;
-              cp++;
-              var=atoiv(cp,&gyp);
-              cp+=var;
-              cp++;
-              var=atoiv(cp,&textbcol);
-              cp+=var;
-              cp++;
-              var=atoiv(cp,&textfcol);
-              cp+=var;
-              cp++;
-              var=atoiv(cp,&font);
-              cp+=var;
-              cp++;
-              var=atoiv(cp,&textsize);
-              cp+=var;
-              cp++;
-              var=atoiv(cp,&txlen);
-              cp+=var;
-              cp++;
-              var=atoiv(cp,&dp);
-              cp+=var;
-              cp++;
-              var=atoiv(cp,&time);
-              cp+=var;
-              cp++;
-              // text itself
-              char bbuff[32];
-              cp = get_string(bbuff, sizeof(bbuff), cp);
-              char unit[4];
-              cp = get_string(unit, sizeof(unit), cp);
-	            decode_te(unit);
-              define_dt_var(num, gxp, gyp, textbcol, textfcol, font, textsize, txlen, time, dp, bbuff, unit);
-            }
-          }
-#endif // USE_DT_VARS
             // force draw grafics buffer
             if (renderer) renderer->Updateframe();
             //else DisplayDrawFrame();
@@ -1034,7 +990,7 @@ extern FS *ffsp;
               RedrawGraph(temp,temp1);
               break;
             }
-#if (defined(USE_SCRIPT_FATFS) && defined(USE_SCRIPT)) || defined(USE_UFILESYS)
+#if defined(USE_UFILESYS)
             if (*cp=='s') {
               cp++;
               var=atoiv(cp,&temp);
@@ -1057,7 +1013,7 @@ extern FS *ffsp;
               Restore_graph(temp,bbuff);
               break;
             }
-#endif // USE_SCRIPT_FATFS
+#endif 
             { int16_t num,gxp,gyp,gxs,gys,dec,icol;
               float ymin,ymax;
               var=atoiv(cp,&num);
@@ -1322,195 +1278,6 @@ void Display_Text_From_File(const char *file) {
 #endif // USE_UFILESYS
 
 
-#ifdef USE_DT_VARS
-
-#ifndef MAX_DT_VARS
-#define MAX_DT_VARS 8
-#endif // MAX_DT_VARS
-
-#define MAX_DVTSIZE 24
-
-typedef struct {
-  uint16_t xp;
-  uint16_t yp;
-  uint8_t txtbcol;
-  uint8_t txtfcol;
-  int8_t txtsiz;
-  int8_t txtlen;
-  int8_t dp;
-  int8_t font;
-  int8_t time;
-  int8_t timer;
-  char unit[6];
-  char *jstrbuf;
-  char rstr[32];
-} DT_VARS;
-
-DT_VARS *dt_vars[MAX_DT_VARS];
-
-void define_dt_var(uint32_t num, uint32_t xp, uint32_t yp,  uint32_t txtbcol,  uint32_t txtfcol, int32_t font, int32_t txtsiz, int32_t txtlen, int32_t time, int32_t dp, char *jstr, char *unit) {
-  if (num >= MAX_DT_VARS) return;
-
-  if (dt_vars[num]) {
-    if (dt_vars[num]->jstrbuf) free(dt_vars[num]->jstrbuf);
-    free(dt_vars[num]);
-  }
-  //dt [dv0:100:100:0:3:2:1:10:2:WLAN#ID:uV:]
-
-  DT_VARS *dtp = (DT_VARS*)malloc(sizeof(DT_VARS));
-  if (!dtp) return;
-
-  dt_vars[num] = dtp;
-
-  dtp->xp = xp;
-  dtp->yp = yp;
-  dtp->txtbcol = txtbcol;
-  dtp->txtfcol = txtfcol;
-  dtp->font = font;
-  dtp->txtsiz = txtsiz;
-  dtp->time = time;
-  if (txtlen > MAX_DVTSIZE) {txtlen = MAX_DVTSIZE;}
-  dtp->txtlen = txtlen;
-  dtp->dp = dp;
-  uint8_t jlen = strlen(jstr);
-  dtp->jstrbuf = (char*)calloc(jlen + 2,1);
-  if (!dtp->jstrbuf) {
-    free (dtp);
-    return;
-  }
-  dtp->rstr[0] = 0;
-  strcpy(dtp->unit, unit);
-  strcpy(dtp->jstrbuf, jstr);
-  if (!time) time = 1;
-  dtp->timer = time;
-}
-
-void draw_dt_vars(void) {
-  if (!renderer) return;
-
-  for (uint32_t cnt = 0; cnt < MAX_DT_VARS; cnt++) {
-    DT_VARS *dtp = dt_vars[cnt];
-    if (dtp) {
-      if (dtp->jstrbuf) {
-        // draw
-        dtp->timer--;
-        if (!dtp->timer) {
-          dtp->timer = dtp->time;
-          char vstr[MAX_DVTSIZE + 7];
-          memset(vstr, ' ', sizeof(vstr));
-          strcpy(vstr, dtp->rstr);
-          strcat(vstr, " ");
-          strcat(vstr, dtp->unit);
-          uint16_t slen = strlen(vstr);
-          vstr[slen] = ' ';
-
-          if (!dtp->txtlen) {
-            vstr[slen] = 0;
-          } else {
-            vstr[abs(int(dtp->txtlen))] = 0;
-          }
-          if (dtp->txtlen < 0) {
-            // right align
-            alignright(vstr);
-          }
-
-          if (dtp->txtsiz > 0) {
-            renderer->setDrawMode(0);
-          } else {
-            renderer->setDrawMode(2);
-          }
-          renderer->setTextColor(GetColorFromIndex(dtp->txtfcol),GetColorFromIndex(dtp->txtbcol));
-          renderer->setTextFont(dtp->font);
-          renderer->setTextSize(abs(dtp->txtsiz));
-
-          if (dtp->jstrbuf[0]=='[') {
-            uint16_t s_disp_xpos = disp_xpos;
-            uint16_t s_disp_ypos = disp_ypos;
-            uint16_t s_bg_color = bg_color;
-            uint16_t s_fg_color = fg_color;
-            disp_xpos = dtp->xp;
-            disp_ypos = dtp->yp;
-            bg_color = GetColorFromIndex(dtp->txtbcol);
-            fg_color = GetColorFromIndex(dtp->txtfcol);
-            char *savmbd = XdrvMailbox.data;
-            XdrvMailbox.data = dtp->jstrbuf;
-            DisplayText();
-            XdrvMailbox.data = savmbd;
-            disp_xpos = s_disp_xpos;
-            disp_ypos = s_disp_ypos;
-            bg_color = s_bg_color;
-            fg_color = s_fg_color;
-          } else {
-            renderer->DrawStringAt(dtp->xp, dtp->yp, vstr, GetColorFromIndex(dtp->txtfcol), 0);
-          }
-
-          // restore display vars
-          renderer->setTextColor(fg_color, bg_color);
-          renderer->setDrawMode(auto_draw>>1);
-        }
-      }
-    }
-  }
-}
-
-#define DTV_JSON_SIZE 1024
-
-void DisplayDTVarsTeleperiod(void) {
-  ResponseClear();
-  MqttShowState();
-  uint32_t jlen = ResponseLength();
-
-  if (jlen < DTV_JSON_SIZE) {
-    char *json = (char*)malloc(jlen + 2);
-    if (json) {
-      strlcpy(json, ResponseData(), jlen + 1);
-      get_dt_vars(json);
-      free(json);
-    }
-  }
-}
-
-void get_dt_mqtt(void) {
-  GetNextSensor();
-  get_dt_vars(ResponseData());
-}
-
-void get_dt_vars(char *json) {
-  if (strlen(json)) {
-    JsonParser parser(json);
-    JsonParserObject obj = parser.getRootObject();
-
-    for (uint32_t cnt = 0; cnt < MAX_DT_VARS; cnt++) {
-      if (dt_vars[cnt]) {
-        if (dt_vars[cnt]->jstrbuf && dt_vars[cnt]->jstrbuf[0]!='[') {
-          char sbuf[32];
-          uint32_t res = JsonParsePath(&obj, dt_vars[cnt]->jstrbuf, '#', NULL, sbuf, sizeof(sbuf));
-          if (res) {
-            if (dt_vars[cnt]->dp < 0) {
-              // use string
-              strcpy(dt_vars[cnt]->rstr, sbuf);
-            } else {
-              // convert back and forth
-              dtostrfd(CharToFloat(sbuf), dt_vars[cnt]->dp, dt_vars[cnt]->rstr);
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-void free_dt_vars(void) {
-  for (uint32_t cnt = 0; cnt < MAX_DT_VARS; cnt++) {
-    if (dt_vars[cnt]) {
-      if (dt_vars[cnt]->jstrbuf) free(dt_vars[cnt]->jstrbuf);
-      free(dt_vars[cnt]);
-      dt_vars[cnt] = 0;
-    }
-  }
-}
-
-#endif // USE_DT_VARS
 
 /*********************************************************************************************/
 
@@ -1977,9 +1744,7 @@ void DisplayInitDriver(void) {
     }
   }
 
-#ifdef USE_DT_VARS
-  free_dt_vars();
-#endif
+
 
 #ifdef USE_UFILESYS
   Display_Text_From_File(DISP_BATCH_FILE);
@@ -2888,7 +2653,7 @@ void DisplayCheckGraph() {
 }
 
 
-#if (defined(USE_SCRIPT_FATFS) && defined(USE_SCRIPT)) || defined(USE_UFILESYS)
+#if defined(USE_UFILESYS)
 #ifdef ESP32
 #include <SD.h>
 #endif
@@ -2960,7 +2725,7 @@ void Restore_graph(uint8_t num, char *path) {
   fp.close();
   RedrawGraph(num,1);
 }
-#endif // USE_SCRIPT_FATFS
+#endif
 
 void RedrawGraph(uint8_t num, uint8_t flags) {
   uint16_t index=num%NUM_GRAPHS;
@@ -3098,10 +2863,6 @@ bool Xdrv13(uint32_t function) {
 #ifdef USE_GRAPH
         DisplayCheckGraph();
 #endif  // USE_GRAPH
-#ifdef USE_DT_VARS
-        get_dt_mqtt();
-        draw_dt_vars();
-#endif  // USE_DT_VARS
 #ifdef USE_DISPLAY_MODES1TO5
         if (Settings->display_model && Settings->display_mode) {
           uint32_t wait = 0;
@@ -3115,9 +2876,6 @@ bool Xdrv13(uint32_t function) {
 #endif  // USE_DISPLAY_MODES1TO5
         break;
       case FUNC_AFTER_TELEPERIOD:
-#ifdef USE_DT_VARS
-        DisplayDTVarsTeleperiod();
-#endif  // USE_DT_VARS
         break;
 #ifdef USE_DISPLAY_MODES1TO5
       case FUNC_MQTT_SUBSCRIBE:

@@ -76,25 +76,13 @@ constexpr uint32_t feature[] = {
 #ifdef USE_SERIAL_BRIDGE
   0x00800000 |  // xdrv_08_serial_bridge.ino
 #endif
-#ifdef USE_TIMERS
-  0x01000000 |  // xdrv_09_timers.ino
-#endif
-#if defined(USE_TIMERS) && defined(USE_SUNRISE)
-  0x02000000 |  // xdrv_09_timers.ino
-#endif
-#if defined(USE_TIMERS) && defined(USE_TIMERS_WEB)
-  0x04000000 |  // xdrv_09_timers.ino
-#endif
-#ifdef USE_RULES
-  0x08000000 |  // xdrv_10_rules.ino
-#endif
+//  0x01000000 |  // xdrv_09_timers.ino - USE_TIMERS - DELETED
+//  0x02000000 |  // xdrv_09_timers.ino - USE_SUNRISE - DELETED
+//  0x04000000 |  // xdrv_09_timers.ino - USE_TIMERS_WEB - DELETED
+//  0x08000000 |  // xdrv_10_rules.ino - USE_RULES - DELETED
 //  0x10000000 |  // xdrv_11_knx.ino - USE_KNX - DELETED
-#ifdef USE_WPS
-  0x20000000 |  // support.ino - removed with version 6.6.0.21
-#endif
-#ifdef USE_SMARTCONFIG
-  0x40000000 |  // support.ino - removed with version 6.6.0.21
-#endif
+//  0x20000000 |  // support.ino - USE_WPS - DELETED
+//  0x40000000 |  // support.ino - USE_SMARTCONFIG - DELETED
 //  0x80000000 |  // xdrv_03_energy.ino USE_ENERGY_POWER_LIMIT - DELETED
   0,
 #ifdef USE_CONFIG_OVERRIDE
@@ -145,9 +133,7 @@ constexpr uint32_t feature[] = {
 #endif
 //  0x00020000 |  // xdrv_18_armtronixdimmer.ino - USE_ARMTRONIX_DIMMERS - DELETED
 //  0x00040000 |  // xdrv_04_light.ino - USE_SM16716 - DELETED
-#ifdef USE_SCRIPT
-  0x00080000 |  // xdrv_10_scripter.ino
-#endif
+//  0x00080000 |  // xdrv_10_scripter.ino - USE_SCRIPT - DELETED
 //  0x00100000 |  // xdrv_21_wemo.ino - USE_EMULATION_WEMO - DELETED
 #ifdef USE_SONOFF_IFAN
   0x00200000 |  // xdrv_22_sonoff_ifan.ino

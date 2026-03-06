@@ -220,16 +220,6 @@ String Pcf8574TemplateLoadFile(void) {
 #ifdef USE_UFILESYS
   pcftmplt = TfsLoadString("/pcf8574.dat");
 #endif  // USE_UFILESYS
-#ifdef USE_RULES
-  if (!pcftmplt.length()) {
-    pcftmplt = RuleLoadFile("PCF8574.DAT");
-  }
-#endif  // USE_RULES
-#ifdef USE_SCRIPT
-  if (!pcftmplt.length()) {
-    pcftmplt = ScriptLoadSection(">y");
-  }
-#endif  // USE_SCRIPT
   return pcftmplt;
 }
 

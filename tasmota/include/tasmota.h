@@ -217,16 +217,6 @@ const uint32_t LOOP_SLEEP_DELAY = 50;       // Lowest number of milliseconds to 
 #define MAX_RULE_TIMERS        8            // Max number of rule timers (4 bytes / timer)
 #define MAX_RULE_VARS          16           // Max number of rule variables (33 bytes / variable)
 
-//enum ws2812NeopixelbusFeature { NEO_RGB, NEO_GRB, NEO_BRG, NEO_RBG, NEO_3LED, NEO_RGBW, NEO_GRBW };  // Doesn't work
-#define NEO_RGB                0            // Neopixel RGB leds
-#define NEO_GRB                1            // Neopixel GRB leds
-#define NEO_BRG                2            // Neopixel BRG leds
-#define NEO_RBG                3            // Neopixel RBG leds
-#define NEO_3LED               4            // Placeholder to test for 4 led types
-#define NEO_RGBW               5            // Neopixel RGBW leds
-#define NEO_GRBW               6            // Neopixel GRBW leds
-
-
 #define RGB_REMAP_RGBW         0
 #define RGB_REMAP_RBGW         6
 #define RGB_REMAP_GRBW         24
@@ -238,12 +228,6 @@ const uint32_t LOOP_SLEEP_DELAY = 50;       // Lowest number of milliseconds to 
 #define MQTT_TASMOTAMQTT       2            // Mqtt TasmotaMqtt library based on esp-mqtt-arduino - soon obsolete
 #define MQTT_ESPMQTTARDUINO    3            // Mqtt esp-mqtt-arduino library by Ingo Randolf - obsolete but define is present for debugging purposes
 #define MQTT_ARDUINOMQTT       4            // Mqtt arduino-mqtt library by Joel Gaehwiler (https://github.com/256dpi/arduino-mqtt)
-
-// Sunrise and Sunset DawnType
-#define DAWN_NORMAL            -0.8333
-#define DAWN_CIVIL             -6.0
-#define DAWN_NAUTIC            -12.0
-#define DAWN_ASTRONOMIC        -18.0
 
 // Sensor and Commands definition for KNX Driver
 #define KNX_TEMPERATURE        17

@@ -305,11 +305,6 @@
 //#undef USE_WEBSEND_RESPONSE                      // Disable command WebSend response message (+1k code)
 #undef USE_CUSTOM                                // Disable Custom features
 #undef USE_DISCOVERY                             // Disable Discovery services for both MQTT and web server
-//#undef USE_TIMERS                                // Disable support for up to 16 timers
-//#undef USE_TIMERS_WEB                            // Disable support for timer webpage
-//#undef USE_SUNRISE                               // Disable support for Sunrise and sunset tools
-//#undef USE_RULES                                 // Disable support for rules
-#undef USE_SCRIPT                                  // Add support for script (+17k code)
 
 // -- Optional modules -------------------------
 #undef ROTARY_V1                                 // Disable support for MI Desk Lamp
@@ -408,11 +403,6 @@
 #undef USE_WEBSEND_RESPONSE                      // Disable command WebSend response message (+1k code)
 #undef USE_CUSTOM                                // Disable Custom features
 #undef USE_DISCOVERY                             // Disable Discovery services for both MQTT and web server
-//#undef USE_TIMERS                                // Disable support for up to 16 timers
-//#undef USE_TIMERS_WEB                            // Disable support for timer webpage
-//#undef USE_SUNRISE                               // Disable support for Sunrise and sunset tools
-//#undef USE_RULES                                 // Disable support for rules
-#undef USE_SCRIPT                                  // Add support for script (+17k code)
 
 // -- Optional modules -------------------------
 #undef ROTARY_V1                                 // Disable support for MI Desk Lamp
@@ -523,13 +513,8 @@
 #undef USE_WEBSEND_RESPONSE                      // Disable command WebSend response message (+1k code)
 #undef USE_CUSTOM                                // Disable Custom features
 #undef USE_DISCOVERY                             // Disable Discovery services for both MQTT and web server
-#undef USE_TIMERS                                // Disable support for up to 16 timers
-#undef USE_TIMERS_WEB                            // Disable support for timer webpage
-#undef USE_SUNRISE                               // Disable support for Sunrise and sunset tools
 #undef USE_PING                                  // Disable Ping command (+2k code)
 #undef USE_UNISHOX_COMPRESSION                   // Disable support for string compression in Rules or Scripts
-#undef USE_RULES                                 // Disable support for rules
-#undef USE_SCRIPT                                // Disable support for script
 
 // -- Optional modules ----------------------------
 #undef ROTARY_V1                                 // Disable support for MI Desk Lamp
@@ -659,11 +644,6 @@
     #define USE_PING
   #endif // FIRMWARE_MINIMAL
 
-  #ifdef USE_RULES
-    #define USE_EXPRESSION
-    #define SUPPORT_IF_STATEMENT
-    #define SUPPORT_MQTT_EVENT
-  #endif  // USE_RULES
 #endif  // NOT ESP8266_1M
 
 #ifdef USE_AC_ZERO_CROSS_DIMMER
@@ -681,15 +661,6 @@
 #endif
 #ifdef USE_TASMOTA_SLAVE_SERIAL_SPEED
 #define USE_TASMOTA_CLIENT_SERIAL_SPEED USE_TASMOTA_SLAVE_SERIAL_SPEED
-#endif
-
-#ifdef USE_SCRIPT
-#define USE_UNISHOX_COMPRESSION                  // Add support for string compression
-#if defined(USE_SML_M) && !defined(NO_USE_SML_DECRYPT)
-#ifndef USE_TLS                                  // Add support for TLS as required by SML decryption
-#define USE_TLS
-#endif
-#endif
 #endif
 
 #ifdef USE_ZIGBEE

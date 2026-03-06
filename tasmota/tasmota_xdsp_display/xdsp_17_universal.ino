@@ -102,36 +102,6 @@ Renderer *Init_uDisplay(const char *desc) {
     }
 #endif // USE_UFILESYS
 
-#ifdef USE_SCRIPT
-    if (bitRead(Settings->rule_enabled, 0) && !ddesc) {
-      uint8_t dfound = Run_Scripter(">d",-2,0);
-      if (dfound == 99) {
-        char *lp = glob_script_mem.section_ptr + 2;
-        while (*lp != '\n') lp++;
-        memcpy(fbuff, lp + 1, DISPDESC_SIZE - 1);
-        ddesc = fbuff;
-        AddLog(LOG_LEVEL_DEBUG, PSTR("DSP: Script descriptor used"));
-      }
-    }
-#endif // USE_SCRIPT
-
-#ifdef USE_RULES
-    if (!bitRead(Settings->rule_enabled, 2) && !ddesc) {
-      // only if rule3 is not enabled for rules
-      char *cp = Settings->rules[2];
-      while (*cp == ' ') cp++;
-      memcpy(fbuff, cp, DISPDESC_SIZE - 1);
-      if (fbuff[0] == ':' && fbuff[1] == 'H') {
-        // assume display descriptor, replace space with line feed
-        for (uint32_t cnt = 0; cnt < DISPDESC_SIZE; cnt++) {
-          if (fbuff[cnt] == ' ') fbuff[cnt] = '\n';
-        }
-        ddesc = fbuff;
-        AddLog(LOG_LEVEL_DEBUG, PSTR("DSP: Rule3 descriptor used"));
-      }
-
-    }
-#endif // USE_RULES
 
 #ifdef DSP_ROM_DESC
     if (!ddesc) {

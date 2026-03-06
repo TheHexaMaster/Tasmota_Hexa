@@ -1171,11 +1171,8 @@ void SettingsDefaultSet2(void) {
   Settings->longitude = (int)((double)LONGITUDE * 1000000);
   SettingsResetStd();
   SettingsResetDst();
-//  if (DAWN_NORMAL == SUNRISE_DAWN_ANGLE) { mbflag2.sunrise_dawn_angle |= 0; }
-  if (DAWN_CIVIL == SUNRISE_DAWN_ANGLE) { mbflag2.sunrise_dawn_angle |= 1; }
-  else if (DAWN_NAUTIC == SUNRISE_DAWN_ANGLE) { mbflag2.sunrise_dawn_angle |= 2; }
-  else if (DAWN_ASTRONOMIC == SUNRISE_DAWN_ANGLE) { mbflag2.sunrise_dawn_angle |= 3; }
-
+  // Override sunrise flag (disabled)
+  mbflag2.sunrise_dawn_angle |= 0;
   Settings->button_debounce = KEY_DEBOUNCE_TIME;
   Settings->switch_debounce = SWITCH_DEBOUNCE_TIME;
 
@@ -1239,29 +1236,6 @@ void SettingsDefaultSet3(void) {
   JsonTemplate((char*)user_template.c_str());
   user_template = (const char*) nullptr;  // Force deallocation of the String internal memory
 #endif
-
-#ifdef USE_RULES
-#ifdef USER_RULE1
-  String user_rule1 = F("Rule1 ");
-  user_rule1 += USER_RULE1;
-  ExecuteCommand((char*)user_rule1.c_str(), SRC_RESTART);
-  user_rule1 = (const char*) nullptr;     // Force deallocation of the String internal memory
-#endif
-
-#ifdef USER_RULE2
-  String user_rule2 = F("Rule2 ");
-  user_rule2 += USER_RULE2;
-  ExecuteCommand((char*)user_rule2.c_str(), SRC_RESTART);
-  user_rule2 = (const char*) nullptr;     // Force deallocation of the String internal memory
-#endif
-
-#ifdef USER_RULE3
-  String user_rule3 = F("Rule3 ");
-  user_rule3 += USER_RULE3;
-  ExecuteCommand((char*)user_rule3.c_str(), SRC_RESTART);
-  user_rule3 = (const char*) nullptr;     // Force deallocation of the String internal memory
-#endif
-#endif  // USE_RULES
 
 #ifdef USER_BACKLOG
   String user_backlog = F("Backlog0 ");
@@ -1496,13 +1470,7 @@ void SettingsDelta(void) {
     if (Settings->version < 0x0C010103) {  // 12.1.1.3
       Settings->touch_threshold = ESP32_TOUCH_THRESHOLD;
     }
-#endif  // ESP32 SOC_TOUCH_VERSION_1 or SOC_TOUCH_VERSION_2
-    if (Settings->version < 0x0C010105) {  // 12.1.1.5
- //  if (DAWN_NORMAL == SUNRISE_DAWN_ANGLE) { mbflag2.sunrise_dawn_angle = 0; }
-      if (DAWN_CIVIL == SUNRISE_DAWN_ANGLE) { Settings->mbflag2.sunrise_dawn_angle = 1; }
-      else if (DAWN_NAUTIC == SUNRISE_DAWN_ANGLE) { Settings->mbflag2.sunrise_dawn_angle = 2; }
-      else if (DAWN_ASTRONOMIC == SUNRISE_DAWN_ANGLE) { Settings->mbflag2.sunrise_dawn_angle = 3; }
-    }
+#endif 
     if (Settings->version < 0x0C010106) {  // 12.1.1.6
       Settings->webcam_clk = 20;
     }

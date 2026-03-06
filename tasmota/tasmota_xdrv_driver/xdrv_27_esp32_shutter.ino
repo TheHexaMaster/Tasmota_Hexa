@@ -214,14 +214,6 @@ void ShutterAllowPreStartProcedure(uint8_t i) {
   // Tricky!!! Execute command status 2 while in the 10 sec loop and you'll end up in an exception
   // Prestart allow e.g. to release a LOCK or something else before the movement start
   // Anyway, as long var1 != 99 this is skipped (luckily)
-#ifdef USE_RULES
-  AddLog(LOG_LEVEL_DEBUG_MORE, PSTR("SHT: Delay Start? var%d <99>=<%s>, max10s?"),i + 1, rules_vars[i]);
-  // wait for response from rules
-  uint32_t end_time = millis() + 10000;  // 10 seconds
-  while (!TimeReached(end_time) && (String)rules_vars[i] == "99") {
-    delay(1);
-  }
-#endif  // USE_RULES
 }
 
 bool ShutterButtonIsSimultaneousHold(uint32_t button_index, uint32_t shutter_index)

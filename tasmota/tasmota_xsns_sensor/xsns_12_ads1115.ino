@@ -209,44 +209,6 @@ void Ads1115Label(char* label, uint32_t maxsize, uint32_t device) {
   }
 }
 
-#ifdef USE_RULES
-// Check every 250ms if there are relevant changes in any of the analog inputs
-// and if so then trigger a message
-void AdsEvery250ms(void) {
-  int16_t value;
-
-  for (uint32_t t = 0; t < ads1115_count; t++) {
-    // collect first wich addresses have changed. We can save on rule processing this way
-    uint32_t changed = 0;
-    for (uint32_t i = 0; i < ads1115_channels; i++) {
-      value = Ads1115GetConversion(t, i);
-
-      // Check if value has changed more than 1 percent from last stored value
-      // we assume that gain is set up correctly, and we could use the whole 16bit result space
-      if (value >= Ads1115[t].last_values[i] + 327 || value <= Ads1115[t].last_values[i] - 327) {
-        Ads1115[t].last_values[i] = value;
-        bitSet(changed, i);
-      }
-    }
-
-    if (changed) {
-      char label[16];
-      Ads1115Label(label, sizeof(label), t);
-      Response_P(PSTR("{\"%s\":{"), label);
-      bool first = true;
-      for (uint32_t i = 0; i < ads1115_channels; i++) {
-        if (bitRead(changed, i)) {
-          ResponseAppend_P(PSTR("%s\"A%ddiv10\":%d"), (first) ? "" : ",", i, Ads1115[t].last_values[i]);
-          first = false;
-        }
-      }
-      ResponseJsonEndEnd();
-
-      XdrvRulesProcess(0);
-    }
-  }
-}
-#endif  // USE_RULES
 
 void Ads1115Show(bool json) {
   int16_t values[4];
@@ -317,11 +279,6 @@ bool Xsns12(uint32_t function)
   }
   else if (ads1115_count) {
     switch (function) {
-#ifdef USE_RULES
-      case FUNC_EVERY_250_MSECOND:
-        AdsEvery250ms();
-        break;
-#endif  // USE_RULES
       case FUNC_JSON_APPEND:
         Ads1115Show(1);
         break;

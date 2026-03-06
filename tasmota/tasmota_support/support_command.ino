@@ -479,9 +479,7 @@ void CommandHandler(char* topicBuf, char* dataBuf, uint32_t data_len) {
     XdrvMailbox.topic = type;
     XdrvMailbox.data = dataBuf;
 
-#ifdef USE_SCRIPT_SUB_COMMAND
-    if (!Script_SubCmd()) {              // Allow override tasmota cmds
-#endif  // USE_SCRIPT_SUB_COMMAND
+
       if (!DecodeCommand(kTasmotaCommands, TasmotaCommand, kTasmotaSynonyms)) {
         if (!XdrvCall(FUNC_COMMAND)) {
           if (!XsnsCall(FUNC_COMMAND)) {
@@ -489,9 +487,6 @@ void CommandHandler(char* topicBuf, char* dataBuf, uint32_t data_len) {
           }
         }
       }
-#ifdef USE_SCRIPT_SUB_COMMAND
-    }
-#endif  // USE_SCRIPT_SUB_COMMAND
   }
 
   if (!strcmp(ResponseData(), "_1")) {
@@ -1115,17 +1110,11 @@ void CmndStatus(void)
     } else {
       snprintf_P(stemp, sizeof(stemp), PSTR("\"%s\"" ), GetTimeZone().c_str());
     }
-#if defined(USE_TIMERS) && defined(USE_SUNRISE)
-    Response_P(PSTR("{\"" D_CMND_STATUS D_STATUS7_TIME "\":{\"" D_JSON_UTC_TIME "\":\"%s\",\"" D_JSON_LOCAL_TIME "\":\"%s\",\"" D_JSON_STARTDST "\":\"%s\",\""
-                          D_JSON_ENDDST "\":\"%s\",\"" D_CMND_TIMEZONE "\":%s,\"" D_JSON_SUNRISE "\":\"%s\",\"" D_JSON_SUNSET "\":\"%s\"}}"),
-                          GetDateAndTime(DT_UTC).c_str(), GetDateAndTime(DT_LOCALNOTZ).c_str(), GetDateAndTime(DT_DST).c_str(),
-                          GetDateAndTime(DT_STD).c_str(), stemp, GetSun(0).c_str(), GetSun(1).c_str());
-#else
+
     Response_P(PSTR("{\"" D_CMND_STATUS D_STATUS7_TIME "\":{\"" D_JSON_UTC_TIME "\":\"%s\",\"" D_JSON_LOCAL_TIME "\":\"%s\",\"" D_JSON_STARTDST "\":\"%s\",\""
                           D_JSON_ENDDST "\":\"%s\",\"" D_CMND_TIMEZONE "\":%s}}"),
                           GetDateAndTime(DT_UTC).c_str(), GetDateAndTime(DT_LOCALNOTZ).c_str(), GetDateAndTime(DT_DST).c_str(),
                           GetDateAndTime(DT_STD).c_str(), stemp);
-#endif  // USE_TIMERS and USE_SUNRISE
     CmndStatusResponse(7);
   }
 

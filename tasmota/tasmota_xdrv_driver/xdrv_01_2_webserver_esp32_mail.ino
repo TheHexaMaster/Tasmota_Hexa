@@ -231,17 +231,9 @@ uint16_t SendMail(char *buffer) {
 
 /*-------------------------------------------------------------------------------------------*/
 
-#ifdef USE_SCRIPT
-                if (*cmd == '*' && *(cmd + 1) == 0) {
-                  script_send_email_body(send_message_txt);
-                } else {
-                  html_content += cmd;
-                  message.html.content = html_content.c_str();
-                }
-#else
+
                 html_content += cmd;
                 message.html.content = html_content.c_str();
-#endif  // USE_SCRIPT
 
 /*-------------------------------------------------------------------------------------------*/
 
@@ -275,114 +267,6 @@ uint16_t SendMail(char *buffer) {
   if (oparams) { free(oparams); }
   return status;
 }
-
-/*********************************************************************************************/
-
-#ifdef USE_SCRIPT
-
-void attach_File(char *path) {
-  SMTP_Attachment att;
-  if (num_attachments < MAX_ATTCHMENTS) {
-    attachments[num_attachments] = (char*)malloc(32);
-    strcpy(attachments[num_attachments], path);
-
-    char *cp = attachments[num_attachments];
-    att.file.path = cp;
-    if (*cp == '/') {
-      cp++;
-    }
-    att.descr.filename = cp;
-    att.descr.mime = "application/octet-stream"; //binary data
-#if ESP_MAIL_VERSION_NUM<30409
-    att.file.storage_type = esp_mail_file_storage_type_univ;
-#else
-    att.file.storage_type = esp_mail_file_storage_type_flash;
-#endif
-    att.descr.transfer_encoding = Content_Transfer_Encoding::enc_base64;
-    email_mptr->addAttachment(att);
-    email_mptr->resetAttachItem(att);
-    num_attachments++;
-  }
-}
-
-void attach_Data(char *name, uint8_t *buff, uint32_t len) {
-  SMTP_Attachment att;
-  att.descr.filename = name;
-  att.descr.mime = "application/octet-stream";
-  att.blob.data = buff;
-  att.blob.size = len;
-  att.descr.transfer_encoding = Content_Transfer_Encoding::enc_base64;
-  email_mptr->addAttachment(att);
-  email_mptr->resetAttachItem(att);
-}
-
-float *get_array_by_name(char *name, uint16_t *alen);
-void flt2char(float num, char *nbuff);
-
-void attach_Array(char *aname) {
-  float *array = 0;
-  uint16_t alen;
-  String ttstr = "";
-  array = get_array_by_name(aname, &alen);
-  if (array && alen) {
-    float *fp = array;
-    for (uint32_t cnt = 0; cnt < alen; cnt++) {
-      // export array as tab gelimited text
-      char nbuff[16];
-      flt2char(*fp++, nbuff);
-      if (cnt < (alen - 1)) {
-        strcat(nbuff, "\t");
-      } else {
-        strcat(nbuff, "\n");
-      }
-      ttstr += nbuff;
-    }
-
-    if (num_attachments < MAX_ATTCHMENTS) {
-      attachments[num_attachments] = (char*)malloc(ttstr.length() + 1 + 32);
-      strcpy(attachments[num_attachments] + 32, ttstr.c_str());
-      sprintf(attachments[num_attachments], "%s.txt", aname);
-      attach_Data(attachments[num_attachments], (uint8_t*)attachments[num_attachments]+32, ttstr.length());
-      num_attachments++;
-    }
-  } else {
-    //g_client->print(F("\r\n\r\narray not found!\r\n"));
-  }
-}
-
-void send_message_txt(char *txt) {
-  if (*txt == '&') {
-    txt++;
-    attach_Array(txt);
-  } else if (*txt == '@') {
-    txt++;
-    attach_File(txt);
-  } else if (*txt == '$') {
-    txt++;
-#ifdef USE_WEBCAM
-    if (num_attachments < MAX_ATTCHMENTS) {
-      attachments[num_attachments] = (char*)malloc(32);
-      uint32_t cnt;
-      uint8_t *buff;
-      uint32_t len, picmax;
-      picmax = WcGetPicstore(-1, 0);
-      cnt = *txt &7;
-      if (cnt < 1 || cnt > picmax) cnt = 1;
-      len = WcGetPicstore(cnt - 1, &buff);
-      if (len) {
-        sprintf(attachments[num_attachments], "img_%1d.jpg", cnt);
-        attach_Data(attachments[num_attachments], buff, len);
-      }
-      num_attachments++;
-    }
-#endif  // USE_WEBCAM
-  } else {
-    html_content += txt;
-    email_mptr->html.content = html_content.c_str();
-  }
-}
-
-#endif  // USE_SCRIPT
 
 /*********************************************************************************************/
 
