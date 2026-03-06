@@ -135,9 +135,7 @@ constexpr uint32_t feature[] = {
 //  0x00040000 |  // xdrv_04_light.ino - USE_SM16716 - DELETED
 //  0x00080000 |  // xdrv_10_scripter.ino - USE_SCRIPT - DELETED
 //  0x00100000 |  // xdrv_21_wemo.ino - USE_EMULATION_WEMO - DELETED
-#ifdef USE_SONOFF_IFAN
-  0x00200000 |  // xdrv_22_sonoff_ifan.ino
-#endif
+//  0x00200000 |  // xdrv_22_sonoff_ifan.ino - USE_SONOFF_IFAN - DELETED
 #ifdef USE_ZIGBEE
   0x00400000 |  // xdrv_23_zigbee.ino
 #endif
@@ -401,9 +399,7 @@ constexpr uint32_t feature[] = {
 #if defined(USE_I2C) && defined(USE_HOTPLUG)
   0x00800000 |  // xdrv_32_hotplug.ino
 #endif
-#ifdef USE_NRF24
-  0x01000000 |  // xsns_33_nrf24l01.ino
-#endif
+//  0x01000000 |  // xsns_33_nrf24l01.ino - USE_NRF24 - DELETED
 #ifdef USE_MIBLE
   0x02000000 |  // xsns_61_MI_BLE.ino
 #endif
@@ -414,9 +410,7 @@ constexpr uint32_t feature[] = {
 #if defined(USE_I2C) && (defined(USE_AHT1x) || defined(USE_AHT2x))
   0x10000000 |  // xsns_63_aht1x.ino
 #endif
-#if defined(USE_I2C) && defined(USE_WEMOS_MOTOR_V1)
-  0x20000000 |  // xdrv_34_wemos_motor_v1.ino
-#endif
+//  0x20000000 |  // xdrv_34_wemos_motor_v1.ino - USE_WEMOS_MOTOR_V1 - DELETED
 #ifdef USE_DEVICE_GROUPS
   0x40000000 |  // support_device_groups.ino
 #endif
@@ -618,9 +612,7 @@ constexpr uint32_t feature[] = {
 #if defined(USE_SPI) && defined(USE_MCP2515)
   0x00000100 |  // xsns_87_mcp2515.ino
 #endif
-#ifdef USE_TASMESH
-  0x00000200 |  // xdrv_57_9_tasmesh.ino
-#endif
+//  0x00000200 |  // xdrv_57_9_tasmesh.ino - USE_TASMESH - DELETED
 #ifdef USE_WIFI_RANGE_EXTENDER
   0x00000400 |  // xdrv_58_range_extender.ino
 #endif
@@ -708,9 +700,7 @@ constexpr uint32_t feature[] = {
 #if defined(USE_I2C) && defined(USE_PCA9632)
   0x00002000 |  // xdrv_64_pca9632.ino
 #endif
-#ifdef USE_TUYAMCUBR
-  0x00004000 |  // xdrv_65_tuyamcubr.ino
-#endif
+//  0x00004000 |  // xdrv_65_tuyamcubr.ino - USE_TUYAMCUBR - DELETED
 #if defined(USE_I2C) && defined(USE_SEN5X)
   0x00008000 |  // xsns_103_sen5x.ino
 #endif
@@ -800,9 +790,7 @@ constexpr uint32_t feature[] = {
 #ifdef USE_C8_CO2_5K
   0x00001000 |  // xsns_117_c8_co2_5k.ino
 #endif
-#ifdef USE_WIZMOTE
-  0x00002000 |  // xdrv_77_wizmote.ino
-#endif
+//  0x00002000 |  // xdrv_77_wizmote.ino - USE_WIZMOTE - DELETED
 //  0x00004000 |  // xnrg_25_v9240.ino - USE_V9240 - DELETED
 #ifdef USE_TELNET
   0x00008000 |  // xdrv_78_telnet.ino

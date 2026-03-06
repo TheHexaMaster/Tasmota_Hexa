@@ -414,13 +414,6 @@
                                                  // Code size increase: ESP8266: +34.5kb
                                                  // Enabled by default on ESP32 and variants
 
-// -- ESP-NOW -------------------------------------
-//#define USE_TASMESH                              // Enable Tasmota Mesh using ESP-NOW (+11k code)
-//  #define USE_TASMESH_HEARTBEAT                  // If enabled, the broker will detect when nodes come online and offline and send Birth and LWT messages over MQTT correspondingly
-//  #define TASMESH_OFFLINE_DELAY  3               // Maximum number of seconds since the last heartbeat before the broker considers a node to be offline
-//#define USE_WIZMOTE                              // [SetOption164 1] Add support for WiZ Smart Remote (uses ESP-NOW) (+4k2 code)
-//  #define WIZMOTE_CHANNEL      1                 // WiZ Smart Remote ESP-NOW channel if WiFi is disabled
-
 // -- OTA -----------------------------------------
 //#define USE_ARDUINO_OTA                          // Add optional support for Arduino OTA with ESP8266 (+13k code)
 
@@ -532,8 +525,6 @@
 //  #define FIX_JSON_HEXADECIMAL                   // Add "0x" as prefix to hexadecimal value (disabled for legacy)
 //  #define USE_RF_FLASH                           // Add support for flashing the EFM8BB1 chip on the Sonoff RF Bridge. C2CK must be connected to GPIO4, C2D to GPIO5 on the PCB (+2k7 code)
 // #define USE_SONOFF_SC                            // Add support for Sonoff Sc (+1k1 code)
-//#define USE_TUYAMCUBR                            // Add support for TuyaMCU Bridge
-// #define USE_SONOFF_IFAN                          // Add support for Sonoff iFan02 and iFan03 (+2k code)
 #define USE_BUZZER                               // Add support for a buzzer (+0k6 code)
 // #define USE_SHUTTER                              // Add Shutter support for up to 4 shutter with different motortypes (+11k code)
 // #define USE_DEEPSLEEP                            // Add support for deepsleep (+1k code)
@@ -655,9 +646,6 @@
 //  #define USE_AHT1x                              // [I2cDriver43] Enable AHT10/15 humidity and temperature sensor (I2C address 0x38, 0x39) (+0k8 code)
 //  #define USE_AHT2x                              // [I2cDriver43] Enable AHT20/AM2301B instead of AHT1x humidity and temperature sensor (I2C address 0x38) (+0k8 code)
 //  #define USE_AHT3x                              // [I2cDriver43] Enable AHT30 humidity and temperature sensor (I2C address 0x38) (+0k8 code)
-//  #define USE_WEMOS_MOTOR_V1                     // [I2cDriver44] Enable Wemos motor driver V1 (I2C addresses 0x2D - 0x30) (+0k7 code)
-//    #define WEMOS_MOTOR_V1_ADDR  0x30            // Default I2C address 0x30
-//    #define WEMOS_MOTOR_V1_FREQ  1000            // Default frequency
 //  #define USE_HDC1080                            // [I2cDriver45] Enable HDC1080 temperature/humidity sensor (I2C address 0x40) (+1k5 code)
 //  #define USE_IAQ                                // [I2cDriver46] Enable iAQ-core air quality sensor (I2C address 0x5a) (+0k6 code)
 //  #define USE_AS3935                             // [I2cDriver48] Enable AS3935 Franklin Lightning Sensor (I2C address 0x03) (+5k4 code)
@@ -789,7 +777,6 @@
 #define USE_SPI                                  // Hardware SPI using GPIO12(MISO), GPIO13(MOSI) and GPIO14(CLK) in addition to two user selectable GPIOs(CS and DC)
 
 #ifdef USE_SPI
-//  #define USE_NRF24                              // Add SPI support for NRF24L01(+) (+2k6 code)
 //    #define USE_MIBLE                            // BLE-bridge for some Mijia-BLE-sensors (+4k7 code)
 
 //    #define USE_DISPLAY_ST7789                   // [DisplayModel 12] Enable ST7789 module
@@ -850,7 +837,6 @@
   #define USE_TASMOTA_CLIENT_SERIAL_SPEED 57600  // Depends on the sketch that is running on the Uno/Pro Mini
 //#define USE_OPENTHERM                            // Add support for OpenTherm (+15k code)
 //#define USE_MIEL_HVAC                            // Add support for Mitsubishi Electric HVAC serial interface (+5k code)
-//#define USE_TUYAMCUBR                            // Add support for TuyaMCU Bridge
 //#define USE_PROJECTOR_CTRL                       // Add support for LCD/DLP Projector serial control interface (+2k code)
 //  #define USE_PROJECTOR_CTRL_NEC                 // Use codes for NEC
 //  #define USE_PROJECTOR_CTRL_OPTOMA              // Use codes for OPTOMA

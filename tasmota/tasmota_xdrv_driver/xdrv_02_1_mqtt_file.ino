@@ -149,14 +149,6 @@ uint32_t MqttFileUploadValidate(uint32_t rcv_id) {
     */
     const uint32_t PubSubClientHeaderSize = 5;             // MQTT_MAX_HEADER_SIZE
     FMqtt.chunk_size = MqttClient.getBufferSize() - PubSubClientHeaderSize - FMqtt.topic_size -1;
-#ifdef USE_TASMESH
-    if (MESHroleNode()) {
-      // TasMesh default payload size (topic+payload) is 160
-      if (MESHmaxPayloadSize() < FMqtt.chunk_size) {
-        FMqtt.chunk_size = MESHmaxPayloadSize();
-      }
-    }
-#endif  // USE_TASMESH
 
   }
   else if (((FMqtt.file_id > 0) && (FMqtt.file_id != rcv_id)) || (0 == XdrvMailbox.payload)) {
@@ -403,11 +395,6 @@ void CmndFileDownload(void) {
         */
         chunk_size = (((ResponseSize() - FileTransferHeaderSize) / 4) * 3) -2;
       }
-#ifdef USE_TASMESH
-      if (MESHroleNode() && (chunk_size > 2048)) {
-        chunk_size = 2048;
-      }
-#endif  // USE_TASMESH
 
       uint32_t bytes_left = FMqtt.file_size - FMqtt.file_pos;
       uint32_t write_bytes = (bytes_left < chunk_size) ? bytes_left : chunk_size;

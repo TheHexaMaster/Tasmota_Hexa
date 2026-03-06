@@ -1417,19 +1417,6 @@ void HandleRoot(void) {
       WSContentSend_P(HTTP_TABLE100);      // "<table style='width:100%%'>"
       WSContentSend_P(PSTR("<tr>"));
 
-#ifdef USE_SONOFF_IFAN
-      if (IsModuleIfan()) {
-        WSContentSend_P(HTTP_DEVICE_CONTROL, 36, 1, 1,
-          (strlen(SettingsText(SET_BUTTON1))) ? SettingsTextEscaped(SET_BUTTON1).c_str() : PSTR(D_BUTTON_TOGGLE),
-          "");
-        for (uint32_t i = 0; i < MaxFanspeed(); i++) {
-          snprintf_P(stemp, sizeof(stemp), PSTR("%d"), i);
-          WSContentSend_P(HTTP_DEVICE_CONTROL, 16, i +2, i +2,
-            (strlen(SettingsText(SET_BUTTON2 + i))) ? SettingsTextEscaped(SET_BUTTON2 + i).c_str() : stemp,
-            "");
-        }
-      } else {
-#endif  // USE_SONOFF_IFAN
 
         const uint32_t max_columns = 8;
         uint32_t rows = Web.buttons_non_light_non_shutter / max_columns;
@@ -1448,9 +1435,6 @@ void HandleRoot(void) {
           button_ptr++;
           if (0 == button_ptr % cols) { WSContentSend_P(PSTR("</tr><tr>")); }
         }
-#ifdef USE_SONOFF_IFAN
-      }
-#endif  // USE_SONOFF_IFAN
 
       WSContentSend_P(PSTR("</tr></table>"));
     }
@@ -1496,21 +1480,11 @@ void HandleRoot(void) {
   // Init buttons 
   uint32_t max_devices = TasmotaGlobal.devices_present;
 
-#ifdef USE_SONOFF_IFAN
-  if (IsModuleIfan()) { 
-    max_devices = MaxFanspeed() +1;  // 4 -> 5
-  }
-#endif  // USE_SONOFF_IFAN
 
   bool use_script = false;
   for (uint32_t idx = 1; idx <= max_devices; idx++) {
     bool not_active = !bitRead(TasmotaGlobal.power, idx -1);
 
-#ifdef USE_SONOFF_IFAN
-    if (IsModuleIfan() && (idx > 1)) { 
-      not_active = true;
-    }
-#endif  // USE_SONOFF_IFAN
 
     if (not_active) {
       if (!use_script) {
@@ -1584,16 +1558,7 @@ bool HandleRootStatusRefresh(void) {
   if (strlen(tmp)) {
     ShowWebSource(SRC_WEBGUI);
     uint32_t device = atoi(tmp);
-#ifdef USE_SONOFF_IFAN
-    if (IsModuleIfan()) {
-      if (device < 2) {
-        ExecuteCommandPower(1, POWER_TOGGLE, SRC_IGNORE);
-      } else {
-        snprintf_P(svalue, sizeof(svalue), PSTR(D_CMND_FANSPEED " %d"), device -2);
-        ExecuteCommand(svalue, SRC_WEBGUI);
-      }
-    } else {
-#endif  // USE_SONOFF_IFAN
+
 #ifdef USE_SHUTTER
       int32_t ShutterWebButton;
       if (ShutterWebButton = IsShutterWebButton(device)) {
@@ -1605,9 +1570,6 @@ bool HandleRootStatusRefresh(void) {
 #ifdef USE_SHUTTER
       }
 #endif  // USE_SHUTTER
-#ifdef USE_SONOFF_IFAN
-    }
-#endif  // USE_SONOFF_IFAN
   }
 
 #ifdef USE_SHUTTER
@@ -1649,25 +1611,11 @@ bool HandleRootStatusRefresh(void) {
     // Update changed web buttons
     uint32_t max_devices = TasmotaGlobal.devices_present;
 
-#ifdef USE_SONOFF_IFAN
-    uint32_t fanspeed;
-    if (IsModuleIfan()) {
-      // Single power relay and four virtual buttons
-      max_devices = MaxFanspeed() +1;  // 4 -> 5
-      fanspeed = GetFanspeed() +2;     // 0..3 -> 2..5
-    }
-#endif  // USE_SONOFF_IFAN
 
     WSContentSend_P(HTTP_MSG_EXEC_JAVASCRIPT);  // "<img style='display:none;' src onerror=\""
     msg_exec_javascript = true;
     for (uint32_t idx = 1; idx <= max_devices; idx++) {
       bool active = bitRead(TasmotaGlobal.power, idx -1);
-
-#ifdef USE_SONOFF_IFAN
-      if (IsModuleIfan() && (idx > 1)) {
-        active = (fanspeed == idx);
-      }
-#endif  // USE_SONOFF_IFAN
 
       WSContentSend_P(PSTR("eb('o%d').style.background='var(--c_btn%s)';"),
         idx, (active) ? PSTR("") : PSTR("off"));
@@ -1745,22 +1693,6 @@ bool HandleRootStatusRefresh(void) {
     if ((Web.buttons_non_light_non_shutter > 0) &&
        ( Web.buttons_non_light_non_shutter <= 8)) {  // We need at least one non light AND non shutter button
       WSContentSend_P(PSTR("{t}<tr>"));
-#ifdef USE_SONOFF_IFAN
-      if (IsModuleIfan()) {
-        WSContentSend_P(HTTP_DEVICE_STATE, 
-          36,
-          (bitRead(TasmotaGlobal.power, 0)) ? PSTR("bold") : PSTR("normal"),
-          54,
-          GetStateText(bitRead(TasmotaGlobal.power, 0)));
-        uint32_t fanspeed = GetFanspeed();
-        snprintf_P(svalue, sizeof(svalue), PSTR("%d"), fanspeed);
-        WSContentSend_P(HTTP_DEVICE_STATE,
-          64,
-          (fanspeed) ? PSTR("bold") : PSTR("normal"),
-          54,
-          (fanspeed) ? svalue : GetStateText(0));
-      } else {
-#endif  // USE_SONOFF_IFAN
         uint32_t cols = Web.buttons_non_light_non_shutter;
         uint32_t fontsize = (cols < 5) ? 70 - (cols * 8) : 32;
         uint32_t button_ptr = 0;
@@ -1776,9 +1708,6 @@ bool HandleRootStatusRefresh(void) {
           button_ptr++;
           if (button_ptr >= Web.buttons_non_light_non_shutter) { break; }
         }
-#ifdef USE_SONOFF_IFAN
-      }
-#endif  // USE_SONOFF_IFAN
       WSContentSend_P(PSTR("</tr></table>"));
     }
   }
@@ -2543,9 +2472,6 @@ void HandleOtherConfiguration(void) {
 
   char stemp[32];
   uint32_t maxfn = (TasmotaGlobal.devices_present > MAX_FRIENDLYNAMES) ? MAX_FRIENDLYNAMES : (!TasmotaGlobal.devices_present) ? 1 : TasmotaGlobal.devices_present;
-#ifdef USE_SONOFF_IFAN
-  if (IsModuleIfan()) { maxfn = 1; }
-#endif  // USE_SONOFF_IFAN
   for (uint32_t i = 0; i < maxfn; i++) {
     snprintf_P(stemp, sizeof(stemp), PSTR("%d"), i +1);
     WSContentSend_P(PSTR("<b>" D_FRIENDLY_NAME " %d</b> (" FRIENDLY_NAME "%s)<br><input id='a%d' placeholder=\"" FRIENDLY_NAME "%s\" value=\"%s\"><p></p>"),
@@ -2715,9 +2641,6 @@ void HandleInformation(void) {
   WSContentSend_P(PSTR("}1" D_BOOT_COUNT "}2%d"), Settings->bootcount);
   WSContentSend_P(PSTR("}1" D_RESTART_REASON "}2%s"), GetResetReason().c_str());
   uint32_t maxfn = (TasmotaGlobal.devices_present > MAX_FRIENDLYNAMES) ? MAX_FRIENDLYNAMES : TasmotaGlobal.devices_present;
-#ifdef USE_SONOFF_IFAN
-  if (IsModuleIfan()) { maxfn = 1; }
-#endif  // USE_SONOFF_IFAN
   for (uint32_t i = 0; i < maxfn; i++) {
     WSContentSend_P(PSTR("}1" D_FRIENDLY_NAME " %d}2%s"),
       i +1,

@@ -912,9 +912,6 @@ void CmndStatus(void)
   // Status
   if ((0 == payload) || (-99 == payload)) {
     uint32_t maxfn = (TasmotaGlobal.devices_present > MAX_FRIENDLYNAMES) ? MAX_FRIENDLYNAMES : (!TasmotaGlobal.devices_present) ? 1 : TasmotaGlobal.devices_present;
-#ifdef USE_SONOFF_IFAN
-    if (IsModuleIfan()) { maxfn = 1; }
-#endif  // USE_SONOFF_IFAN
     stemp[0] = '\0';
     for (uint32_t i = 0; i < maxfn; i++) {
       snprintf_P(stemp, sizeof(stemp), PSTR("%s%s\"%s\"" ), stemp, (i > 0 ? "," : ""), EscapeJSONString(SettingsText(SET_FRIENDLYNAME1 +i)).c_str());
@@ -1057,9 +1054,6 @@ void CmndStatus(void)
                           Settings->ipv4_address[3], Settings->ipv4_address[4],
                           WiFiHelper::macAddress().c_str());
 #endif // USE_IPV6
-#ifdef USE_TASMESH
-    ResponseAppend_P(PSTR(",\"SoftAPMac\":\"%s\""), WiFi.softAPmacAddress().c_str());
-#endif  // USE_TASMESH
 //#if defined(ESP32) && CONFIG_IDF_TARGET_ESP32 && defined(USE_ETHERNET)
 #if defined(ESP32) && defined(USE_ETHERNET)
 #ifdef USE_IPV6

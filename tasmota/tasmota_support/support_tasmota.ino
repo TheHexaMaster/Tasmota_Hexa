@@ -390,13 +390,6 @@ void SetAllPower(uint32_t state, uint32_t source) {
       TasmotaGlobal.power = 0;
       break;
     }
-#ifdef USE_SONOFF_IFAN
-    if (IsModuleIfan()) {
-      // Do not touch Fan relays
-      TasmotaGlobal.power &= 0x0001;
-      TasmotaGlobal.power |= (current_power & 0xFFFE);
-    }
-#endif  // USE_SONOFF_IFAN
     SetDevicePower(TasmotaGlobal.power, source);
   }
   if (publish_power) {
@@ -646,15 +639,6 @@ void ExecuteCommandPower(uint32_t device, uint32_t state, uint32_t source)
 
 //  if (1049 == LANGUAGE_LCID) { return; }
 
-#ifdef USE_SONOFF_IFAN
-  if (IsModuleIfan()) {
-    TasmotaGlobal.blink_mask &= 1;       // No blinking on the fan relays
-    Settings->flag.interlock = 0;        // No interlock mode as it is already done by the microcontroller - CMND_INTERLOCK - Enable/disable interlock
-    Settings->pulse_timer[1] = 0;        // No pulsetimers on the fan relays
-    Settings->pulse_timer[2] = 0;
-    Settings->pulse_timer[3] = 0;
-  }
-#endif  // USE_SONOFF_IFAN
 
   bool force_power_off = false;
   if (POWER_OFF_FORCE == state) {
@@ -810,12 +794,7 @@ void MqttShowState(void)
 
       ResponseAppend_P(PSTR(",\"%s\":\"%s\""), GetPowerDevice(stemp1, i, sizeof(stemp1), Settings->flag.device_index_enable),  // SetOption26 - Switch between POWER or POWER1
                                                GetStateText(bitRead(TasmotaGlobal.power, i-1)));
-#ifdef USE_SONOFF_IFAN
-      if (IsModuleIfan()) {
-        ResponseAppend_P(PSTR(",\"" D_CMND_FANSPEED "\":%d"), GetFanspeed());
-        break;
-      }
-#endif  // USE_SONOFF_IFAN
+
   }
 
   if (TasmotaGlobal.pwm_present) {

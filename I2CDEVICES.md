@@ -63,7 +63,7 @@ Index | Define              | Driver   | Device   | Address(es) | Bus2 | Descrip
   43  | USE_AHT1x           | xsns_63  | AHT10/15 | 0x38 - 0x39 |      | Temperature and humidity sensor
   43  | USE_AHT2x           | xsns_63  | AHT20    | 0x38        |      | Temperature and humidity sensor
   43  | USE_AHT2x           | xsns_63  | AM2301B  | 0x38        |      | Temperature and humidity sensor
-  44  | USE_WEMOS_MOTOR_V1  | xdrv_34  |          | 0x2D - 0x30 |      | WEMOS motor shield v1.0.0 (6612FNG)
+  44x  | USE_WEMOS_MOTOR_V1  | xdrv_34  |          | 0x2D - 0x30 |      | WEMOS motor shield v1.0.0 (6612FNG) - DELETED
   45  | USE_HDC1080         | xsns_65  | HDC1080  | 0x40        |      | Temperature and Humidity sensor
   46  | USE_IAQ             | xsns_66  | IAQ      | 0x5a        | Yes  | Air quality sensor
   47  

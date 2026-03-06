@@ -512,12 +512,6 @@ bool MqttPublishLib(const char* topic, const uint8_t* payload, unsigned int plen
     }
   }
 
-#ifdef USE_TASMESH
- if (MESHrouteMQTTtoMESH(topic, (char*)payload, retained)) {  // If we are a node, send this via ESP-Now
-   yield();
-   return true;
- }
-#endif  // USE_TASMESH
 
 #ifdef USE_MQTT_AZURE_IOT
   String sourceTopicString = urlEncodeBase64(String(topic));
@@ -636,13 +630,6 @@ void MqttDataHandler(char* mqtt_topic, uint8_t* mqtt_data, unsigned int data_len
     TasmotaGlobal.masterlog_level = LOG_LEVEL_DEBUG_MORE;  // Hide logging
   }
 
-#ifdef USE_TASMESH
-#ifdef ESP32
-  if (MESHinterceptMQTTonBroker(topic, (uint8_t*)mqtt_data, data_len +1)) {
-    return;  // Check if this is a message for a node
-  }
-#endif  // ESP32
-#endif  // USE_TASMESH
 
   // MQTT pre-processing
   XdrvMailbox.index = strlen(topic);
@@ -713,11 +700,8 @@ void MqttPublishPayload(const char* topic, const char* payload, uint32_t binary_
   // To lower heap usage the payload is not copied to the heap but used directly
   String log_data_topic;                                 // 20210420 Moved to heap to solve tight stack resulting in exception 2
   if (Settings->flag.mqtt_enabled && MqttPublishLib(topic, (const uint8_t*)payload, binary_length, retained)) {  // SetOption3 - Enable MQTT
-#ifdef USE_TASMESH
-    log_data_topic = (MESHroleNode()) ? F("MSH: ") : F(D_LOG_MQTT);  // MSH: or MQT:
-#else
+
     log_data_topic = F(D_LOG_MQTT);                      // MQT:
-#endif  // USE_TASMESH
     log_data_topic += topic;                             // stat/tasmota/STATUS2
   } else {
     log_data_topic = F(D_LOG_RESULT);                    // RSL:
@@ -915,16 +899,6 @@ void MqttPublishPowerState(uint32_t device) {
 
   if ((device < 1) || (device > TasmotaGlobal.devices_present)) { device = 1; }
 
-#ifdef USE_SONOFF_IFAN
-  if (IsModuleIfan() && (device > 1)) {
-    if (GetFanspeed() < MaxFanspeed()) {  // 4 occurs when fanspeed is 3 and RC button 2 is pressed
-      snprintf_P(scommand, sizeof(scommand), PSTR(D_CMND_FANSPEED));
-      GetTopic_P(stopic, STAT, TasmotaGlobal.mqtt_topic, (Settings->flag.mqtt_response) ? scommand : S_RSLT_RESULT);  // SetOption4 - Switch between MQTT RESULT or COMMAND
-      Response_P(S_JSON_COMMAND_NVALUE, scommand, GetFanspeed());
-      MqttPublish(stopic);
-    }
-  } else {
-#endif  // USE_SONOFF_IFAN
     GetPowerDevice(scommand, device, sizeof(scommand), Settings->flag.device_index_enable);           // SetOption26 - Switch between POWER or POWER1
     GetTopic_P(stopic, STAT, TasmotaGlobal.mqtt_topic, (Settings->flag.mqtt_response) ? scommand : S_RSLT_RESULT);  // SetOption4 - Switch between MQTT RESULT or COMMAND
     Response_P(S_JSON_COMMAND_SVALUE, scommand, GetStateText(bitRead(TasmotaGlobal.power, device -1)));
@@ -940,17 +914,11 @@ void MqttPublishPowerState(uint32_t device) {
     InfluxDbPublishPowerState(device);
 #endif
 
-#ifdef USE_SONOFF_IFAN
-  }
-#endif  // USE_SONOFF_IFAN
 }
 
 void MqttPublishAllPowerState(void) {
   for (uint32_t i = 1; i <= TasmotaGlobal.devices_present; i++) {
     MqttPublishPowerState(i);
-#ifdef USE_SONOFF_IFAN
-    if (IsModuleIfan()) { break; }  // Report status of light relay only
-#endif  // USE_SONOFF_IFAN
   }
 }
 

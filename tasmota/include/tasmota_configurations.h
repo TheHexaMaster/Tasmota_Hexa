@@ -38,8 +38,6 @@
 #define USE_SONOFF_RF                            // Add support for Sonoff Rf Bridge (+3k2 code)
   #define USE_RF_FLASH                           // Add support for flashing the EFM8BB1 chip on the Sonoff RF Bridge. C2CK must be connected to GPIO4, C2D to GPIO5 on the PCB (+2k7 code)
 #define USE_SONOFF_SC                            // Add support for Sonoff Sc (+1k1 code)
-#define USE_TUYAMCUBR
-#undef USE_SONOFF_IFAN                          // Disable support for Sonoff iFan02 and iFan03 (+2k code)
 #define USE_BUZZER                               // Add support for a buzzer (+0k6 code)
 #undef USE_SHUTTER                              // Disable Shutter support for up to 4 shutter with different motortypes (+6k code)
 #define USE_DEEPSLEEP                            // Add support for deepsleep (+1k code)
@@ -106,9 +104,6 @@
 #define USE_DS1624                             // [I2cDriver42] Enable DS1624, DS1621 temperature sensor (I2C addresses 0x48 - 0x4F) (+1k2 code)
 //#define USE_AHT1x                              // [I2cDriver43] Enable AHT10/15 humidity and temperature sensor (I2C address 0x38, 0x39) (+0k8 code)
 //#define USE_AHT2x                              // [I2cDriver43] Enable AHT20 instead of AHT1x humidity and temperature sensor (I2C address 0x38) (+0k8 code)
-#define USE_WEMOS_MOTOR_V1                     // [I2cDriver44] Enable Wemos motor driver V1 (I2C addresses 0x2D - 0x30) (+0k7 code)
-  #define WEMOS_MOTOR_V1_ADDR  0x30              // Default I2C address 0x30
-  #define WEMOS_MOTOR_V1_FREQ  1000              // Default frequency
 //#define USE_HDC1080                            // [I2cDriver45] Enable HDC1080 temperature/humidity sensor (I2C address 0x40) (+1k5 code)
 #define USE_IAQ                                // [I2cDriver46] Enable iAQ-core air quality sensor (I2C address 0x5a) (+0k6 code)
 #define USE_AS3935                             // [I2cDriver48] Enable AS3935 Franklin Lightning Sensor (I2C address 0x03) (+5k4 code)
@@ -236,7 +231,6 @@
 #undef USE_SONOFF_RF                             // Disable support for Sonoff Rf Bridge (+3k2 code)
   #undef USE_RF_FLASH                            // Disable support for flashing the EFM8BB1 chip on the Sonoff RF Bridge. C2CK must be connected to GPIO4, C2D to GPIO5 on the PCB
 #undef USE_SONOFF_SC                             // Disable support for Sonoff Sc (+1k1 code)
-#undef USE_SONOFF_IFAN                           // Disable support for Sonoff iFan02 and iFan03 (+2k code)
 #undef USE_BUZZER                                // Disable support for a buzzer (+0k6 code)
 #undef USE_SHUTTER                               // Disable Shutter support for up to 4 shutter with different motortypes (+6k code)
 #undef USE_DEEPSLEEP                             // Disable support for deepsleep (+1k code)
@@ -311,7 +305,6 @@
 #undef USE_SONOFF_RF                             // Disable support for Sonoff Rf Bridge (+3k2 code)
   #undef USE_RF_FLASH                            // Disable support for flashing the EFM8BB1 chip on the Sonoff RF Bridge. C2CK must be connected to GPIO4, C2D to GPIO5 on the PCB
 #undef USE_SONOFF_SC                             // Disable support for Sonoff Sc (+1k1 code)
-#undef USE_SONOFF_IFAN                           // Disable support for Sonoff iFan02 and iFan03 (+2k code)
 #undef USE_BUZZER                                // Disable support for a buzzer (+0k6 code)
 #undef USE_SHUTTER                               // Disable Shutter support for up to 4 shutter with different motortypes (+6k code)
 #undef USE_DEEPSLEEP                             // Disable support for deepsleep (+1k code)
@@ -409,7 +402,6 @@
 #undef USE_SONOFF_RF                             // Disable support for Sonoff Rf Bridge (+3k2 code)
   #undef USE_RF_FLASH                            // Disable support for flashing the EFM8BB1 chip on the Sonoff RF Bridge. C2CK must be connected to GPIO4, C2D to GPIO5 on the PCB
 #undef USE_SONOFF_SC                             // Disable support for Sonoff Sc (+1k1 code)
-#undef USE_SONOFF_IFAN                           // Disable support for Sonoff iFan02 and iFan03 (+2k code)
 #undef USE_BUZZER                                // Disable support for a buzzer (+0k6 code)
 #undef USE_SHUTTER                               // Disable Shutter support for up to 4 shutter with different motortypes (+6k code)
 #undef USE_DEEPSLEEP                             // Disable support for deepsleep (+1k code)
@@ -499,7 +491,6 @@
 #undef FIRMWARE_DISPLAYS                         // Disable tasmota-display with display drivers enabled
 
 #undef USE_IMPROV                                // Disable support for IMPROV serial protocol as used by esp-web-tools (+2k code)
-#undef USE_TASMESH                               // Disable Tasmota Mesh using ESP-NOW (+11k code)
 #undef USE_ARDUINO_OTA                           // Disable support for Arduino OTA
 #undef USE_INFLUXDB                              // Disable influxdb support (+5k code)
 #undef USE_HOME_ASSISTANT                        // Disable Home Assistant
@@ -521,7 +512,6 @@
 #undef USE_SONOFF_RF                             // Disable support for Sonoff Rf Bridge (+3k2 code)
   #undef USE_RF_FLASH                            // Disable support for flashing the EFM8BB1 chip on the Sonoff RF Bridge. C2CK must be connected to GPIO4, C2D to GPIO5 on the PCB
 #undef USE_SONOFF_SC                             // Disable support for Sonoff Sc (+1k1 code)
-#undef USE_SONOFF_IFAN                           // Disable support for Sonoff iFan02 and iFan03 (+2k code)
 #undef USE_BUZZER                                // Disable support for a buzzer (+0k6 code)
 #undef USE_SHUTTER                               // Disable Shutter support for up to 4 shutter with different motortypes (+6k code)
 #undef USE_DEEPSLEEP                             // Disable support for deepsleep (+1k code)
