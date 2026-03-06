@@ -1,3 +1,68 @@
-USE_DOMOTICZ
-DOMOTICZ_IN_TOPIC
-DOMOTICZ_OUT_TOPIC
+USE_DOMOTICZ - DONE
+USE_KNX
+USE_WPS
+USE_SMARTCONFIG
+USE_TIMERS
+USE_TIMERS_WEB
+USE_SUNRISE
+USE_RULES
+USE_SCRIPT / starý scripter
+USE_SONOFF_IFAN
+USE_TUYAMCUBR
+USE_TASMESH
+USE_NRF24
+USE_WEMOS_MOTOR_V1
+USE_MATTER_DEVICE
+USE_ZIGBEE
+
+Dependency Graph
+|-- Async HttpClient Light @ 1.0
+|-- Async Modbus RTU Client @ 1.0
+|-- Berry @ 7.0
+|-- Berry custom template @ 0.1
+|-- Berry Tasmota mapping @ 1.0
+|-- Berry int64 implementation for 32 bits architecture @ 1.1
+|-- Berry mapping to C @ 1.0
+|-- headers
+|-- ccronexpr
+|-- lvgl @ 9.5.0
+|-- esp_wireguard_tasmota @ 0.4.2
+|-- WebServer @ 3.3.7
+|-- ESP32-to-ESP8266-compat @ 0.0.2
+|-- FastCRC @ 1.44
+|-- FFat @ 3.3.7
+|-- FS @ 3.3.7
+|-- HttpClient light @ 1.0
+|-- I2Cdevlib-Core
+|-- IniFile @ 1.3.0+tasmota
+|-- JPEGDEC @ 1.8.4
+|-- TasmotaLList @ 1.0
+|-- Berry mapping to LVGL @ 1.0
+|-- NTP Library
+|-- re1.5 @ 0.9
+|-- TasmotaSerial @ 3.7.0
+|-- LVGL_assets @ 7.0
+|-- Unishox (De)Compressor @ 1.0
+|-- TLS mini client derived from Arduino @ 1.0
+|-- Zip-readonly-FS @ 1.0
+|-- base64 @ 1.1.1
+|-- DNSServer @ 3.3.7
+|-- ESPFtpServer @ 0.1.0
+|-- Ethernet @ 3.3.7
+|-- Ext-printf @ 1.0
+|-- JSMN JSON parser customized and optimized for ESP8266 and Tasmota @ 1.0
+|-- LinkedList
+|-- LittleFS @ 3.3.7
+|-- NewPing @ 1.9.1
+|-- PubSubClient @ 2.8
+|-- Display renderer @ 1.0
+|-- SD @ 3.3.7
+|-- SD_MMC @ 3.3.7
+|-- SPI @ 3.3.7
+|-- Ticker @ 3.3.7
+|-- Joba_Tsl2561 @ 2.0.10
+|-- BearSSL @ 0.6
+|-- universal display Library @ 0.9.0
+|-- WiFiHelper @ 1.0.0
+|-- WiFi @ 3.3.7
+|-- Wire @ 3.3.7

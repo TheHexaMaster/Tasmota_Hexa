@@ -298,6 +298,13 @@ const uint32_t LOOP_SLEEP_DELAY = 50;       // Lowest number of milliseconds to 
     #define WIFI_SENSITIVITY_11b  -880
     #define WIFI_SENSITIVITY_54g  -760
     #define WIFI_SENSITIVITY_n    -730
+  #elif CONFIG_IDF_TARGET_ESP32P4
+    #define MAX_TX_PWR_DBM_11b    210
+    #define MAX_TX_PWR_DBM_54g    190
+    #define MAX_TX_PWR_DBM_n      185
+    #define WIFI_SENSITIVITY_11b  -880
+    #define WIFI_SENSITIVITY_54g  -760
+    #define WIFI_SENSITIVITY_n    -720
   #else
     #define MAX_TX_PWR_DBM_11b    195
     #define MAX_TX_PWR_DBM_54g    160
