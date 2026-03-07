@@ -1514,6 +1514,34 @@ String ModuleName(void)
 const uint8_t Esp32TemplateToPhy[MAX_USER_PINS] = { ESP32_TEMPLATE_TO_PHY };
 #endif // CONFIG_IDF_TARGET_ESP32
 
+// NEW TEMPLATE RUNTIME
+void TemplateGpios(myio *gp)
+{
+  uint16_t *dest = (uint16_t *)gp;
+  uint16_t src[MAX_USER_PINS];
+
+  memset(dest, GPIO_NONE, sizeof(myio));
+
+  // Jediný zdroj template je compile-time MODULE
+  memcpy_P(&src, &kModules[ModuleTemplate(MODULE)].gp, sizeof(mycfgio));
+
+  // Expand template to physical GPIO array, j=phy_GPIO, i=template_GPIO
+  uint32_t j = 0;
+  for (uint32_t i = 0; i < MAX_USER_PINS; i++) {
+
+#if CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32P4
+    dest[i] = src[i];
+#elif CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
+    if (22 == i) { j = 33; }    // skip 22-32
+    dest[j] = src[i];
+    j++;
+#else  // ESP32
+    dest[Esp32TemplateToPhy[i]] = src[i];
+#endif  // ESP32C2/C3/C5/C6/P4 and S2/S3
+  }
+}
+/*
+// OLD TEMPLATE RUNTIME
 void TemplateGpios(myio *gp)
 {
   uint16_t *dest = (uint16_t *)gp;
@@ -1547,6 +1575,8 @@ void TemplateGpios(myio *gp)
 
 //  AddLog(LOG_LEVEL_DEBUG, PSTR("DBG: TemplateGpiosOut %*_H"), sizeof(myio), (uint8_t *)gp);
 }
+*/
+
 
 gpio_flag ModuleFlag(void)
 {

@@ -117,72 +117,8 @@ const char HTTP_SCRIPT_RELOAD_TIME[] PROGMEM =
   #include "./html_uncompressed/HTTP_SCRIPT_CONSOL.h"
 #endif
 
-const char HTTP_MODULE_TEMPLATE_REPLACE_INDEX[] PROGMEM =
-  "}2%d'>%s (%d)}3";                       // }2 and }3 are used in below os.replace
-const char HTTP_MODULE_TEMPLATE_REPLACE_NO_INDEX[] PROGMEM =
-  "}2%d'>%s}3";                           // }2 and }3 are used in below os.replace
 
-#ifdef USE_UNISHOX_COMPRESSION
-  #include "./html_compressed/HTTP_SCRIPT_MODULE_TEMPLATE.h"
-  #include "./html_compressed/HTTP_SCRIPT_TEMPLATE.h"
-#else
-  #include "./html_uncompressed/HTTP_SCRIPT_MODULE_TEMPLATE.h"
-  #include "./html_uncompressed/HTTP_SCRIPT_TEMPLATE.h"
-#endif
 
-#ifdef ESP32
-#if CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32P4
-const char HTTP_SCRIPT_TEMPLATE2[] PROGMEM =
-    "for(i=0;i<" STR(MAX_USER_PINS) ";i++){"
-      "sk(g[i],i);"                       // Set GPIO
-    "}";
-#elif CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
-const char HTTP_SCRIPT_TEMPLATE2[] PROGMEM =
-    "j=0;"
-    "for(i=0;i<" STR(MAX_USER_PINS) ";i++){"  // Skip 22-32
-      "if(22==i){j=33;}"
-      "sk(g[i],j);"                       // Set GPIO
-      "j++;"
-    "}";
-#else  // ESP32
-const char HTTP_SCRIPT_TEMPLATE2[] PROGMEM =
-    "j=0;"
-    "for(i=0;i<" STR(MAX_USER_PINS) ";i++){"  // Skip 28-31
-      "if(28==i){j=32;}"
-      "sk(g[i],j);"                       // Set GPIO
-      "j++;"
-    "}";
-#endif  // Non plain ESP32    
-#endif  // ESP32
-
-const char HTTP_SCRIPT_TEMPLATE3[] PROGMEM =
-    "\";"
-    "sk(g[13]," STR(ADC0_PIN) ");";       // Set ADC0
-
-const char HTTP_SCRIPT_TEMPLATE4[] PROGMEM =
-    "g=o.shift();"                        // FLAG
-    "for(i=0;i<" STR(GPIO_FLAG_USED) ";i++){"
-      "p=(g>>i)&1;"
-      "eb('c'+i).checked=p;"              // Set FLAG checkboxes
-    "}"
-    "if(" STR(USER_MODULE) "==c){"
-      "g=o.shift();"
-      "eb('g99').value=g;"                // Set BASE for initial select
-    "}"
-  "}"
-  "function st(t){"
-    "c=t;"                                // Needed for initial BASE select
-    "var a='tp?t='+t;"
-    "ld(a,x1);"                           // ?t related to WebGetArg("t", stemp, sizeof(stemp));
-  "}"
-  "function sl(){"
-    "os=\"";                              // }2'0'>Sonoff Basic (1)}3...
-const char HTTP_SCRIPT_TEMPLATE5[] PROGMEM =
-    "\";"
-    "sk(" STR(WEMOS_MODULE) ",99);"       // 17 = WEMOS
-    "st(" STR(USER_MODULE) ");"
-  "}"
-  "wl(sl);";
 
 const char HTTP_SCRIPT_INFO_BEGIN[] PROGMEM =
   "function i(){"
@@ -290,13 +226,6 @@ const char HTTP_FORM_GET_ACTION[] PROGMEM =
 const char HTTP_FORM_BUTTON[] PROGMEM =
   "<p></p><form method='get' action='%s'><button>%s</button></form>";
 
-const char HTTP_FORM_TEMPLATE_FLAG[] PROGMEM =
-//  "<label><input id='c0' name='c0' type='checkbox'><b>" D_OPTION_TEXT "</b></label><br>"
-  "</p></fieldset>";
-
-const char HTTP_FORM_MODULE[] PROGMEM =
-  "<p></p><b>" D_MODULE_TYPE "</b> (%s)<br><select id='g99'></select><br>"
-  "<br><table>";
 
 const char HTTP_FORM_WIFI_PART1[] PROGMEM =
   "<p><b>" D_AP1_SSID "</b>%s<br><input id='s1' placeholder=\"" D_AP1_SSID_HELP "\" value=\"%s\"></p>"  // Need \" instead of ' to be able to use ' in text (#8489)
@@ -318,10 +247,6 @@ const char HTTP_FORM_LOG[] PROGMEM =
   "<p><b>" D_TELEMETRY_PERIOD "</b> (" STR(TELE_PERIOD) ")<br><input id='lt' placeholder='" STR(TELE_PERIOD) "' value='%d'></p>";
 
 const char HTTP_FORM_OTHER[] PROGMEM =
-  "<p><input id='t1' placeholder=\"" D_TEMPLATE "\" value='%s'></p>"  // We need ' apostrophe here as the template contains " quotation mark
-  "<p><label><input id='t2' type='checkbox'%s><b>" D_ACTIVATE "</b></label></p>"
-  "</fieldset>"
-  "<br>"
   "<label><b>" D_WEB_ADMIN_PASSWORD "</b><input type='checkbox' onclick='sp(\"wp\")'></label><br><input id='wp' type='password' placeholder=\"" D_WEB_ADMIN_PASSWORD "\" value=\"" D_ASTERISK_PWD "\"><br>"
   "<br>"
   "<label><input id='b3' type='checkbox'%s><b>" D_HTTP_API_ENABLE "</b></label><br>"
@@ -591,7 +516,6 @@ const WebServerDispatch_t WebServerDispatch[] PROGMEM = {
   { "md", HTTP_ANY, HandleModuleConfiguration },
   { "wi", HTTP_ANY, HandleWifiConfiguration },
   { "lg", HTTP_ANY, HandleLoggingConfiguration },
-  { "tp", HTTP_ANY, HandleTemplateConfiguration },
   { "co", HTTP_ANY, HandleOtherConfiguration },
   { "dl", HTTP_ANY, HandleBackupConfiguration },
   { "rs", HTTP_ANY, HandleRestoreConfiguration },
@@ -1765,7 +1689,7 @@ void HandleConfiguration(void) {
 
   WSContentButton(BUTTON_LOGGING);
   WSContentButton(BUTTON_OTHER);
-  WSContentButton(BUTTON_TEMPLATE);
+//  WSContentButton(BUTTON_TEMPLATE);  // Deleted by default
 
   WSContentSpaceButton(BUTTON_RESET_CONFIGURATION);
   WSContentButton(BUTTON_BACKUP);
@@ -1775,305 +1699,74 @@ void HandleConfiguration(void) {
   WSContentStop();
 }
 
-/*********************************************************************************************\
- * HandleTemplateConfiguration
-\*********************************************************************************************/
-
-void WSContentSendNiceLists(uint32_t option) {
-  char stemp[30];                                             // Template number and Sensor name
-  for (uint32_t i = 0; i < nitems(kGpioNiceList); i++) {  // GPIO: }2'0'>None (0)}3}2'17'>Button1 (17)}3...
-    if (option && (1 == i)) {
-      WSContentSend_P(HTTP_MODULE_TEMPLATE_REPLACE_NO_INDEX, 
-        AGPIO(GPIO_USER), 
-        PSTR(D_SENSOR_USER));  // }2'255'>User}3
-    }
-    uint32_t ridx = pgm_read_word(&kGpioNiceList[i]) & 0xFFE0;
-    uint32_t midx = BGPIO(ridx);
-    WSContentSend_P(HTTP_MODULE_TEMPLATE_REPLACE_NO_INDEX, 
-      ridx, 
-      GetTextIndexed(stemp, sizeof(stemp), midx, kSensorNames));
-  }
-  WSContentSend_P(PSTR("\";"));
-
-  WSContentSend_P(PSTR("hs=["));
-  uint32_t midx;
-  bool first_done = false;
-  for (uint32_t i = 0; i < nitems(kGpioNiceList); i++) {  // hs=[36,68,100,132,168,200,232,264,292,324,356,388,421,453];
-    midx = pgm_read_word(&kGpioNiceList[i]);
-    if (midx & 0x001F) {
-      if (first_done) { WSContentSend_P(PSTR(",")); }
-      WSContentSend_P(PSTR("%d"), midx);
-      first_done = true;
-    }
-  }
-
-  WSContentSend_P(PSTR("];"));
-}
-
-/*-------------------------------------------------------------------------------------------*/
-
-void HandleTemplateConfiguration(void) {
-  if (!HttpCheckPriviledgedAccess()) { return; }
-
-  if (Webserver->hasArg(F("save"))) {
-    TemplateSaveSettings();
-    WebRestart(1);
-    return;
-  }
-
-  char stemp[30];                                           // Template number and Sensor name
-
-  WebGetArg(PSTR("t"), stemp, sizeof(stemp));                     // 0 - 69 Template number
-  if (strlen(stemp)) {
-    uint32_t module = atoi(stemp);
-    uint32_t module_save = Settings->module;
-    Settings->module = module;
-    myio template_gp;
-    TemplateGpios(&template_gp);
-    gpio_flag flag = ModuleFlag();
-    Settings->module = module_save;
-
-    WSContentBegin(200, CT_PLAIN);
-    WSContentSend_P(PSTR("%s}1"), AnyModuleName(module).c_str());  // NAME: Generic
-    for (uint32_t i = 0; i < nitems(template_gp.io); i++) {        // 17,148,29,149,7,255,255,255,138,255,139,255,255
-#if CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32C6
-      // ESP32C2/C3/C6 we always send all GPIOs, Flash are just hidden
-      WSContentSend_P(PSTR("%s%d"), (i>0)?",":"", template_gp.io[i]);
-#else
-      if (!FlashPin(i)) {
-        WSContentSend_P(PSTR("%s%d"), (i>0)?",":"", template_gp.io[i]);
-      }
-#endif  // CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6
-    }
-    WSContentSend_P(PSTR("}1%d}1%d"), flag, Settings->user_template_base);  // FLAG: 1  BASE: 17
-    WSContentEnd();
-    return;
-  }
-
-  AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP D_CONFIGURE_TEMPLATE));
-
-  WSContentStart_P(PSTR(D_CONFIGURE_TEMPLATE));
-  WSContentSend_P(HTTP_SCRIPT_MODULE_TEMPLATE);
-
-  WSContentSend_P(HTTP_SCRIPT_TEMPLATE);
-
-  WSContentSendNiceLists(1);
-
-  WSContentSend_P(HTTP_SCRIPT_TEMPLATE2);
 
 
-
-  WSContentSend_P(HTTP_SCRIPT_TEMPLATE4);
-  for (uint32_t i = 0; i < sizeof(kModuleNiceList); i++) {  // "}2'%d'>%s (%d)}3" - "}2'0'>Sonoff Basic (1)}3"
-    uint32_t midx = pgm_read_byte(kModuleNiceList + i);
-    WSContentSend_P(HTTP_MODULE_TEMPLATE_REPLACE_INDEX, midx, AnyModuleName(midx).c_str(), midx +1);
-  }
-  WSContentSend_P(HTTP_SCRIPT_TEMPLATE5);
-
-  WSContentSendStyle();
-  WSContentSend_P(HTTP_FIELDSET_LEGEND, PSTR(D_TEMPLATE_PARAMETERS));
-  WSContentSend_P(HTTP_FORM_GET_ACTION, PSTR("tp"));
-  WSContentSend_P(HTTP_TABLE100);  // "<table style='width:100%%'>"
-  WSContentSend_P(PSTR("<tr><td><b>" D_TEMPLATE_NAME "</b></td><td style='width:200px'><input id='s1' placeholder='" D_TEMPLATE_NAME "'></td></tr>"
-                       "<tr><td><b>" D_BASE_TYPE "</b></td><td><select id='g99' onchange='st(this.value)'></select></td></tr>"
-                       "</table>"
-                       "<hr>"));
-  WSContentSend_P(HTTP_TABLE100);  // "<table style='width:100%%'>"
-  for (uint32_t i = 0; i < MAX_GPIO_PIN; i++) {
-#if CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6
-    // ESP32C2/C3/C6 all gpios are in the template, flash are hidden
-    bool hidden = FlashPin(i);
-    WSContentSend_P(PSTR("<tr%s><td><b><font color='#%06x'>" D_GPIO "%d</font></b></td><td%s><select id='g%d' onchange='ot(%d,this.value)'></select></td>"),
-      hidden ? PSTR(" hidden") : "",
-      RedPin(i) ? WebColor(COL_TEXT_WARNING) : WebColor(COL_TEXT), i, (0==i) ? PSTR(" style='width:146px'") : "", i, i);
-    WSContentSend_P(PSTR("<td style='width:54px'><select id='h%d'></select></td></tr>"), i);
-#else // also works for ESP32S2
-    if (!FlashPin(i)) {
-      WSContentSend_P(PSTR("<tr><td><b><font color='#%06x'>" D_GPIO "%d</font></b></td><td%s><select id='g%d' onchange='ot(%d,this.value)'></select></td>"),
-        RedPin(i) ? WebColor(COL_TEXT_WARNING) : WebColor(COL_TEXT), i, (0==i) ? PSTR(" style='width:146px'") : "", i, i);
-      WSContentSend_P(PSTR("<td style='width:54px'><select id='h%d'></select></td></tr>"), i);
-    }
-#endif  // CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6
-  }
-  WSContentSend_P(PSTR("</table>"));
-
-  gpio_flag flag = ModuleFlag();
-  if (flag.data) {
-    WSContentSend_P(PSTR("<p></p>"));  // Keep close so do not use <br>
-    WSContentSend_P(HTTP_FIELDSET_LEGEND, PSTR(D_TEMPLATE_FLAGS));
-    WSContentSend_P(HTTP_FORM_TEMPLATE_FLAG);
-  }
-
-  WSContentSend_P(HTTP_FORM_END);
-  WSContentSpaceButton(BUTTON_CONFIGURATION);
-  WSContentStop();
-}
-
-/*-------------------------------------------------------------------------------------------*/
-
-uint16_t WebGetGpioArg(uint32_t i) {
-  char webindex[5];                                         // WebGetArg name
-  snprintf_P(webindex, sizeof(webindex), PSTR("g%d"), i);
-  char tmp[8];                                              // WebGetArg numbers only
-  WebGetArg(webindex, tmp, sizeof(tmp));                    // GPIO
-  uint32_t gpio = (!strlen(tmp)) ? 0 : atoi(tmp);
-  char webindex2[5];                                        // WebGetArg name
-  snprintf_P(webindex2, sizeof(webindex2), PSTR("h%d"), i);
-  char tmp2[8];                                             // WebGetArg numbers only
-  WebGetArg(webindex2, tmp2, sizeof(tmp2));
-  uint32_t value2 = (!strlen(tmp2)) ? 0 : atoi(tmp2) -1;
-  gpio += value2;
-  return gpio;
-}
-
-/*-------------------------------------------------------------------------------------------*/
-
-void TemplateSaveSettings(void) {
-  char tmp[TOPSZ];                                      // WebGetArg NAME and GPIO/BASE/FLAG byte value
-
-  char command[500];                                    // Template command string supporting P4 (55 GPIOs)
-
-
-  WebGetArg(PSTR("s1"), tmp, sizeof(tmp));              // NAME
-  snprintf_P(command, sizeof(command), PSTR(D_CMND_TEMPLATE " {\"" D_JSON_NAME "\":\"%s\",\"" D_JSON_GPIO "\":["), tmp);
-
-  uint32_t j = 0;
-  for (uint32_t i = 0; i < nitems(Settings->user_template.gp.io); i++) {
-/*    
-#if defined(ESP32) && CONFIG_IDF_TARGET_ESP32C3
-    snprintf_P(command, sizeof(command), PSTR("%s%s%d"), command, (i>0)?",":"", WebGetGpioArg(i));
-#elif defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3)
-    if (22 == i) { j = 33; }    // skip 22-32
-    snprintf_P(command, sizeof(command), PSTR("%s%s%d"), command, (i>0)?",":"", WebGetGpioArg(j));
-    j++;
-#elif defined(CONFIG_IDF_TARGET_ESP32)
-    snprintf_P(command, sizeof(command), PSTR("%s%s%d"), command, (i>0)?",":"", WebGetGpioArg(Esp32TemplateToPhy[i]));
-#else  // ESP8266
-    if (6 == i) { j = 9; }
-    if (8 == i) { j = 12; }
-    snprintf_P(command, sizeof(command), PSTR("%s%s%d"), command, (i>0)?",":"", WebGetGpioArg(j));
-    j++;
-#endif
-*/
-
-#ifdef ESP32
-#if CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32P4
-    snprintf_P(command, sizeof(command), PSTR("%s%s%d"), command, (i>0)?",":"", WebGetGpioArg(i));
-#elif CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
-    if (22 == i) { j = 33; }    // skip 22-32
-    snprintf_P(command, sizeof(command), PSTR("%s%s%d"), command, (i>0)?",":"", WebGetGpioArg(j));
-    j++;
-#else  // ESP32
-    snprintf_P(command, sizeof(command), PSTR("%s%s%d"), command, (i>0)?",":"", WebGetGpioArg(Esp32TemplateToPhy[i]));
-#endif  // ESP32C2/C3/C6 and S2/S3
-#endif  // ESP32
-  }
-
-  uint32_t flag = 0;
-  char webindex[5];                                     // WebGetArg name
-  for (uint32_t i = 0; i < GPIO_FLAG_USED; i++) {
-    snprintf_P(webindex, sizeof(webindex), PSTR("c%d"), i);
-    uint32_t state = Webserver->hasArg(webindex) << i;  // FLAG
-    flag += state;
-  }
-  WebGetArg(PSTR("g99"), tmp, sizeof(tmp));             // BASE
-  uint32_t base = atoi(tmp) +1;
-
-  snprintf_P(command, sizeof(command), PSTR("%s],\"" D_JSON_FLAG "\":%d,\"" D_JSON_BASE "\":%d}"), command, flag, base);
-  ExecuteWebCommand(command);
-}
 
 /*********************************************************************************************\
  * HandleModuleConfiguration
 \*********************************************************************************************/
+static String WebGetGpioLabel(uint32_t sensor_type) {
+  char stemp1[TOPSZ];
+  char sindex[4] = { 0 };
+
+  uint32_t sensor_name_idx = BGPIO(sensor_type);
+  uint32_t nice_list_search = sensor_type & 0xFFE0;
+
+  for (uint32_t j = 0; j < nitems(kGpioNiceList); j++) {
+    uint32_t nls_idx = pgm_read_word(&kGpioNiceList[j]);
+    if (((nls_idx & 0xFFE0) == nice_list_search) && ((nls_idx & 0x001F) > 0)) {
+      snprintf_P(sindex, sizeof(sindex), PSTR("%d"), (sensor_type & 0x001F) + 1);
+      break;
+    }
+  }
+
+  const char *sensor_names = kSensorNames;
+  if (sensor_name_idx > GPIO_FIX_START) {
+    sensor_name_idx = sensor_name_idx - GPIO_FIX_START - 1;
+    sensor_names = kSensorNamesFixed;
+  }
+
+  String label = GetTextIndexed(stemp1, sizeof(stemp1), sensor_name_idx, sensor_names);
+  label += sindex;
+  return label;
+}
+
 
 void HandleModuleConfiguration(void) {
   if (!HttpCheckPriviledgedAccess()) { return; }
 
-  if (Webserver->hasArg(F("save"))) {
-    ModuleSaveSettings();
-    WebRestart(1);
-    return;
-  }
-
   AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP D_CONFIGURE_MODULE));
 
-  char stemp[30];  // Sensor name
-  uint32_t midx;
   myio template_gp;
-  TemplateGpios(&template_gp);
+  TemplateGpios(&template_gp);   // po tvojej úprave už berie iba MODULE z buildu
 
   WSContentStart_P(PSTR(D_CONFIGURE_MODULE));
-  WSContentSend_P(HTTP_SCRIPT_MODULE_TEMPLATE);
-
-  WSContentSend_P(PSTR("function sl(){os=\""));
-  uint32_t vidx = 0;
-  for (uint32_t i = 0; i <= sizeof(kModuleNiceList); i++) {  // "}2'%d'>%s (%d)}3" - "}2'255'>UserTemplate (0)}3" - "}2'0'>Sonoff Basic (1)}3"
-    if (0 == i) {
-      midx = USER_MODULE;
-      vidx = 0;
-    } else {
-      midx = pgm_read_byte(kModuleNiceList + i -1);
-      vidx = midx +1;
-    }
-    WSContentSend_P(HTTP_MODULE_TEMPLATE_REPLACE_INDEX, midx, AnyModuleName(midx).c_str(), vidx);
-  }
-  WSContentSend_P(PSTR("\";sk(%d,99);os=\""), Settings->module);
-
-  WSContentSendNiceLists(0);
-
-  for (uint32_t i = 0; i < nitems(template_gp.io); i++) {
-    if (ValidGPIO(i, template_gp.io[i])) {
-      WSContentSend_P(PSTR("sk(%d,%d);"), TasmotaGlobal.my_module.io[i], i);  // g0 - g17
-    }
-  }
-
-
-
-  WSContentSend_P(PSTR("}wl(sl);"));
-
   WSContentSendStyle();
+
   WSContentSend_P(HTTP_FIELDSET_LEGEND, PSTR(D_MODULE_PARAMETERS));
-  WSContentSend_P(HTTP_FORM_GET_ACTION, PSTR("md"));
-  WSContentSend_P(HTTP_FORM_MODULE, AnyModuleName(MODULE).c_str());
+  WSContentSend_P(PSTR("<p><b>" D_MODULE_TYPE "</b>: %s</p>"), AnyModuleName(MODULE).c_str());
+
+  WSContentSend_P(PSTR("<table style='width:100%%'>"
+                       "<tr><th style='text-align:left'>GPIO</th>"
+                       "<th style='text-align:left'>Function</th>"
+                       "<th style='text-align:left'>Value</th></tr>"));
+
   for (uint32_t i = 0; i < nitems(template_gp.io); i++) {
-    if (ValidGPIO(i, template_gp.io[i])) {
-      snprintf_P(stemp, 3, PINS_WEMOS +i*2);
-      WSContentSend_P(PSTR("<tr><td style='width:116px'>%s <b>" D_GPIO "%d</b></td><td style='width:146px'><select id='g%d' onchange='ot(%d,this.value)'></select></td>"),
-        (WEMOS==TasmotaGlobal.module_type)?stemp:"", i, i, i);
-      WSContentSend_P(PSTR("<td style='width:54px'><select id='h%d'></select></td></tr>"), i);
+    uint32_t sensor_type = template_gp.io[i];
+
+    if ((sensor_type > GPIO_NONE) && (sensor_type < AGPIO(GPIO_USER))) {
+      WSContentSend_P(PSTR("<tr><td><b>GPIO%d</b></td><td>%s</td><td>%d</td></tr>"),
+        i,
+        WebGetGpioLabel(sensor_type).c_str(),
+        sensor_type);
     }
   }
+
   WSContentSend_P(PSTR("</table>"));
-  WSContentSend_P(HTTP_FORM_END);
   WSContentSpaceButton(BUTTON_CONFIGURATION);
   WSContentStop();
 }
 
-/*-------------------------------------------------------------------------------------------*/
-
-void ModuleSaveSettings(void) {
-  char tmp[8];         // WebGetArg numbers only
-  WebGetArg(PSTR("g99"), tmp, sizeof(tmp));  // Module
-  uint32_t new_module = (!strlen(tmp)) ? MODULE : atoi(tmp);
-  Settings->last_module = Settings->module;
-  Settings->module = new_module;
-  SetModuleType();
-  myio template_gp;
-  TemplateGpios(&template_gp);
-  for (uint32_t i = 0; i < nitems(template_gp.io); i++) {
-    if (Settings->last_module != new_module) {
-      Settings->my_gp.io[i] = GPIO_NONE;
-    } else {
-      if (ValidGPIO(i, template_gp.io[i])) {
-        Settings->my_gp.io[i] = WebGetGpioArg(i);  // Gpio
-      }
-    }
-  }
-  char command[32];
-  snprintf_P(command, sizeof(command), PSTR(D_CMND_BACKLOG "0 " D_CMND_MODULE ";" D_CMND_GPIO));
-  ExecuteWebCommand(command);
-}
 
 /*********************************************************************************************\
  * HandleWifiConfiguration
@@ -2456,17 +2149,11 @@ void HandleOtherConfiguration(void) {
   WSContentStart_P(PSTR(D_CONFIGURE_OTHER));
   WSContentSendStyle();
 
-  TemplateJson();
-
   WSContentSend_P(HTTP_FIELDSET_LEGEND, PSTR(D_OTHER_PARAMETERS));
   WSContentSend_P(HTTP_FORM_GET_ACTION, PSTR("co"));
-  WSContentSend_P(PSTR("<p></p>"));
-  WSContentSend_P(HTTP_FIELDSET_LEGEND, PSTR(D_TEMPLATE));
-  WSContentSend_P(HTTP_FORM_OTHER, 
-    HtmlEscape(ResponseData()).c_str(),
-    (USER_MODULE == Settings->module) ? PSTR(" checked disabled") : "",
-    (Settings->flag5.disable_referer_chk) ? PSTR(" checked") : "",   // SetOption128 - Enable HTTP API
-    (Settings->flag.mqtt_enabled) ? PSTR(" checked") : "",   // SetOption3 - Enable MQTT
+  WSContentSend_P(HTTP_FORM_OTHER,
+    (Settings->flag5.disable_referer_chk) ? PSTR(" checked") : "",
+    (Settings->flag.mqtt_enabled) ? PSTR(" checked") : "",
     SettingsTextEscaped(SET_FRIENDLYNAME1).c_str(),
     SettingsTextEscaped(SET_DEVICENAME).c_str());
 
@@ -2506,12 +2193,6 @@ void OtherSaveSettings(void) {
     cmnd += AddWebCommand(cmnd2, webindex, PSTR("\""));
   }
 
-
-  String tmpl = Webserver->arg(F("t1"));    // {"NAME":"12345678901234","GPIO":[255,255,255,255,255,255,255,255,255,255,255,255,255],"FLAG":255,"BASE":255,"CMND":"SO123 1;SO99 0"}
-  if (tmpl.length() && (tmpl.length() < MQTT_MAX_PACKET_SIZE)) {
-    snprintf_P(cmnd2, sizeof(cmnd2), PSTR(";%s" D_CMND_TEMPLATE " "), (Webserver->hasArg(F("t2"))) ? PSTR(D_CMND_MODULE " 0;") : "");
-    cmnd += cmnd2 + tmpl;
-  }
   ExecuteWebCommand((char*)cmnd.c_str());
 }
 

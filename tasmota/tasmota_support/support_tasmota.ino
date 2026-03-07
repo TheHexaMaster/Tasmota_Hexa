@@ -1680,9 +1680,11 @@ void TasConsoleInput(void) {
 
 /********************************************************************************************/
 
-void GpioInit(void)
+void GpioInit(void) 
 {
-  if (!ValidModule(Settings->module)) {
+  /*
+  // OLD TEMPLATE RUNTIME
+  if (!ValidModule(Settings->module)) { 
     uint32_t module = MODULE;
     if (!ValidModule(MODULE)) {
       module = WEMOS;
@@ -1694,7 +1696,6 @@ void GpioInit(void)
   SetModuleType();
 
 //  AddLog(LOG_LEVEL_DEBUG, PSTR("DBG: Used GPIOs %d"), GPIO_SENSOR_END);
-
   for (uint32_t i = 0; i < nitems(Settings->user_template.gp.io); i++) {
     if ((Settings->user_template.gp.io[i] >= AGPIO(GPIO_SENSOR_END)) && (Settings->user_template.gp.io[i] < AGPIO(GPIO_USER))) {
       Settings->user_template.gp.io[i] = AGPIO(GPIO_USER);  // Fix not supported sensor ids in template
@@ -1712,6 +1713,30 @@ void GpioInit(void)
     }
     if ((template_gp.io[i] > GPIO_NONE) && (template_gp.io[i] < AGPIO(GPIO_USER))) {
       TasmotaGlobal.my_module.io[i] = template_gp.io[i];               // Force Template override
+    }
+  }
+
+
+*/
+
+// NEW TEMPLATE RUNTIME
+
+  // Jediný zdroj modulu je compile-time MODULE
+  TasmotaGlobal.module_type = MODULE;
+  if (TasmotaGlobal.emulated_module_type) {
+    TasmotaGlobal.module_type = TasmotaGlobal.emulated_module_type;
+  }
+
+//  AddLog(LOG_LEVEL_DEBUG, PSTR("DBG: Used GPIOs %d"), GPIO_SENSOR_END);
+
+  myio template_gp;
+  TemplateGpios(&template_gp);
+
+  // Bez user_template a bez runtime overlay zo Settings->my_gp
+  memset(&TasmotaGlobal.my_module, 0, sizeof(TasmotaGlobal.my_module));
+  for (uint32_t i = 0; i < nitems(TasmotaGlobal.my_module.io); i++) {
+    if ((template_gp.io[i] > GPIO_NONE) && (template_gp.io[i] < AGPIO(GPIO_USER))) {
+      TasmotaGlobal.my_module.io[i] = template_gp.io[i];
     }
   }
 
