@@ -116,11 +116,9 @@ const char *GVRelease = "1.7.0";
 #define GV_OUTPUT_OPEN_DRAIN  0x13
 #define GV_ANALOG             0xC0
 
-#ifdef USE_UNISHOX_COMPRESSION
-  #include "./html_compressed/HTTP_GV_PAGE.h"
-#else
-  #include "./html_uncompressed/HTTP_GV_PAGE.h"
-#endif  // USE_UNISHOX_COMPRESSION
+
+#include "./html_uncompressed/HTTP_GV_PAGE.h"
+
 
 const char HTTP_GV_EVENT[] PROGMEM =
   "HTTP/1.1 200 OK\n"
