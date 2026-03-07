@@ -411,9 +411,7 @@ constexpr uint32_t feature[] = {
   0x10000000 |  // xsns_63_aht1x.ino
 #endif
 //  0x20000000 |  // xdrv_34_wemos_motor_v1.ino - USE_WEMOS_MOTOR_V1 - DELETED
-#ifdef USE_DEVICE_GROUPS
-  0x40000000 |  // support_device_groups.ino
-#endif
+//  0x40000000 |  // support_device_groups.ino - USE_DEVICE_GROUPS - DELETED
 //  0x80000000 |  // xdrv_35_pwm_dimmer - USE_PWM_DIMMER - DELETED
   0,
 #ifdef USE_KEELOQ

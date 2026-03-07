@@ -42,7 +42,6 @@
 #undef USE_SHUTTER                              // Disable Shutter support for up to 4 shutter with different motortypes (+6k code)
 #define USE_DEEPSLEEP                            // Add support for deepsleep (+1k code)
 //#define USE_HOTPLUG                              // Add support for sensor HotPlug
-//#undef USE_DEVICE_GROUPS                        // Disable support for device groups (+5k6 code)
 #undef USE_KEELOQ                               // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 
 
@@ -224,7 +223,6 @@
 #endif
 
 #undef USE_HOME_ASSISTANT                        // Disable Home Assistant
-#define USE_TASMOTA_DISCOVERY                    // Enable Tasmota Discovery support (+2k code)
 
 // -- Optional modules ----------------------------
 #undef ROTARY_V1                                 // Disable support for MI Desk Lamp
@@ -235,7 +233,6 @@
 #undef USE_SHUTTER                               // Disable Shutter support for up to 4 shutter with different motortypes (+6k code)
 #undef USE_DEEPSLEEP                             // Disable support for deepsleep (+1k code)
 #undef USE_HOTPLUG                               // Disable support for HotPlug
-#undef USE_DEVICE_GROUPS                         // Disable support for device groups (+3k5 code)
 #undef USE_KEELOQ                                // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 
 #undef USE_BLE_ESP32                             // (ESP32 only) Disable support for native BLE on ESP32 - use new driver
@@ -283,7 +280,6 @@
 
 #undef USE_ARDUINO_OTA                           // Disable support for Arduino OTA
 #undef USE_HOME_ASSISTANT                        // Disable Home Assistant
-#define USE_TASMOTA_DISCOVERY                    // Enable Tasmota Discovery support (+2k code)
 
 #define UPGRADE_V8_MIN                           // do not support upgrading from version below 8.0.0
 
@@ -309,7 +305,6 @@
 #undef USE_SHUTTER                               // Disable Shutter support for up to 4 shutter with different motortypes (+6k code)
 #undef USE_DEEPSLEEP                             // Disable support for deepsleep (+1k code)
 #undef USE_HOTPLUG                               // Disable support for HotPlug
-#undef USE_DEVICE_GROUPS                         // Disable support for device groups (+3k5 code)
 #undef USE_KEELOQ                                // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 
 
@@ -388,7 +383,6 @@
 
 #undef USE_ARDUINO_OTA                           // Disable support for Arduino OTA
 #undef USE_HOME_ASSISTANT                        // Disable Home Assistant
-#define USE_TASMOTA_DISCOVERY                    // Enable Tasmota Discovery support (+2k code)
 #undef USE_MQTT_TLS                              // Disable TLS support won't work as the MQTTHost is not set
 #undef USE_DALI                                  // Disable support for DALI gateway (+5k code)
 //#undef USE_WEBSERVER                             // Disable Webserver
@@ -406,7 +400,6 @@
 #undef USE_SHUTTER                               // Disable Shutter support for up to 4 shutter with different motortypes (+6k code)
 #undef USE_DEEPSLEEP                             // Disable support for deepsleep (+1k code)
 #undef USE_HOTPLUG                               // Disable support for HotPlug
-#undef USE_DEVICE_GROUPS                         // Disable support for device groups (+3k5 code)
 #undef USE_KEELOQ                                // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 
 
@@ -494,7 +487,6 @@
 #undef USE_ARDUINO_OTA                           // Disable support for Arduino OTA
 #undef USE_INFLUXDB                              // Disable influxdb support (+5k code)
 #undef USE_HOME_ASSISTANT                        // Disable Home Assistant
-#undef USE_TASMOTA_DISCOVERY                     // Disable Tasmota Discovery support (+2k code)
 #undef USE_TELEGRAM                              // Disable support for Telegram protocol (+49k code, +7.0k mem and +4.8k additional during connection handshake)
 //#undef USE_MQTT_TLS                              // Disable TLS support won't work as the MQTTHost is not set
 #undef USE_DALI                                  // Disable support for DALI gateway (+5k code)
@@ -516,7 +508,6 @@
 #undef USE_SHUTTER                               // Disable Shutter support for up to 4 shutter with different motortypes (+6k code)
 #undef USE_DEEPSLEEP                             // Disable support for deepsleep (+1k code)
 #undef USE_HOTPLUG                               // Disable support for HotPlug
-#undef USE_DEVICE_GROUPS                         // Disable support for device groups (+3k5 code)
 #undef USE_KEELOQ                                // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 
 // -- Optional light modules ----------------------

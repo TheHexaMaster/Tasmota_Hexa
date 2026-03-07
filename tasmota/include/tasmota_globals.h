@@ -295,9 +295,6 @@ const char WIFI_HOSTNAME[] = WIFI_DEFAULT_HOSTNAME;    // Override by user_confi
 #define MESSZ                       1040       // Max number of characters in JSON message string (Hass discovery and nice MQTT_MAX_PACKET_SIZE = 1200)
 #endif
 
-#ifndef USE_DEVICE_GROUPS
-#endif  // USE_DEVICE_GROUPS
-
 #ifndef DOMOTICZ_UPDATE_TIMER
 #define DOMOTICZ_UPDATE_TIMER       0          // [DomoticzUpdateTimer] Send relay status (0 = disable, 1 - 3600 seconds) (Optional)
 #endif
@@ -502,12 +499,6 @@ const char kWebColors[] PROGMEM =
 #define AGPIO(x) ((x)<<5)
 #define BGPIO(x) ((x)>>5)
 #define AGMAX(x) ((x)?(x-1):0)
-
-#ifdef USE_DEVICE_GROUPS
-#define SendDeviceGroupMessage(DEVICE_INDEX, REQUEST_TYPE, ...) _SendDeviceGroupMessage(DEVICE_INDEX, REQUEST_TYPE, __VA_ARGS__, 0)
-uint8_t device_group_count = 0;
-bool first_device_group_is_local = true;
-#endif  // USE_DEVICE_GROUPS
 
 #ifdef DEBUG_TASMOTA_CORE
 #define DEBUG_CORE_LOG(...) AddLog(LOG_LEVEL_DEBUG, __VA_ARGS__)

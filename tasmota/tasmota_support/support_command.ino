@@ -41,13 +41,6 @@ const char kTasmotaCommands[] PROGMEM = "|"  // No prefix
   D_CMND_I2CSCAN "|" D_CMND_I2CDRIVER "|"
 #endif
 
-#ifdef USE_DEVICE_GROUPS
-  D_CMND_DEVGROUP_NAME "|"
-#ifdef USE_DEVICE_GROUPS_SEND
-  D_CMND_DEVGROUP_SEND "|"
-#endif  // USE_DEVICE_GROUPS_SEND
-  D_CMND_DEVGROUP_SHARE "|" D_CMND_DEVGROUPSTATUS "|" D_CMND_DEVGROUP_TIE "|"
-#endif  // USE_DEVICE_GROUPS
 
 #ifdef USE_UFILESYS
   D_CMND_FILELOG "|"
@@ -90,13 +83,6 @@ void (* const TasmotaCommand[])(void) PROGMEM = {
   &CmndI2cScan, &CmndI2cDriver,
 #endif
 
-#ifdef USE_DEVICE_GROUPS
-  &CmndDevGroupName,
-#ifdef USE_DEVICE_GROUPS_SEND
-  &CmndDevGroupSend,
-#endif  // USE_DEVICE_GROUPS_SEND
-  &CmndDevGroupShare, &CmndDevGroupStatus, &CmndDevGroupTie,
-#endif  // USE_DEVICE_GROUPS
 
 #ifdef USE_UFILESYS
   &CmndFilelog,
@@ -1613,11 +1599,6 @@ void CmndSetoptionBase(bool indexed) {
               HAssDiscover();              // Delayed execution to provide enough resources during hass_discovery or hass_light
             }
 #endif  // USE_HOME_ASSISTANT
-#ifdef USE_TASMOTA_DISCOVERY
-            if (19 == pindex) {
-              TasRediscover();
-            }
-#endif  // USE_TASMOTA_DISCOVERY
           }
           else if (3 == ptype) {           // SetOption50 .. 81
             bitWrite(Settings->flag3.data, pindex, XdrvMailbox.payload);
@@ -2916,62 +2897,6 @@ void CmndI2cDriver(void)
 }
 #endif  // USE_I2C
 
-#ifdef USE_DEVICE_GROUPS
-void CmndDevGroupName(void)
-{
-  if ((XdrvMailbox.index > 0) && (XdrvMailbox.index <= MAX_DEV_GROUP_NAMES)) {
-    if (XdrvMailbox.data_len > 0) {
-      if (XdrvMailbox.data_len > TOPSZ)
-        XdrvMailbox.data[TOPSZ - 1] = 0;
-      else if (1 == XdrvMailbox.data_len && ('"' == XdrvMailbox.data[0] || '0' == XdrvMailbox.data[0]))
-        XdrvMailbox.data[0] = 0;
-      SettingsUpdateText(SET_DEV_GROUP_NAME1 + XdrvMailbox.index - 1, XdrvMailbox.data);
-      TasmotaGlobal.restart_flag = 2;
-    }
-    ResponseCmndAll(SET_DEV_GROUP_NAME1, MAX_DEV_GROUP_NAMES);
-  }
-}
-
-#ifdef USE_DEVICE_GROUPS_SEND
-void CmndDevGroupSend(void)
-{
-  uint8_t device_group_index = (XdrvMailbox.usridx ? XdrvMailbox.index - 1 : 0);
-  if (device_group_index < device_group_count) {
-    if (!_SendDeviceGroupMessage(-device_group_index, (DevGroupMessageType)(DGR_MSGTYPE_UPDATE_COMMAND + DGR_MSGTYPFLAG_WITH_LOCAL))) {
-      ResponseCmndChar(XdrvMailbox.data);
-    }
-  }
-}
-#endif  // USE_DEVICE_GROUPS_SEND
-
-void CmndDevGroupShare(void)
-{
-  uint32_t parm[2] = { Settings->device_group_share_in, Settings->device_group_share_out };
-  ParseParameters(2, parm);
-  Settings->device_group_share_in = parm[0];
-  Settings->device_group_share_out = parm[1];
-  Response_P(PSTR("{\"" D_CMND_DEVGROUP_SHARE "\":{\"In\":\"%X\",\"Out\":\"%X\"}}"), Settings->device_group_share_in, Settings->device_group_share_out);
-}
-
-void CmndDevGroupStatus(void)
-{
-  DeviceGroupStatus((XdrvMailbox.usridx ? XdrvMailbox.index - 1 : 0));
-}
-
-void CmndDevGroupTie(void)
-{
-  if ((XdrvMailbox.index > 0) && (XdrvMailbox.index <= MAX_DEV_GROUP_NAMES)) {
-    if (XdrvMailbox.data_len > 0) {
-      Settings->device_group_tie[XdrvMailbox.index - 1] = XdrvMailbox.payload;
-    }
-    Response_P(PSTR("{"));
-    for (uint32_t i = 0; i < MAX_DEV_GROUP_NAMES; i++) {
-      ResponseAppend_P(PSTR("%s\"%s%u\":%u"), (i)?",":"", D_CMND_DEVGROUP_TIE, i + 1, Settings->device_group_tie[i]);
-    }
-    ResponseJsonEnd();
-  }
-}
-#endif  // USE_DEVICE_GROUPS
 
 void CmndSetSensor(void)
 {

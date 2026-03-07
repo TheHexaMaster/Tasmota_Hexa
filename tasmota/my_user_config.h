@@ -443,8 +443,6 @@
 //  #define HOME_ASSISTANT_LWT_TOPIC   "homeassistant/status"  // home Assistant Birth and Last Will Topic (default = homeassistant/status)
 //  #define HOME_ASSISTANT_LWT_SUBSCRIBE    true               // Subscribe to Home Assistant Birth and Last Will Topic (default = true)
 
-// -- MQTT - Tasmota Discovery ---------------------
-//#define USE_TASMOTA_DISCOVERY                      // Enable Tasmota Discovery support (+2k code)
 
 // -- MQTT - TLS - AWS IoT ------------------------
 // Using TLS starting with version v6.5.0.16 compilation will only work using Core 2.4.2 and 2.5.2. No longer supported: 2.3.0
@@ -529,10 +527,6 @@
 // #define USE_SHUTTER                              // Add Shutter support for up to 4 shutter with different motortypes (+11k code)
 // #define USE_DEEPSLEEP                            // Add support for deepsleep (+1k code)
 //#define USE_HOTPLUG                              // Add support for sensor HotPlug
-// #define USE_DEVICE_GROUPS                        // Add support for device groups (+5k5 code)
-  #define DEVICE_GROUPS_ADDRESS 239,255,250,250  // Device groups multicast address
-  #define DEVICE_GROUPS_PORT 4447                // Device groups multicast port
-  #define USE_DEVICE_GROUPS_SEND                 // Add support for the DevGroupSend command (+0k6 code)
 //#define USE_KEELOQ                               // Add support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 //  #define SHELLY_VOLTAGE_MON                     // Add support for reading voltage and current measurment (-0k0 code)
 //#define USE_MAGIC_SWITCH                         // Add Sonoff MagicSwitch support as implemented in Sonoff Basic R4 (+612B flash, +64B IRAM for intr)

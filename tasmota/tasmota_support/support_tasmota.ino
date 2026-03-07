@@ -698,9 +698,6 @@ void ExecuteCommandPower(uint32_t device, uint32_t state, uint32_t source)
       interlock_mutex = false;
     }
 
-#ifdef USE_DEVICE_GROUPS
-    power_t old_power = TasmotaGlobal.power;
-#endif  // USE_DEVICE_GROUPS
     switch (state) {
     case POWER_OFF: {
       TasmotaGlobal.power &= (POWER_MASK ^ mask);
@@ -711,15 +708,7 @@ void ExecuteCommandPower(uint32_t device, uint32_t state, uint32_t source)
     case POWER_TOGGLE:
       TasmotaGlobal.power ^= mask;
     }
-#ifdef USE_DEVICE_GROUPS
-    if (TasmotaGlobal.power != old_power && SRC_REMOTE != source && SRC_RETRY != source) {
-      power_t dgr_power = TasmotaGlobal.power;
-      if (Settings->flag4.multiple_device_groups) {  // SetOption88 - Enable relays in separate device groups
-        dgr_power = (dgr_power >> (device - 1)) & 1;
-      }
-      SendDeviceGroupMessage(device, DGR_MSGTYP_UPDATE, DGR_ITEM_POWER, dgr_power);
-    }
-#endif  // USE_DEVICE_GROUPS
+
     SetDevicePower(TasmotaGlobal.power, source);
 
 
@@ -1489,9 +1478,7 @@ void Every250mSeconds(void)
         }
 #endif  // USE_WEBSERVER
 
-#ifdef USE_DEVICE_GROUPS
-        DeviceGroupsStart();
-#endif  // USE_DEVICE_GROUPS
+
 
         // send FUNC_NETWORK_UP to all modules
         XdrvXsnsCall(FUNC_NETWORK_UP);
@@ -1499,9 +1486,6 @@ void Every250mSeconds(void)
         MqttCheck();
       } else {
 
-#ifdef USE_DEVICE_GROUPS
-        DeviceGroupsStop();
-#endif  // USE_DEVICE_GROUPS
 
         // send FUNC_NETWORK_DOWN to all modules
         XdrvXsnsCall(FUNC_NETWORK_DOWN);

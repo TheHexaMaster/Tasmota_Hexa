@@ -18,7 +18,6 @@
 */
 
 #ifdef USE_HOME_ASSISTANT
-#undef USE_TASMOTA_DISCOVERY
 /*********************************************************************************************\
  * Legacy Home Assistant discovery now replaced by Tasmota Discovery and hatasmota in HASS
 \*********************************************************************************************/

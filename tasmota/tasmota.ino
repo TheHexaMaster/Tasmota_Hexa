@@ -774,9 +774,6 @@ void Scheduler(void) {
   OsWatchLoop();
   ButtonLoop();
   SwitchLoop();
-#ifdef USE_DEVICE_GROUPS
-  DeviceGroupsLoop();
-#endif  // USE_DEVICE_GROUPS
   BacklogLoop();
 
   static uint32_t state_50msecond = 0;             // State 50msecond timer
