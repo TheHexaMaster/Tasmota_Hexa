@@ -27,7 +27,7 @@ const char kTasmotaCommands[] PROGMEM = "|"  // No prefix
   D_CMND_POWERONSTATE "|" D_CMND_PULSETIME "|" D_CMND_BLINKTIME "|" D_CMND_BLINKCOUNT "|" D_CMND_STATETEXT "|" D_CMND_SAVEDATA "|"
   D_CMND_SO "|" D_CMND_SETOPTION "|" D_CMND_TEMPERATURE_RESOLUTION "|" D_CMND_HUMIDITY_RESOLUTION "|" D_CMND_PRESSURE_RESOLUTION "|" D_CMND_POWER_RESOLUTION "|"
   D_CMND_VOLTAGE_RESOLUTION "|" D_CMND_FREQUENCY_RESOLUTION "|" D_CMND_CURRENT_RESOLUTION "|" D_CMND_ENERGY_RESOLUTION "|" D_CMND_WEIGHT_RESOLUTION "|"
-  D_CMND_MODULE "|" D_CMND_MODULES "|" D_CMND_GPIO "|" D_CMND_GPIOREAD "|" D_CMND_GPIOS "|" D_CMND_TEMPLATE "|" D_CMND_PWM "|" D_CMND_PWMFREQUENCY "|" D_CMND_PWMRANGE "|"
+  D_CMND_GPIO "|" D_CMND_GPIOREAD "|" D_CMND_GPIOS "|" D_CMND_PWM "|" D_CMND_PWMFREQUENCY "|" D_CMND_PWMRANGE "|"
   D_CMND_BUTTONDEBOUNCE "|" D_CMND_SWITCHDEBOUNCE "|" D_CMND_SYSLOG "|" D_CMND_LOGHOST "|" D_CMND_LOGPORT "|"
   D_CMND_SERIALBUFFER "|" D_CMND_SERIALSEND "|" D_CMND_BAUDRATE "|" D_CMND_SERIALCONFIG "|" D_CMND_SERIALDELIMITER "|"
   D_CMND_IPADDRESS "|" D_CMND_NTPSERVER "|" D_CMND_AP "|" D_CMND_SSID "|" D_CMND_PASSWORD "|" D_CMND_HOSTNAME "|" D_CMND_WIFICONFIG "|" D_CMND_WIFI "|" D_CMND_DNSTIMEOUT "|"
@@ -69,7 +69,7 @@ void (* const TasmotaCommand[])(void) PROGMEM = {
   &CmndPowerOnState, &CmndPulsetime, &CmndBlinktime, &CmndBlinkcount, &CmndStateText, &CmndSavedata,
   &CmndSetoption, &CmndSetoption, &CmndTemperatureResolution, &CmndHumidityResolution, &CmndPressureResolution, &CmndPowerResolution,
   &CmndVoltageResolution, &CmndFrequencyResolution, &CmndCurrentResolution, &CmndEnergyResolution, &CmndWeightResolution,
-  &CmndModule, &CmndModules, &CmndGpio, &CmndGpioRead, &CmndGpios, &CmndTemplate, &CmndPwm, &CmndPwmfrequency, &CmndPwmrange,
+  &CmndGpio, &CmndGpioRead, &CmndGpios, &CmndPwm, &CmndPwmfrequency, &CmndPwmrange,
   &CmndButtonDebounce, &CmndSwitchDebounce, &CmndSyslog, &CmndLoghost, &CmndLogport,
   &CmndSerialBuffer, &CmndSerialSend, &CmndBaudrate, &CmndSerialConfig, &CmndSerialDelimiter,
   &CmndIpAddress, &CmndNtpServer, &CmndAp, &CmndSsid, &CmndPassword, &CmndHostname, &CmndWifiConfig, &CmndWifi, &CmndDnsTimeout,
@@ -1776,57 +1776,6 @@ void CmndSpeedUnit(void)
   ResponseCmndNumber(Settings->flag2.speed_conversion);
 }
 
-void CmndModule(void)
-{
-  if ((XdrvMailbox.payload >= 0) && (XdrvMailbox.payload <= MAXMODULE)) {
-    bool present = false;
-    if (0 == XdrvMailbox.payload) {
-      XdrvMailbox.payload = USER_MODULE;
-      present = true;
-    } else {
-      XdrvMailbox.payload--;
-      present = ValidTemplateModule(XdrvMailbox.payload);
-    }
-    if (present) {
-      if (XdrvMailbox.index == 2) {
-        Settings->fallback_module = XdrvMailbox.payload;
-      } else {
-        Settings->last_module = Settings->module;
-        Settings->module = XdrvMailbox.payload;
-        SetModuleType();
-        if (Settings->last_module != XdrvMailbox.payload) {
-          for (uint32_t i = 0; i < nitems(Settings->my_gp.io); i++) {
-            Settings->my_gp.io[i] = GPIO_NONE;
-          }
-        }
-        TasmotaGlobal.restart_flag = 2;
-      }
-    }
-  }
-  uint8_t module_real = Settings->module;
-  uint8_t module_number = ModuleNr();
-  if (XdrvMailbox.index == 2) {
-    module_real = Settings->fallback_module;
-    module_number = (USER_MODULE == Settings->fallback_module) ? 0 : Settings->fallback_module +1;
-    strcat(XdrvMailbox.command, "2");
-  }
-  Response_P(S_JSON_COMMAND_NVALUE_SVALUE, XdrvMailbox.command, module_number, AnyModuleName(module_real).c_str());
-}
-
-void CmndModules(void)
-{
-  uint32_t midx = USER_MODULE;
-  Response_P(PSTR("{\"" D_CMND_MODULES "\":{"));
-  for (uint32_t i = 0; i <= sizeof(kModuleNiceList); i++) {
-    if (i > 0) {
-      midx = pgm_read_byte(kModuleNiceList + i -1);
-      ResponseAppend_P(PSTR(","));
-    }
-    uint32_t j = i ? midx +1 : 0;
-    ResponseAppend_P(PSTR("\"%d\":\"%s\""), j, AnyModuleName(midx).c_str());
-  }
-  ResponseJsonEndEnd();
-}
 
 bool GpioSensorType(uint32_t gpio, uint32_t sensor_type) {
   myio template_gp;
@@ -1850,123 +1799,157 @@ bool GpioSensorType(uint32_t gpio, uint32_t sensor_type) {
 }
 
 void CmndGpio(void) {
-  // Gpio         - Show all GPIOs available in module like {"GPIO0":{"None":0},"GPIO1":{"None":0},"GPIO2":{"Relay1":224},...
-  // Gpio 1       - Show all GPIOs available in module like {"GPIO":[[0,0,"None"],[1,0,"None"],[2,224,"Relay1"],...
-  // Gpio 2       - Show all GPIOs available in module like {"GPIO":[[0,0],[1,0],[2,224],...
-  // Gpio 3       - Show all GPIOs available in module like {"GPIO":[0,0,224,...
-  // Gpio 10      - Show configured GPIOs in module like {"GPIO2":{"Relay1":224},...
-  // Gpio 11      - Show configured GPIOs in module like {"GPIO":[[2,224,"Relay1"],...
-  // Gpio 12      - Show configured GPIOs in module like {"GPIO":[[2,224],...
-  // Gpio 255     - Show all GPIOs available in template configuration
-  // Gpio2 224    - Set a single GPIO. GPIO2 as Relay1
-  // Gpio {"GPIO":[32,0,448,0,224,225,0,0,0,1792,1824,0,0,0]} - Set all module GPIOs
-  if (XdrvMailbox.index < nitems(Settings->my_gp.io)) {
-    myio template_gp;
-    TemplateGpios(&template_gp);
-    if (strchr(XdrvMailbox.data, '{') == nullptr) {  // If no JSON it must be parameter
-      // Gpio2 224
-      if (XdrvMailbox.usridx && GpioSensorType(XdrvMailbox.index, XdrvMailbox.payload)) {
-        TasmotaGlobal.restart_flag = 2;
+  // Read-only GPIO mapping from compile-time MODULE
+  // Gpio    - show configured GPIOs from build
+  // Gpio1   - show current mapping of GPIO1
+  // Gpio 1  - show all configured GPIOs in array format
+  // Gpio 2  - show all configured GPIOs as [gpio,sensor]
+  // Gpio 3  - show all configured GPIO sensor values only
+  // Gpio 10 - show configured GPIOs only (same as Gpio, kept for compatibility)
+  // Gpio 11 - show configured GPIOs in array format
+  // Gpio 12 - show configured GPIOs as [gpio,sensor]
+  // Gpio 255 - show all non-flash physical GPIOs
+
+  myio template_gp;
+  TemplateGpios(&template_gp);
+
+  // Single GPIO query: Gpio0, Gpio1, ...
+  if (XdrvMailbox.usridx) {
+    if (XdrvMailbox.index < nitems(template_gp.io)) {
+      uint32_t sensor_type = template_gp.io[XdrvMailbox.index];
+
+      if (AGPIO(GPIO_USER) == sensor_type) {
+        sensor_type = GPIO_NONE;
       }
-    } else {
-      // Gpio {"GPIO":[32,0,448,0,224,225,0,0,0,1792,1824,0,0,0]}
-      uint32_t arr_index = 0;
-      JsonParser parser((char*) XdrvMailbox.data);
-      JsonParserObject root = parser.getRootObject();
-      if (root) { 
-        JsonParserArray arr = root[PSTR(D_JSON_GPIO)];
-        if (arr) {
-          for (uint32_t gpio = 0; gpio < nitems(Settings->my_gp.io); gpio++) {
-            if (!ValidGPIO(gpio, template_gp.io[gpio])) { continue; }
-            JsonParserToken val = arr[arr_index++];
-            if (!val) { break; }
-            uint16_t sensor_type = val.getUInt();
-            if (GpioSensorType(gpio, sensor_type)) {
-              TasmotaGlobal.restart_flag = 2;
-              XdrvMailbox.payload = 3;             // Show result as {"GPIO":[32,0,448,0,224,225,0,0,0,1792,1824,0,0,0]}
-            }
-          }
+
+      char sindex[4] = { 0 };
+      uint32_t sensor_name_idx = BGPIO(sensor_type);
+      uint32_t nice_list_search = sensor_type & 0xFFE0;
+
+      for (uint32_t j = 0; j < nitems(kGpioNiceList); j++) {
+        uint32_t nls_idx = pgm_read_word(&kGpioNiceList[j]);
+        if (((nls_idx & 0xFFE0) == nice_list_search) && ((nls_idx & 0x001F) > 0)) {
+          snprintf_P(sindex, sizeof(sindex), PSTR("%d"), (sensor_type & 0x001F) +1);
+          break;
         }
+      }
+
+      const char *sensor_names = kSensorNames;
+      if (sensor_name_idx > GPIO_FIX_START) {
+        sensor_name_idx = sensor_name_idx - GPIO_FIX_START -1;
+        sensor_names = kSensorNamesFixed;
+      }
+
+      char stemp1[TOPSZ];
+      Response_P(PSTR("{\"" D_CMND_GPIO "%d\":{\"%s%s\":%d}}"),
+        XdrvMailbox.index,
+        GetTextIndexed(stemp1, sizeof(stemp1), sensor_name_idx, sensor_names),
+        sindex,
+        sensor_type);
+    } else {
+      ResponseCmndChar(PSTR(D_JSON_NOT_SUPPORTED));
+    }
+    return;
+  }
+
+  bool jsflg = false;
+  bool jsflg1 = false;
+  bool jsflg2 = false;
+  bool show_sensor_type_only = false;
+
+  // Keep original display modes, but read-only
+  // 1..3   = all configured GPIOs in alternate formats
+  // 10..12 = configured GPIOs only in alternate formats
+  if ((XdrvMailbox.payload >= 10) && (XdrvMailbox.payload <= 12)) {
+    XdrvMailbox.payload -= 10;
+    show_sensor_type_only = true;
+  }
+
+  for (uint32_t i = 0; i < nitems(template_gp.io); i++) {
+    uint32_t sensor_type = template_gp.io[i];
+
+    if (AGPIO(GPIO_USER) == sensor_type) {
+      sensor_type = GPIO_NONE;
+    }
+
+    // Normal Gpio: show only pins really defined in build
+    // Gpio255: show all non-flash physical GPIOs
+    if (!(((255 == XdrvMailbox.payload) && !FlashPin(i)) || (sensor_type != GPIO_NONE))) {
+      continue;
+    }
+
+    if (show_sensor_type_only && (GPIO_NONE == sensor_type)) {
+      continue;
+    }
+
+    char sindex[4] = { 0 };
+    uint32_t sensor_name_idx = BGPIO(sensor_type);
+    uint32_t nice_list_search = sensor_type & 0xFFE0;
+
+    for (uint32_t j = 0; j < nitems(kGpioNiceList); j++) {
+      uint32_t nls_idx = pgm_read_word(&kGpioNiceList[j]);
+      if (((nls_idx & 0xFFE0) == nice_list_search) && ((nls_idx & 0x001F) > 0)) {
+        snprintf_P(sindex, sizeof(sindex), PSTR("%d"), (sensor_type & 0x001F) +1);
+        break;
       }
     }
 
-    bool jsflg = false;
-    bool jsflg1 = false;
-    bool jsflg2 = false;
-    bool show_sensor_type_only = false;
-    if ((XdrvMailbox.payload >= 10) && (XdrvMailbox.payload <= 12)) {
-      XdrvMailbox.payload -= 10;
-      show_sensor_type_only = true;
+    const char *sensor_names = kSensorNames;
+    if (sensor_name_idx > GPIO_FIX_START) {
+      sensor_name_idx = sensor_name_idx - GPIO_FIX_START -1;
+      sensor_names = kSensorNamesFixed;
     }
-    for (uint32_t i = 0; i < nitems(Settings->my_gp.io); i++) {
-      if (ValidGPIO(i, template_gp.io[i]) || ((255 == XdrvMailbox.payload) && !FlashPin(i))) {
-        uint32_t sensor_type = Settings->my_gp.io[i];
-        if (!ValidGPIO(i, template_gp.io[i])) {
-          sensor_type = template_gp.io[i];
-          if (AGPIO(GPIO_USER) == sensor_type) {     // A user GPIO equals a not connected (=GPIO_NONE) GPIO here
-            sensor_type = GPIO_NONE;
-          }
-        }
-        if (show_sensor_type_only && (GPIO_NONE == sensor_type)) {
-          continue;
-        }
-        char sindex[4] = { 0 };
-        uint32_t sensor_name_idx = BGPIO(sensor_type);
-        uint32_t nice_list_search = sensor_type & 0xFFE0;
-        for (uint32_t j = 0; j < nitems(kGpioNiceList); j++) {
-          uint32_t nls_idx = pgm_read_word(&kGpioNiceList[j]);
-          if (((nls_idx & 0xFFE0) == nice_list_search) && ((nls_idx & 0x001F) > 0)) {
-            snprintf_P(sindex, sizeof(sindex), PSTR("%d"), (sensor_type & 0x001F) +1);
-            break;
-          }
-        }
-        const char *sensor_names = kSensorNames;
-        if (sensor_name_idx > GPIO_FIX_START) {
-          sensor_name_idx = sensor_name_idx - GPIO_FIX_START -1;
-          sensor_names = kSensorNamesFixed;
-        }
-        if ((XdrvMailbox.payload >= 1) && (XdrvMailbox.payload <= 3)) {
-          if (!jsflg1) {
-            jsflg1 = true;
-            Response_P(PSTR("{\"" D_CMND_GPIO "\":["));
-          } else {
-            ResponseAppend_P(PSTR(","));
-          }
-          switch (XdrvMailbox.payload) {
-            case 1:
-              char stemp1[TOPSZ];
-              ResponseAppend_P(PSTR("[%d,%d,\"%s%s\"]"), i, sensor_type, GetTextIndexed(stemp1, sizeof(stemp1), sensor_name_idx, sensor_names), sindex);
-              break;
-            case 2:
-              ResponseAppend_P(PSTR("[%d,%d]"), i, sensor_type);
-              break;
-            case 3:
-              ResponseAppend_P(PSTR("%d"), sensor_type);
-              break;
-          }
-        } else {
-          if (!jsflg) {
-            jsflg = true;
-            Response_P(PSTR("{"));
-          } else {
-            ResponseAppend_P(PSTR(","));
-          }
+
+    if ((XdrvMailbox.payload >= 1) && (XdrvMailbox.payload <= 3)) {
+      if (!jsflg1) {
+        jsflg1 = true;
+        Response_P(PSTR("{\"" D_CMND_GPIO "\":["));
+      } else {
+        ResponseAppend_P(PSTR(","));
+      }
+
+      switch (XdrvMailbox.payload) {
+        case 1: {
           char stemp1[TOPSZ];
-          ResponseAppend_P(PSTR("\"" D_CMND_GPIO "%d\":{\"%s%s\":%d}"), i, GetTextIndexed(stemp1, sizeof(stemp1), sensor_name_idx, sensor_names), sindex, sensor_type);
+          ResponseAppend_P(PSTR("[%d,%d,\"%s%s\"]"),
+            i,
+            sensor_type,
+            GetTextIndexed(stemp1, sizeof(stemp1), sensor_name_idx, sensor_names),
+            sindex);
+          break;
         }
-        jsflg2 = true;
+        case 2:
+          ResponseAppend_P(PSTR("[%d,%d]"), i, sensor_type);
+          break;
+        case 3:
+          ResponseAppend_P(PSTR("%d"), sensor_type);
+          break;
       }
-    }
-    if (jsflg1) {
-      ResponseAppend_P(PSTR("]}"));
-    }
-    else if (jsflg) {
-      ResponseJsonEnd();
     } else {
-      if (!jsflg2) {
-        ResponseCmndChar(PSTR(D_JSON_NOT_SUPPORTED));
+      if (!jsflg) {
+        jsflg = true;
+        Response_P(PSTR("{"));
+      } else {
+        ResponseAppend_P(PSTR(","));
       }
+
+      char stemp1[TOPSZ];
+      ResponseAppend_P(PSTR("\"" D_CMND_GPIO "%d\":{\"%s%s\":%d}"),
+        i,
+        GetTextIndexed(stemp1, sizeof(stemp1), sensor_name_idx, sensor_names),
+        sindex,
+        sensor_type);
     }
+
+    jsflg2 = true;
+  }
+
+  if (jsflg1) {
+    ResponseAppend_P(PSTR("]}"));
+  } else if (jsflg) {
+    ResponseJsonEnd();
+  } else if (!jsflg2) {
+    ResponseCmndChar(PSTR(D_JSON_NOT_SUPPORTED));
   }
 }
 
@@ -2031,62 +2014,6 @@ void CmndGpios(void) {
 
   }
   ResponseClear();
-}
-
-void CmndTemplate(void)
-{
-  // {"NAME":"Shelly 2.5","GPIO":[320,0,32,0,224,193,0,0,640,192,608,225,3456,4736],"FLAG":0,"BASE":18}
-
-  bool error = false;
-
-  if (strchr(XdrvMailbox.data, '{') == nullptr) {  // If no JSON it must be parameter
-    if ((XdrvMailbox.payload > 0) && (XdrvMailbox.payload <= MAXMODULE)) {
-      XdrvMailbox.payload--;
-      if (ValidTemplateModule(XdrvMailbox.payload)) {
-        ModuleDefault(XdrvMailbox.payload);     // Copy template module
-        if (USER_MODULE == Settings->module) { TasmotaGlobal.restart_flag = 2; }
-      }
-    }
-    else if (0 == XdrvMailbox.payload) {        // Copy current template to user template
-      if (Settings->module != USER_MODULE) {
-        ModuleDefault(Settings->module);
-      }
-    }
-    else if (255 == XdrvMailbox.payload) {      // Copy current module with user configured GPIO
-      if (Settings->module != USER_MODULE) {
-        ModuleDefault(Settings->module);
-      }
-      SettingsUpdateText(SET_TEMPLATE_NAME, PSTR("Merged"));
-      uint32_t j = 0;
-      for (uint32_t i = 0; i < nitems(Settings->user_template.gp.io); i++) {
-
-#ifdef ESP32
-#if CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32C6
-        // No change
-#elif CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
-//        if (22 == i) { j = 33; }  // TODO 20230821 verify
-#else  // ESP32
-//        if (28 == i) { j = 32; }  // TODO 20230821 verify
-#endif  // Non plain ESP32
-#endif  // ESP32
-        if (TasmotaGlobal.my_module.io[j] > GPIO_NONE) {
-          Settings->user_template.gp.io[i] = TasmotaGlobal.my_module.io[j];
-        }
-        j++;
-      }
-    }
-  }
-  else {
-#ifndef FIRMWARE_MINIMAL      // if tasmota-minimal, `Template` is read-only
-    if (JsonTemplate(XdrvMailbox.data)) {
-      if (USER_MODULE == Settings->module) { TasmotaGlobal.restart_flag = 2; }
-    } else {
-      ResponseCmndChar_P(PSTR(D_JSON_INVALID_JSON));
-      error = true;
-    }
-#endif // FIRMWARE_MINIMAL
-  }
-  if (!error) { TemplateJson(); }
 }
 
 void CmndButtonDebounce(void)

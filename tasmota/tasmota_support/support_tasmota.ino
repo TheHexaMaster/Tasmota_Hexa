@@ -1723,9 +1723,6 @@ void GpioInit(void)
 
   // Jediný zdroj modulu je compile-time MODULE
   TasmotaGlobal.module_type = MODULE;
-  if (TasmotaGlobal.emulated_module_type) {
-    TasmotaGlobal.module_type = TasmotaGlobal.emulated_module_type;
-  }
 
 //  AddLog(LOG_LEVEL_DEBUG, PSTR("DBG: Used GPIOs %d"), GPIO_SENSOR_END);
 
