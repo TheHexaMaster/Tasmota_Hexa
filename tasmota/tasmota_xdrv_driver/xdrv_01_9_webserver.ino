@@ -2051,43 +2051,11 @@ void HandleWifiLogin(void) {
   WSContentStop();
 }
 
-#ifdef USE_SHUTTER
-/*-------------------------------------------------------------------------------------------*/
-
-int32_t IsShutterWebButton(uint32_t idx) {
-  /* 0: Not a shutter, 1..4: shutter up idx, -1..-4: shutter down idx */
-  int32_t ShutterWebButton = 0;
-  if (Settings->flag3.shutter_mode) {  // SetOption80 - Enable shutter support
-    for (uint32_t i = 0; i < TasmotaGlobal.shutters_present ; i++) {
-      if (ShutterGetStartRelay(i) && ((ShutterGetStartRelay(i) == idx) || (ShutterGetStartRelay(i) == (idx-1)))) {
-        ShutterWebButton = (ShutterGetStartRelay(i) == idx) ? (i+1): (-1-i);
-        break;
-      }
-    }
-  }
-  return ShutterWebButton;
-}
-#endif // USE_SHUTTER
-
 /*-------------------------------------------------------------------------------------------*/
 
 void WebGetDeviceCounts(void) {
   Web.buttons_non_light_non_shutter = TasmotaGlobal.devices_present;
   Web.light_shutter_button_mask = 0;       // Bitmask for each light and/or shutter button
-
-
-#ifdef USE_SHUTTER
-  // Chk for reduced toggle buttons used by shutters
-  if (Settings->flag3.shutter_mode) {  // SetOption80 - Enable shutter support
-    // Find and skip dedicated shutter buttons
-    for (uint32_t button_idx = 1; button_idx <= TasmotaGlobal.devices_present; button_idx++) {
-      if (IsShutterWebButton(button_idx) != 0) {
-        Web.buttons_non_light_non_shutter--;
-        Web.light_shutter_button_mask |= (1 << (button_idx -1));  // Set button bit in bitmask
-      }
-    }
-  }
-#endif  // USE_SHUTTER
 
 //  AddLog(LOG_LEVEL_DEBUG, PSTR("HTP: DP %d, BNLNS %d, SB %08X"), TasmotaGlobal.devices_present, Web.buttons_non_light_non_shutter, Web.light_shutter_button_mask);
 }
@@ -2182,43 +2150,6 @@ void HandleRoot(void) {
 
       WSContentSend_P(PSTR("</tr></table>"));
     }
-
-
-#ifdef USE_SHUTTER
-    if (TasmotaGlobal.shutters_present) {  // Any shutter present - Show shutter buttons and slider
-      WSContentSend_P(HTTP_TABLE100);      // "<table style='width:100%%'>"
-      uint32_t shutter_button_idx;
-      uint32_t shutter_button_idx_temp;
-      for (uint32_t shutter_idx = 0; shutter_idx < TasmotaGlobal.shutters_present; shutter_idx++) {
-        WSContentSend_P(PSTR("<tr>"));
-        uint32_t shutter_options = ShutterGetOptions(shutter_idx);
-        shutter_button_idx = ShutterGetStartRelay(shutter_idx) +1;  // Left button is next button first (down)
-        for (uint32_t j = 0; j < 2; j++) {
-          shutter_button_idx_temp = (shutter_options & 1) ? shutter_button_idx + (j * 2) - 1 : shutter_button_idx;  // Invert index
-//          AddLog(LOG_LEVEL_DEBUG, PSTR("SHT: j %d, shutter_idx %d, shutter_button_idx %d, shutter_idx %d, shutter_button_idx_temp %d"), j, shutter_idx, shutter_button_idx, shutter_idx, shutter_button_idx_temp);
-          WSContentSend_P(HTTP_DEVICE_CONTROL, 15, shutter_button_idx_temp, shutter_button_idx_temp,
-            ((shutter_options & 2) ? "-" :  // Is locked
-            ((shutter_options & 1) ? (j ? "&#9660;" : "&#9650;") : (j ? "&#9650;" : "&#9660;"))),  // Invert web buttons
-            "");
-
-          if (1 == j) { break; }           // Both buttons shown
-
-          shutter_button_idx--;            // Right button is previous button (up)
-          bool set_button = ((shutter_button_idx <= MAX_BUTTON_TEXT) && strlen(GetWebButton(shutter_button_idx -1)));
-          snprintf_P(stemp, sizeof(stemp), PSTR("Shutter %d"), shutter_idx +1);
-          uint32_t shutter_real_to_percent_position = ShutterRealToPercentPosition(-9999, shutter_idx);
-          Web.shutter_slider[shutter_idx] = (shutter_options & 1) ? (100 - shutter_real_to_percent_position) : shutter_real_to_percent_position;
-          WSContentSend_P(HTTP_MSG_SLIDER_SHUTTER, 
-            (set_button) ? HtmlEscape(GetWebButton(shutter_button_idx -1)).c_str() : stemp,
-            shutter_idx +1,
-            Web.shutter_slider[shutter_idx],
-            shutter_idx +1);
-        }
-        WSContentSend_P(PSTR("</tr>"));
-      }
-      WSContentSend_P(PSTR("</table>"));
-    }
-#endif  // USE_SHUTTER
 
   }
 
@@ -2374,32 +2305,10 @@ bool HandleRootStatusRefresh(void) {
   if (strlen(tmp)) {
     ShowWebSource(SRC_WEBGUI);
     uint32_t device = atoi(tmp);
-
-#ifdef USE_SHUTTER
-      int32_t ShutterWebButton;
-      if (ShutterWebButton = IsShutterWebButton(device)) {
-        snprintf_P(svalue, sizeof(svalue), PSTR("ShutterPosition%d %s"), abs(ShutterWebButton), (ShutterWebButton>0) ? PSTR(D_CMND_SHUTTER_STOPOPEN) : PSTR(D_CMND_SHUTTER_STOPCLOSE));
-        ExecuteWebCommand(svalue);
-      } else {
-#endif  // USE_SHUTTER
-        ExecuteCommandPower(device, POWER_TOGGLE, SRC_IGNORE);
-#ifdef USE_SHUTTER
-      }
-#endif  // USE_SHUTTER
+      ExecuteCommandPower(device, POWER_TOGGLE, SRC_IGNORE);
   }
 
-#ifdef USE_SHUTTER
-  for (uint32_t j = 1; j <= TasmotaGlobal.shutters_present; j++) {
-    uint8_t percent;
-    snprintf_P(webindex, sizeof(webindex), PSTR("u%d"), j);
-    WebGetArg(webindex, tmp, sizeof(tmp));  // 0 - 100 percent
-    percent = atoi(tmp);
-    if (strlen(tmp)) {
-      snprintf_P(svalue, sizeof(svalue), PSTR("ShutterPosition%d %d"), j, (ShutterGetOptions(j-1) & 1) ? 100 - percent : percent);
-      ExecuteWebCommand(svalue);
-    }
-  }
-#endif  // USE_SHUTTER
+
 #ifdef USE_ZIGBEE
   WebGetArg(PSTR("zbj"), tmp, sizeof(tmp));
   if (strlen(tmp)) {
@@ -2437,28 +2346,6 @@ bool HandleRootStatusRefresh(void) {
     }
   }
 */
-
-#ifdef USE_SHUTTER
-  for (uint32_t i = 0; i < TasmotaGlobal.shutters_present; i++) {
-    if (Web.shutter_slider[i] != -1) {
-      uint32_t shutter_real_to_percent_position = ShutterRealToPercentPosition(-9999, i);
-      uint32_t current_value = (ShutterGetOptions(i) & 1) ? (100 - shutter_real_to_percent_position) : shutter_real_to_percent_position;
-
-      if (current_value != Web.shutter_slider[i]) {
-        if (WebUpdateSliderTime()) {
-          Web.shutter_slider[i] = current_value;
-        }
-
-        if (!has_js_fragment) {
-          has_js_fragment = true;
-          WSSendRefreshFragmentBegin(WS_SECTION_JS);
-        }
-
-        WSContentSend_P(PSTR("eb('s27%d').value='%d';"), i +1, current_value);
-      }
-    }
-  }
-#endif  // USE_SHUTTER
 
   if (has_js_fragment) {
     WSSendRefreshFragmentEnd();

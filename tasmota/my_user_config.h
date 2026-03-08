@@ -524,7 +524,6 @@
 //  #define USE_RF_FLASH                           // Add support for flashing the EFM8BB1 chip on the Sonoff RF Bridge. C2CK must be connected to GPIO4, C2D to GPIO5 on the PCB (+2k7 code)
 // #define USE_SONOFF_SC                            // Add support for Sonoff Sc (+1k1 code)
 #define USE_BUZZER                               // Add support for a buzzer (+0k6 code)
-// #define USE_SHUTTER                              // Add Shutter support for up to 4 shutter with different motortypes (+11k code)
 // #define USE_DEEPSLEEP                            // Add support for deepsleep (+1k code)
 //#define USE_HOTPLUG                              // Add support for sensor HotPlug
 //#define USE_KEELOQ                               // Add support for Jarolift rollers by Keeloq algorithm (+4k5 code)

@@ -357,9 +357,7 @@ constexpr uint32_t feature[] = {
 #endif
 //  0x00000040 |  // xnrg_09_dds2382.ino - USE_DDS2382 - DELETED
 //  0x00000080 |  // xdrv_026_sm2135.ino - USE_SM2135 - DELETED
-#ifdef USE_SHUTTER
-  0x00000100 |  // xdrv_027_shutter.ino
-#endif
+//  0x00000100 |  // xdrv_027_shutter.ino - USE_SHUTTER - DELETED
 #if defined(USE_I2C) && defined(USE_PCF8574)
   0x00000200 |  // xdrv_028_pcf8574.ino
 #endif

@@ -73,7 +73,6 @@
 #undef USE_RF_FLASH                            // Disable support for flashing the EFM8BB1 chip on the Sonoff RF Bridge. C2CK must be connected to GPIO4, C2D to GPIO5 on the PCB
 #undef USE_SONOFF_SC                             // Disable support for Sonoff Sc (+1k1 code)
 #undef USE_BUZZER                                // Disable support for a buzzer (+0k6 code)
-#undef USE_SHUTTER                               // Disable Shutter support for up to 4 shutter with different motortypes (+6k code)
 #undef USE_DEEPSLEEP                             // Disable support for deepsleep (+1k code)
 #undef USE_HOTPLUG                               // Disable support for HotPlug
 #undef USE_KEELOQ                                // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
@@ -208,7 +207,6 @@
 #undef USE_BMP
 #undef USE_DHT
 #undef USE_BH1750
-#undef USE_SHUTTER
 //#undef USE_BERRY                                 // Disable Berry scripting language
 #undef USE_MI_ESP32                             // (ESP32 only) Disable support for ESP32 as a BLE-bridge (+9k2 mem, +292k flash)
 #undef USE_BLE_ESP32
@@ -451,7 +449,6 @@
 
 #define USE_ENHANCED_GUI_WIFI_SCAN
 
-#undef USE_SHUTTER                              // Disable support for shutter
 //#define USE_BUZZER                               // Add support for a buzzer (+0k6 code)
 //#define USE_DEEPSLEEP                            // Add support for deepsleep (+1k code)
 #undef USE_KEELOQ                               // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)

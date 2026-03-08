@@ -287,19 +287,6 @@ void HassDiscoverMessage(void) {
   for (uint32_t i = 0; i < MAX_RELAYS_SET; i++) {
     if (i < TasmotaGlobal.devices_present) {
 
-#ifdef USE_SHUTTER
-      if (Settings->flag3.shutter_mode) {
-        for (uint32_t k = 0; k < TasmotaGlobal.shutters_present; k++) {
-          if (ShutterGetStartRelay(k) > 0) {
-            Shutter[ShutterGetStartRelay(k)-1] = Shutter[ShutterGetStartRelay(k)] = 1;
-          } else {
-            // terminate loop at first INVALID ShutterGetStartRelay(k).
-            break;
-          }
-        }
-      }
-#endif  // USE_SHUTTER
-
       if (Shutter[i] != 0) {                                   // Check if there are shutters present
         Relay[i] = 3;                                          // Relay is a shutter
       } else {
@@ -373,24 +360,16 @@ void HassDiscoverMessage(void) {
                         light_subtype);
 
   for (uint32_t i = 0; i < tmin(TasmotaGlobal.shutters_present, MAX_SHUTTERS); i++) {
-#ifdef USE_SHUTTER
-    ResponseAppend_P(PSTR("%s%d"), (i > 0 ? "," : ""), Settings->shutter_options[i]);
-#else
+
     ResponseAppend_P(PSTR("%s0"), (i > 0 ? "," : ""));
-#endif  // USE_SHUTTER
   }
 
   ResponseAppend_P(PSTR("],"                                   // Shutter Options (end)
                         "\"sht\":["));                         // Shutter Tilt (start)
   for (uint32_t i = 0; i < tmax(TasmotaGlobal.shutters_present, MAX_SHUTTERS); i++) {
-#ifdef USE_SHUTTER
-    ResponseAppend_P(PSTR("%s[%d,%d,%d]"), (i > 0 ? "," : ""),
-                          ShutterGetTiltConfig(0,i),
-                          ShutterGetTiltConfig(1,i),
-                          ShutterGetTiltConfig(2,i));
-#else
+
     ResponseAppend_P(PSTR("%s[0,0,0]"), (i > 0 ? "," : ""));
-#endif  // USE_SHUTTER
+
   }
   ResponseAppend_P(PSTR("],"                                   // Shutter Tilt (end)
                         "\"ver\":1}"));                        // Discovery version
@@ -462,22 +441,6 @@ void HAssAnnounceRelayLight(void)
 
 
 
-
-
-#ifdef USE_SHUTTER
-  if (Settings->flag3.shutter_mode) {
-    for (uint32_t i = 0; i < TasmotaGlobal.shutters_present; i++) {
-      uint8_t sr = ShutterGetStartRelay(i);
-      if (sr > 0) {
-        bitSet(shutter_mask, sr-1);
-        bitSet(shutter_mask, sr);
-      } else {
-        // terminate loop at first INVALID Settings->shutter_startrelay[i].
-        break;
-      }
-    }
-  }
-#endif
 
   for (uint32_t i = 1; i <= MAX_RELAYS; i++)
   {
@@ -928,56 +891,7 @@ void HAssAnnounceSensors(void)
 
 void HAssAnnounceShutters(void)
 {
-#ifdef USE_SHUTTER
-  char stopic[TOPSZ];
-  char stemp1[TOPSZ];
-  char stemp2[TOPSZ];
-  char unique_id[30];
-  uint8_t ShowTopic; // Used to hide/unhide a topic during Discovery to spare some cpu load
 
-  for (uint32_t i = 0; i < TasmotaGlobal.shutters_present; i++) {
-    ResponseClear();  // Clear retained message
-    TasmotaGlobal.masterlog_level = ShowTopic = 4; // Hide topic on clean and remove use weblog 4 to see it
-
-
-    snprintf_P(unique_id, sizeof(unique_id), PSTR("%06X_SHT_%d"), ESP_getChipId(), i + 1);
-    snprintf_P(stopic, sizeof(stopic), PSTR(HOME_ASSISTANT_DISCOVERY_PREFIX "/cover/%s/config"), unique_id);
-
-    if (Settings->flag.hass_discovery && Settings->flag3.shutter_mode && ShutterGetStartRelay(i) > 0) {
-       ShowTopic = 0; // Show the new generated topic
-      if (i > MAX_FRIENDLYNAMES) {
-        snprintf_P(stemp1, sizeof(stemp1), PSTR("%s Shutter %d"), SettingsText(SET_DEVICENAME), i + 1);
-      } else {
-        snprintf_P(stemp1, sizeof(stemp1), PSTR("%s"), SettingsText(SET_FRIENDLYNAME1 + i));
-      }
-      Response_P(PSTR("{\"name\":\"%s\""), stemp1);
-
-      GetTopic_P(stemp1, TELE, TasmotaGlobal.mqtt_topic, S_LWT);
-      TryResponseAppend_P(HASS_DISCOVER_SENSOR_LWT, stemp1);
-
-      GetTopic_P(stemp1, CMND, TasmotaGlobal.mqtt_topic, PSTR("Backlog"));
-      TryResponseAppend_P(HASS_DISCOVER_SHUTTER_BASE, stemp1, i + 1, i + 1, i + 1);
-
-      GetTopic_P(stemp1, STAT, TasmotaGlobal.mqtt_topic, PSTR("SHUTTER"));
-      GetTopic_P(stemp2, CMND, TasmotaGlobal.mqtt_topic, PSTR("ShutterPosition"));
-      TryResponseAppend_P(HASS_DISCOVER_SHUTTER_POS, stemp1, i + 1, stemp2, i + 1);
-
-      if (ShutterGetTiltConfig(3,i) != ShutterGetTiltConfig(4,i)) {
-        GetTopic_P(stemp1, CMND, TasmotaGlobal.mqtt_topic, PSTR("ShutterTilt"));
-        TryResponseAppend_P(HASS_DISCOVER_SHUTTER_TILT, stemp1, i + 1, ShutterGetTiltConfig(3,i), ShutterGetTiltConfig(4,i));
-      }
-
-      TryResponseAppend_P(HASS_DISCOVER_DEVICE_INFO_SHORT, unique_id, ESP_getChipId());
-      TryResponseAppend_P(PSTR("}"));
-    } else {
-      // terminate loop at first INVALID Settings->shutter_startrelay[i].
-      break;
-    }
-
-    TasmotaGlobal.masterlog_level = ShowTopic;
-    MqttPublish(stopic, true);
-  }
-#endif
 }
 
 void HAssAnnounceDeviceInfoAndStatusSensor(void)

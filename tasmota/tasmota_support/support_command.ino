@@ -1129,12 +1129,6 @@ void CmndStatus(void)
 #endif // MSB_USE_CRASH
 #endif // FIRMWARE_MINIMAL
 
-#ifdef USE_SHUTTER
-  // Status 13 - StatusSHT
-  if ((0 == payload) || (13 == payload)) {
-    if (ShutterStatus()) { CmndStatusResponse(13); }
-  }
-#endif
 
   CmndStatusResponse(99);
 
@@ -2418,11 +2412,6 @@ void CmndInterlock(void)
           SetDevicePower(TasmotaGlobal.power, SRC_IGNORE);                    // Remove multiple relays if set
         }
       }
-#ifdef USE_SHUTTER
-      if (Settings->flag3.shutter_mode) {  // SetOption80 - Enable shutter support
-        ShutterInit(); // to update shutter mode
-      }
-#endif  // USE_SHUTTER
     }
     Response_P(PSTR("{\"" D_CMND_INTERLOCK "\":\"%s\",\"" D_JSON_GROUPS "\":\""), GetStateText(Settings->flag.interlock));
     uint32_t anygroup = 0;
