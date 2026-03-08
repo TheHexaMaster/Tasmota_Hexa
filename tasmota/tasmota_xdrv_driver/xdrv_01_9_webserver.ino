@@ -62,24 +62,128 @@ const char HTTP_HEADER1[] PROGMEM =
   "<meta charset='utf-8'>"
   "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"/>"
   "<link rel=\"icon\" href=\"data:image/x-icon;base64,AAABAAEAEBACAAEAAQCwAAAAFgAAACgAAAAQAAAAIAAAAAEAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AP5/b+H6X2/h8k9v4eZnb+Hud2/h7ndv4e53b+FmZm/hMkxv4ZgZb+HOc2/h5+dv4fPPb+H5n2/h/D9v4f5/b+EAAO4EAADuBAAA7gQAAO4EAADuBAAA7gQAAO4EAADuBAAA7gQAAO4EAADuBAAA7gQAAO4EAADuBAAA7gQAAO4E\">"
-  "<title>%s %s</title>"
+  "<title>%s %s</title>";
 
-  "<script>"
-  "var x=null,lt,to,tp,pc='';"            // x=null allow for abortion
+const char HTTP_SCRIPT_CORE[] PROGMEM =
+  "var x=null,lt,to,tp,pc='';"
+  "eb=s=>document.getElementById(s);"
+  "qs=s=>document.querySelector(s);"
+  "sp=i=>eb(i).type=(eb(i).type==='text'?'password':'text');"
+  "wl=f=>window.addEventListener('load',f);"
 
-// Following bytes saving ES6 syntax fails on old browsers like IE 11 - https://kangax.github.io/compat-table/es6/
-  "eb=s=>document.getElementById(s);"     // Alias to save code space
-  "qs=s=>document.querySelector(s);"      // Alias to save code space
-  "sp=i=>eb(i).type=(eb(i).type==='text'?'password':'text');"  // Toggle password visibility
-  "wl=f=>window.addEventListener('load',f);" // Execute multiple window.onload
-  ;
+  "function tsSetDisp(i,v){var e=eb(i);if(e)e.style.display=v;}"
+  "function tsSetRot(i,on){var e=eb(i);if(e)e.className=on?'ts-chevron rot':'ts-chevron';}"
+  "function tsCloseMenus(){"
+    "tsSetDisp('ts-nav','none');"
+    "tsSetDisp('ts-sub-cfg','none');"
+    "tsSetDisp('ts-sub-info','none');"
+    "tsSetDisp('ts-sub-maint','none');"
+    "tsSetRot('ts-ch-cfg',false);"
+    "tsSetRot('ts-ch-info',false);"
+    "tsSetRot('ts-ch-maint',false);"
+  "}"
+  "function tsToggleNav(ev){"
+    "if(ev)ev.stopPropagation();"
+    "var n=eb('ts-nav');"
+    "if(!n)return false;"
+    "var open=('block'===n.style.display);"
+    "tsCloseMenus();"
+    "if(!open){n.style.display='block';}"
+    "return false;"
+  "}"
+  "function tsToggleSub(id,ch,ev){"
+    "if(ev)ev.stopPropagation();"
+    "var e=eb(id);"
+    "if(!e)return false;"
+    "var open=('grid'===e.style.display);"
+    "tsSetDisp('ts-sub-cfg','none');"
+    "tsSetDisp('ts-sub-info','none');"
+    "tsSetDisp('ts-sub-maint','none');"
+    "tsSetRot('ts-ch-cfg',false);"
+    "tsSetRot('ts-ch-info',false);"
+    "tsSetRot('ts-ch-maint',false);"
+    "if(!open){"
+      "e.style.display='grid';"
+      "tsSetRot(ch,true);"
+    "}"
+    "return false;"
+  "}"
+  "function tsDocClick(ev){"
+    "var nav=eb('ts-nav'),btn=eb('ts-nav-btn');"
+    "if(!nav||!btn)return;"
+    "if('block'!==nav.style.display)return;"
+    "if(nav.contains(ev.target)||btn.contains(ev.target))return;"
+    "tsCloseMenus();"
+  "}"
+  "function tsInit(){"
+    "tsCloseMenus();"
+    "document.addEventListener('click',tsDocClick);"
+    "document.addEventListener('keydown',function(e){if('Escape'===e.key)tsCloseMenus();});"
+  "}"
+  "wl(tsInit);"
+
+  "function jd(){"
+    "var t=0,i=document.querySelectorAll('input,button,textarea,select');"
+    "while(i.length>=t){"
+      "if(i[t]){"
+        "i[t]['name']=(i[t].hasAttribute('id')&&(!i[t].hasAttribute('name')))?i[t]['id']:i[t]['name'];"
+      "}"
+      "t++;"
+    "}"
+  "}"
+  "function sf(s){"
+    "var t=0,i=document.querySelectorAll('.hf');"
+    "while(i.length>=t){"
+      "if(i[t]){"
+        "i[t].style.display=s?'block':'none';"
+      "}"
+      "t++;"
+    "}"
+  "}"
+  "wl(jd);";
+
+const char HTTP_SCRIPT_UPLOAD[] PROGMEM =
+  "function su(t){"
+    "eb('f3').style.display='none';"
+    "eb('f2').style.display='block';"
+    "t.form.submit();"
+  "}"
+  "function upl(t){"
+    "var sl=t.form['u2'].files[0].slice(0,1);"
+    "var rd=new FileReader();"
+    "rd.onload=()=>{"
+      "var bb=new Uint8Array(rd.result);"
+      "if(bb.length==1&&bb[0]==0xE9){"
+        "fct(t);"
+      "}else{"
+        "t.form.submit();"
+      "};"
+    "};"
+    "rd.readAsArrayBuffer(sl);"
+    "return false;"
+  "};"
+  "function fct(t){"
+    "var x=new XMLHttpRequest();"
+    "x.open('GET','/u4?u4=fct&api=',true);"
+    "x.onreadystatechange=()=>{"
+      "if(x.readyState==4&&x.status==200){"
+        "var s=x.responseText;"
+        "if(s=='false')setTimeout(()=>{fct(t);},6000);"
+        "if(s=='true')setTimeout(()=>{su(t);},1000);"
+      "}else if(x.readyState==4&&x.status==0){"
+        "setTimeout(()=>{fct(t);},2000);"
+      "};"
+    "};"
+    "x.send();"
+  "}";
 
 
 const char HTTP_SCRIPT_COUNTER[] PROGMEM =
-  "var cn=180;"                           // seconds
+  "var cn=180;"
   "function u(){"
     "if(cn>=0){"
-      "eb('t').innerHTML='" D_RESTART_IN " '+cn+' " D_SECONDS "';"
+      "var e=eb('t');"
+      "if(e)e.innerHTML='" D_RESTART_IN " '+cn+' " D_SECONDS "';"
       "cn--;"
       "setTimeout(u,1000);"
     "}"
@@ -88,27 +192,58 @@ const char HTTP_SCRIPT_COUNTER[] PROGMEM =
 
 
 const char HTTP_SCRIPT_ROOT[] PROGMEM =
-  "var ft;"
+  "var tsrf={xhr:null,lt:0,ft:0};"
+  "function tsRfIds(){"
+    "var n=document.querySelectorAll('[data-tsrf=\"1\"][id]'),a=[],i;"
+    "for(i=0;i<n.length;i++){a.push(n[i].id);}"
+    "return a.join(',');"
+  "}"
+  "function tsRfFmt(s){"
+    "return s.replace(/{t}/g,\"<table style='width:100%%'>\")"
+            ".replace(/{s}/g,\"<tr><th>\")"
+            ".replace(/{m}/g,\"</th><td style='width:20px;white-space:nowrap'>\")"
+            ".replace(/{e}/g,\"</td></tr>\");"
+  "}"
+  "function tsRfApply(s){"
+    "var b='~#RF#~',m='~#RM#~',e='~#RE#~',p=0;"
+    "while(true){"
+      "var i=s.indexOf(b,p);"
+      "if(i<0)break;"
+      "var j=s.indexOf(m,i+b.length);"
+      "if(j<0)break;"
+      "var k=s.indexOf(e,j+m.length);"
+      "if(k<0)break;"
+      "var id=s.substring(i+b.length,j);"
+      "var html=s.substring(j+m.length,k);"
+      "if(id==='@js'){"
+        "try{(new Function(html))();}catch(ex){}"
+      "}else{"
+        "var el=eb(id);"
+        "if(el){el.innerHTML=tsRfFmt(html);}"
+      "}"
+      "p=k+e.length;"
+    "}"
+  "}"
   "function la(p){"
-    "a=p||'';"
-    "clearTimeout(ft);clearTimeout(lt);"
-    "if(x!=null){x.abort()}"             // Abort if no response within 2 seconds (happens on restart 1)
-    "x=new XMLHttpRequest();"
-    "x.onreadystatechange=()=>{"
-      "if(x.readyState==4&&x.status==200){"
-        "var s=x.responseText.replace(/{t}/g,\"<table style='width:100%%'>\")"
-                            ".replace(/{s}/g,\"<tr><th>\")"
-//                            ".replace(/{m}/g,\"</th><td>\")"
-                            ".replace(/{m}/g,\"</th><td style='width:20px;white-space:nowrap'>\")"  // I want a right justified column with left justified text
-                            ".replace(/{e}/g,\"</td></tr>\");"
-        "var e=eb('l1');if(e)e.innerHTML=s;"
-        "clearTimeout(ft);clearTimeout(lt);"
-        "lt=setTimeout(la,%d);"               // Settings.web_refresh
+    "var a=p||'',ids=tsRfIds(),u='?m=1';"
+    "if(!ids&&!a){return;}"
+    "clearTimeout(tsrf.ft);"
+    "clearTimeout(tsrf.lt);"
+    "if(tsrf.xhr!=null){tsrf.xhr.abort();}"
+    "if(ids){u+='&rf='+encodeURIComponent(ids);}"
+    "u+=a;"
+    "tsrf.xhr=new XMLHttpRequest();"
+    "tsrf.xhr.onreadystatechange=()=>{"
+      "if(tsrf.xhr.readyState==4&&tsrf.xhr.status==200){"
+        "tsRfApply(tsrf.xhr.responseText);"
+        "clearTimeout(tsrf.ft);"
+        "clearTimeout(tsrf.lt);"
+        "tsrf.lt=setTimeout(la,%d);"
       "}"
     "};"
-    "x.open('GET','?m=1'+a,true);"       // ?m related to Webserver->hasArg("m")
-    "x.send();"
-    "ft=setTimeout(la,2e4);"              // 20s failure timeout
+    "tsrf.xhr.open('GET',u,true);"
+    "tsrf.xhr.send();"
+    "tsrf.ft=setTimeout(la,2e4);"
   "}";
 
 
@@ -214,81 +349,15 @@ const char HTTP_SCRIPT_CONSOL[] PROGMEM =
 const char HTTP_SCRIPT_INFO_BEGIN[] PROGMEM =
   "function i(){"
     "var s,o=\"";
+
 const char HTTP_SCRIPT_INFO_END[] PROGMEM =
-    "\";"                                 // "}1" and "}2" means do not use "}x" in Information text
+    "\";"
     "s=o.replace(/}1/g,\"</td></tr><tr><th>\").replace(/}2/g,\"</th><td>\");"
     "eb('i').innerHTML=s;"
   "}"
-  "wl(i);";
+  "window.addEventListener('load',i);";
 
 // SCRIPTS
-
-const char HTTP_HEAD_LAST_SCRIPT32[] PROGMEM =
-  "function jd(){"                        // Add label name='' based on provided id=''
-    "var t=0,i=document.querySelectorAll('input,button,textarea,select');"
-    "while(i.length>=t){"
-      "if(i[t]){"
-        "i[t]['name']=(i[t].hasAttribute('id')&&(!i[t].hasAttribute('name')))?i[t]['id']:i[t]['name'];"
-      "}"
-      "t++;"
-    "}"
-  "}"
-  "function sf(s){"
-    "var t=0,i=document.querySelectorAll('.hf');"
-    "while(i.length>=t){"
-      "if(i[t]){"
-        "i[t].style.display=s?'block':'none';"
-      "}"
-      "t++;"
-    "}"
-  "}"
-  "wl(jd);"                               // Add name='' to any id='' in input,button,textarea,select
-  // experimental
-  "function su(t){"
-    // "console.log('su()');"
-    "eb('f3').style.display='none';"
-    "eb('f2').style.display='block';"
-    "t.form.submit();"
-  "}"
-  "function upl(t){"                            // check file's first byte to decide next step
-    "var sl=t.form['u2'].files[0].slice(0,1);"  // load only first byte of file
-    // "console.log(sl);"
-    // "console.log(sl.length);"
-    "var rd=new FileReader();"
-    "rd.onload=()=>{"
-      // "console.log(\"rd.onload\");"
-      "var bb=new Uint8Array(rd.result);"
-      // "console.log(bb[0]);"
-      // "console.log(bb.length);"
-      "if(bb.length==1&&bb[0]==0xE9){"
-        "fct(t);"            // upload via factory
-      "}else{"
-        "t.form.submit();"  // normal upload
-      "};"
-    "};"
-    "rd.readAsArrayBuffer(sl);"
-    "return false;"
-  "};"
-
-  "function fct(t){"
-    "var x=new XMLHttpRequest();"
-    "x.open('GET','/u4?u4=fct&api=',true);"
-    "x.onreadystatechange=()=>{"
-    //   "console.log('x.readyState=%%i x.status=%%i',x.readyState,x.status);"
-      "if(x.readyState==4&&x.status==200){"
-        "var s=x.responseText;"
-        // "console.log('responseText:'+s);"
-        "if(s=='false')setTimeout(()=>{fct(t);},6000);"
-        "if(s=='true')setTimeout(()=>{su(t);},1000);"
-      "}else if(x.readyState==4&&x.status==0){"
-        "setTimeout(()=>{fct(t);},2000);"             // retry in 2 seconds
-      "};"
-    "};"
-    "x.send();"
-    // "console.log('after send');"
-  "}"
-  "</script>";
-
 
 const char HTTP_HEAD_STYLE_ROOT_COLOR[] PROGMEM =
   "<style>"
@@ -338,7 +407,7 @@ const char HTTP_HEAD_STYLE2[] PROGMEM =
   "button:hover{background:var(--c_btnhvr);}"  // COLOR_BUTTON_HOVER
   ".bred{background:var(--c_btnrst);}"  // COLOR_BUTTON_RESET
   ".bred:hover{background:var(--c_btnrsthvr);}"  // COLOR_BUTTON_RESET_HOVER
-  ".bgrn{background:var(--c_btnsv);}"  // COLOR_BUTTON_SAVE
+  ".bgrn{background:var(--c_btnsv);}"  // COLOR_BUTTON_SAVEWifiManager
   ".bgrn:hover{background:var(--c_btnsvhvr);}"  // COLOR_BUTTON_SAVE_HOVER
   "a{color:var(--c_btn);text-decoration:none;}"  // COLOR_BUTTON
   ".p{float:left;text-align:left;}"
@@ -492,59 +561,6 @@ const char HTTP_HEAD_STYLE_WIFI[] PROGMEM =
   ".o30{opacity:.3}"
   ;
 
-
-const char HTTP_SCRIPT_SHELL[] PROGMEM =
-  "function tsSetDisp(i,v){var e=eb(i);if(e)e.style.display=v;}"
-  "function tsSetRot(i,on){var e=eb(i);if(e)e.className=on?'ts-chevron rot':'ts-chevron';}"
-  "function tsCloseMenus(){"
-    "tsSetDisp('ts-nav','none');"
-    "tsSetDisp('ts-sub-cfg','none');"
-    "tsSetDisp('ts-sub-info','none');"
-    "tsSetDisp('ts-sub-maint','none');"
-    "tsSetRot('ts-ch-cfg',false);"
-    "tsSetRot('ts-ch-info',false);"
-    "tsSetRot('ts-ch-maint',false);"
-  "}"
-  "function tsToggleNav(ev){"
-    "if(ev)ev.stopPropagation();"
-    "var n=eb('ts-nav');"
-    "if(!n)return false;"
-    "var open=('block'===n.style.display);"
-    "tsCloseMenus();"
-    "if(!open){n.style.display='block';}"
-    "return false;"
-  "}"
-  "function tsToggleSub(id,ch,ev){"
-    "if(ev)ev.stopPropagation();"
-    "var e=eb(id);"
-    "if(!e)return false;"
-    "var open=('grid'===e.style.display);"
-    "tsSetDisp('ts-sub-cfg','none');"
-    "tsSetDisp('ts-sub-info','none');"
-    "tsSetDisp('ts-sub-maint','none');"
-    "tsSetRot('ts-ch-cfg',false);"
-    "tsSetRot('ts-ch-info',false);"
-    "tsSetRot('ts-ch-maint',false);"
-    "if(!open){"
-      "e.style.display='grid';"
-      "tsSetRot(ch,true);"
-    "}"
-    "return false;"
-  "}"
-  "function tsDocClick(ev){"
-    "var nav=eb('ts-nav'),btn=eb('ts-nav-btn');"
-    "if(!nav||!btn)return;"
-    "if('block'!==nav.style.display)return;"
-    "if(nav.contains(ev.target)||btn.contains(ev.target))return;"
-    "tsCloseMenus();"
-  "}"
-  "function tsInit(){"
-    "tsCloseMenus();"
-    "document.addEventListener('click',tsDocClick);"
-    "document.addEventListener('keydown',function(e){if('Escape'===e.key)tsCloseMenus();});"
-  "}"
-  "wl(tsInit);";
-
 const char HTTP_FORM_UPG_CARD[] PROGMEM =
   "<form method='get' action='u1'>"
   "<p><b>" D_OTA_URL "</b><br><input id='o' placeholder=\"OTA_URL\" value=\"%s\"></p>"
@@ -598,23 +614,6 @@ const char HTTP_HEAD_STYLE_SSI[] PROGMEM =
   ".si .b2{height:75%}"
   ".si .b3{height:100%}"
   ".o30{opacity:.3}";
-
-// special case if MINIMAL, then we don't use compressed version
-#ifdef FIRMWARE_MINIMAL
-const char HTTP_HEAD_STYLE3_MINIMAL[] PROGMEM =
-  "</style>"
-  "</head>"
-  "<body>"
-  "<div class='ts-shell'>"
-#ifdef FIRMWARE_SAFEBOOT
-  "<span style='text-align:center;color:var(--c_txtwrn);'><h3>" D_SAFEBOOT "</h3></span>"
-#else
-  "<div style='text-align:center;color:var(--c_txtwrn);'><h3>" D_MINIMAL_FIRMWARE_PLEASE_UPGRADE "</h3></div>"
-#endif
-  "<div style='text-align:center;color:var(--c_ttl);'><noscript>" D_NOSCRIPT "<br></noscript>"
-  "<h3>%s</h3>"
-  "<h2>%s</h2>";
-#endif  // FIRMWARE_MINIMAL
 
 const char HTTP_MSG_SLIDER_SHUTTER[] PROGMEM =
   "<td style='width:70%%'>"
@@ -838,6 +837,41 @@ enum WebCmndStatus { WEBCMND_DONE, WEBCMND_WRONG_PARAMETERS, WEBCMND_CONNECT_FAI
 #endif // USE_WEBGETCONFIG
                    };
 
+// NEW ENUMS
+
+enum WSScriptFlags : uint16_t {
+  WS_SCRIPT_NONE          = 0,
+  WS_SCRIPT_COUNTER       = 1 << 0,
+  WS_SCRIPT_ROOT          = 1 << 1,
+  WS_SCRIPT_ROOT_AUTOLOAD = 1 << 2,
+  WS_SCRIPT_WIFI          = 1 << 3,
+  WS_SCRIPT_HIDE          = 1 << 4,
+  WS_SCRIPT_CONSOLE       = 1 << 5,
+  WS_SCRIPT_RELOAD        = 1 << 6,
+  WS_SCRIPT_UPLOAD        = 1 << 7
+};
+
+static const char WS_SECTION_TOPBAR_STATUS[] = "ts-topbar-status";
+static const char WS_SECTION_ROOT_LIVE[]     = "ts-root-live";
+static const char WS_SECTION_SENSOR_LIVE[]   = "ts-sensor-live";
+static const char WS_SECTION_JS[]            = "@js";
+
+static const char WS_RF_BEGIN[] = "~#RF#~";
+static const char WS_RF_MID[]   = "~#RM#~";
+static const char WS_RF_END[]   = "~#RE#~";
+
+void WSContentSendToolbarStatusInner(void);
+void WSContentSendRootLive(void);
+void WSContentSendSensorLive(void);
+
+typedef void (*WSRefreshRenderer)(void);
+
+struct WSRefreshSection {
+  const char *id;
+  WSRefreshRenderer render;
+};
+
+
 DNSServer *DnsServer;
 ESP8266WebServer *Webserver;
 
@@ -960,7 +994,6 @@ const WebServerDispatch_t WebServerDispatch[] PROGMEM = {
   { "cs", HTTP_GET, HandleConsole },
   { "cs", HTTP_OPTIONS, HandlePreflightRequest },
   { "cm", HTTP_ANY, HandleHttpCommand },
-#ifndef FIRMWARE_MINIMAL
   { "cn", HTTP_ANY, HandleConfiguration },
   { "md", HTTP_ANY, HandleModuleConfiguration },
   { "wi", HTTP_ANY, HandleWifiConfiguration },
@@ -972,7 +1005,6 @@ const WebServerDispatch_t WebServerDispatch[] PROGMEM = {
   { "in", HTTP_ANY, HandleInformation },
   { "if", HTTP_ANY, HandleInformationDevice },
   { "is", HTTP_ANY, HandleInformationSensors }
-#endif  // Not FIRMWARE_MINIMAL
 };
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
@@ -1028,9 +1060,8 @@ void StartWebserver(int type) {
       Webserver->onNotFound(HandleNotFound);
 //      Webserver->on(F("/u2"), HTTP_POST, HandleUploadDone, HandleUploadLoop);  // this call requires 2 functions so we keep a direct call
       Webserver->on("/u2", HTTP_POST, HandleUploadDone, HandleUploadLoop);  // this call requires 2 functions so we keep a direct call
-#ifndef FIRMWARE_MINIMAL
+
       XdrvXsnsCall(FUNC_WEB_ADD_HANDLER);
-#endif  // Not FIRMWARE_MINIMAL
 
       if (!Web.initial_config) {
         Web.initial_config = (!strlen(SettingsText(SET_STASSID1)) && !strlen(SettingsText(SET_STASSID2)));
@@ -1159,13 +1190,107 @@ void HttpHeaderCors(void) {
 /*********************************************************************************************\
  * NEW HELPER
 \*********************************************************************************************/
-void WSContentSendToolbarStatus(void) {
-  WSContentSend_P(PSTR("<div class='ts-topbar-right'>"));
+void WSScriptStart(void) {
+  WSContentSend_P(PSTR("<script>"));
+}
 
+void WSScriptStop(void) {
+  WSContentSend_P(PSTR("</script>"));
+}
+
+void WSSendPageScripts(uint16_t flags, uint32_t reload_time = 0) {
+  if (!flags) { return; }
+
+  WSScriptStart();
+
+  if ((flags & WS_SCRIPT_COUNTER) && WifiIsInManagerMode() && (!Web.initial_config)) {
+    if (WifiConfigCounter()) {
+      WSContentSendRaw_P(HTTP_SCRIPT_COUNTER);
+    }
+  }
+
+  if (flags & WS_SCRIPT_ROOT) {
+    WSContentSend_P(HTTP_SCRIPT_ROOT, Settings->web_refresh);
+    WSContentSendRaw_P(HTTP_SCRIPT_ROOT_PART2);
+  }
+
+  if (flags & WS_SCRIPT_ROOT_AUTOLOAD) {
+    WSContentSendRaw_P(HTTP_SCRIPT_ROOT_AUTOLOAD);
+  }
+
+  if (flags & WS_SCRIPT_WIFI) {
+    WSContentSendRaw_P(HTTP_SCRIPT_WIFI);
+  }
+
+  if (flags & WS_SCRIPT_HIDE) {
+    WSContentSendRaw_P(HTTP_SCRIPT_HIDE);
+  }
+
+  if (flags & WS_SCRIPT_CONSOLE) {
+    WSContentSend_P(HTTP_SCRIPT_CONSOL, Settings->web_refresh);
+  }
+
+  if ((flags & WS_SCRIPT_RELOAD) && reload_time) {
+    WSContentSend_P(HTTP_SCRIPT_RELOAD_TIME, reload_time);
+  }
+
+  if (flags & WS_SCRIPT_UPLOAD) {
+    WSContentSendRaw_P(HTTP_SCRIPT_UPLOAD);
+  }
+
+  WSScriptStop();
+}
+
+void WSContentRefreshSectionBegin(const char* id, const char* css_class = nullptr) {
+  if ((nullptr != css_class) && css_class[0]) {
+    WSContentSend_P(PSTR("<div id='%s' data-tsrf='1' class='%s'>"), id, css_class);
+  } else {
+    WSContentSend_P(PSTR("<div id='%s' data-tsrf='1'>"), id);
+  }
+}
+
+void WSContentSectionEnd(void) {
+  WSContentSend_P(PSTR("</div>"));
+}
+
+bool WSRefreshListContains(const char *list, const char *id) {
+  if (!list || !*list || !id || !*id) { return false; }
+
+  size_t id_len = strlen(id);
+  const char *p = list;
+
+  while (*p) {
+    while ((*p == ',') || (*p == ' ')) { p++; }
+    const char *start = p;
+
+    while (*p && (*p != ',')) { p++; }
+    size_t len = p - start;
+
+    while (len && (start[len - 1] == ' ')) { len--; }
+
+    if ((len == id_len) && (0 == strncmp(start, id, id_len))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void WSSendRefreshFragmentBegin(const char *id) {
+  WSContentSeparator(3);
+  WSContentSend_P(PSTR("%s%s%s"), WS_RF_BEGIN, id, WS_RF_MID);
+}
+
+void WSSendRefreshFragmentEnd(void) {
+  WSContentSend_P(PSTR("%s"), WS_RF_END);
+  WSContentSeparator(3);
+}
+
+void WSContentSendToolbarStatusInner(void) {
   if (WifiIsInManagerMode()) {
     WSContentSend_P(PSTR("<span class='ts-status'>AP</span>"));
   }
 
+#ifdef USE_WEB_STATUS_LINE
 #ifdef USE_WEB_STATUS_LINE_WIFI
   if (Settings->flag4.network_wifi) {
     int32_t rssi = WiFi.RSSI();
@@ -1199,13 +1324,29 @@ void WSContentSendToolbarStatus(void) {
     WSContentSend_P(PSTR("<span class='ts-status'>MQTT</span>"));
   }
 
+#ifdef USE_WEB_STATUS_LINE_HEAP
+  WSContentSend_P(PSTR("<span class='ts-status'>%ik</span>"), ESP_getFreeHeap() / 1024);
+#endif // USE_WEB_STATUS_LINE_HEAP
+
   if (!WifiIsInManagerMode()) {
     WSContentSend_P(PSTR("<span class='ts-status mono'>%s</span>"), IPGetListeningAddressStr().c_str());
   }
 
-  WSContentSend_P(PSTR("</div>"));
+  WSContentSend_P(PSTR("<span class='ts-status'>"));
+  XsnsXdrvCall(FUNC_WEB_STATUS_RIGHT);
+  WSContentSend_P(PSTR("</span>"));
+#else
+  if (!WifiIsInManagerMode()) {
+    WSContentSend_P(PSTR("<span class='ts-status mono'>%s</span>"), IPGetListeningAddressStr().c_str());
+  }
+#endif
 }
 
+void WSContentSendToolbarStatus(void) {
+  WSContentRefreshSectionBegin(WS_SECTION_TOPBAR_STATUS, "ts-topbar-right");
+  WSContentSendToolbarStatusInner();
+  WSContentSectionEnd();
+}
 
 void WSContentSendToolbarMenu(void) {
   WSContentSend_P(PSTR(
@@ -1229,7 +1370,6 @@ void WSContentSendToolbarMenu(void) {
         "</a>"
       "</div>"
     ));
-#ifndef FIRMWARE_MINIMAL
     WSContentSend_P(PSTR(
       "<div class='ts-menu-group'>"
         "<a class='ts-menu-link' href='rs' onclick='tsCloseMenus();'>"
@@ -1240,7 +1380,6 @@ void WSContentSendToolbarMenu(void) {
         "</a>"
       "</div>"
     ));
-#endif
     WSContentSend_P(PSTR("</nav>"));
     return;
   }
@@ -1256,7 +1395,6 @@ void WSContentSendToolbarMenu(void) {
     "</div>"
   ));
 
-#ifndef FIRMWARE_MINIMAL
   WSContentSend_P(PSTR(
     "<div class='ts-menu-group'>"
       "<button type='button' class='ts-menu-toggle' onclick='return tsToggleSub(\"ts-sub-cfg\",\"ts-ch-cfg\",event);'>"
@@ -1322,24 +1460,6 @@ if (Settings->flag.mqtt_enabled) {
       "</div>"
     "</div>"
   ));
-#else
-  WSContentSend_P(PSTR(
-    "<div class='ts-menu-group'>"
-      "<a class='ts-menu-link' href='up' onclick='tsCloseMenus();'>"
-        "<span class='ts-menu-copy'>"
-          "<span class='ts-menu-label'>" D_FIRMWARE_UPGRADE "</span>"
-          "<span class='ts-menu-note'>OTA or local upload</span>"
-        "</span>"
-      "</a>"
-      "<a class='ts-menu-link' href='cs' onclick='tsCloseMenus();'>"
-        "<span class='ts-menu-copy'>"
-          "<span class='ts-menu-label'>" D_CONSOLE "</span>"
-          "<span class='ts-menu-note'>Command line and logs</span>"
-        "</span>"
-      "</a>"
-    "</div>"
-  ));
-#endif
 
   WSContentSend_P(PSTR(
     "<div class='ts-menu-group'>"
@@ -1568,14 +1688,18 @@ void WSContentStart_P(const char* title) {
 /*-------------------------------------------------------------------------------------------*/
 
 void WSContentSendStyle_P(const char* formatP, ...) {
-  if ( WifiIsInManagerMode() && (!Web.initial_config) ) {
+  WSScriptStart();
+
+  WSContentSendRaw_P(HTTP_SCRIPT_CORE);
+
+  if (WifiIsInManagerMode() && (!Web.initial_config)) {
     if (WifiConfigCounter()) {
-      WSContentSend_P(HTTP_SCRIPT_COUNTER);
+      WSContentSendRaw_P(HTTP_SCRIPT_COUNTER);
     }
   }
 
-  WSContentSend_P(HTTP_SCRIPT_SHELL);
-  WSContentSend_P(HTTP_HEAD_LAST_SCRIPT32);
+
+  WSScriptStop();
 
   // Output style root colors by names
   WSContentSend_P(HTTP_HEAD_STYLE_ROOT_COLOR,
@@ -1623,11 +1747,8 @@ void WSContentSendStyle_P(const char* formatP, ...) {
 //    WSContentSend_P(PSTR("body{background:%s;background-repeat:no-repeat;background-attachment:fixed;background-size:cover;}"), SettingsText(SET_CANVAS));
     WSContentSend_P(PSTR("body{background:%s 0 0 / cover no-repeat fixed;}"), SettingsText(SET_CANVAS));
   }
-#ifdef FIRMWARE_MINIMAL
-  WSContentSend_P(HTTP_HEAD_STYLE3_MINIMAL);
-#else
+
   WSContentSend_P(HTTP_HEAD_STYLE3);
-#endif
 
   WSContentSendToolbarShell();
 
@@ -1833,22 +1954,24 @@ void WebRestart(uint32_t type) {
   bool reset_only = (HTTP_MANAGER_RESET_ONLY == Web.state);
 
   WSContentStart_P((type) ? PSTR(D_SAVE_CONFIGURATION) : PSTR(D_RESTART), !reset_only);
-#if ((RESTART_AFTER_INITIAL_WIFI_CONFIG) && (AFTER_INITIAL_WIFI_CONFIG_GO_TO_NEW_IP))
-  // In case of type 3 (New network has been configured) go to the new device's IP in the new Network
-  if (3 == type) {
-    WSContentSend_P("setTimeout(function(){location.href='http://%s';},%d);",
-      IPForUrl(WiFi.localIP()).c_str(),
-      HTTP_RESTART_RECONNECT_TIME
-    );
-  } else {
-    WSContentSend_P(HTTP_SCRIPT_RELOAD_TIME, HTTP_RESTART_RECONNECT_TIME);
-  }
-#else
-  // In case of type 3 (New network has been configured) do not refresh the page. Just halt.
-  // The IP of the device while was in AP mode, won't be the new IP of the newly configured Network.
-  if (!(3 == type)) { WSContentSend_P(HTTP_SCRIPT_RELOAD_TIME, HTTP_RESTART_RECONNECT_TIME); }
-#endif
   WSContentSendStyle();
+
+  WSScriptStart();
+  #if ((RESTART_AFTER_INITIAL_WIFI_CONFIG) && (AFTER_INITIAL_WIFI_CONFIG_GO_TO_NEW_IP))
+    if (3 == type) {
+      WSContentSend_P(PSTR("setTimeout(function(){location.href='http://%s';},%d);"),
+        IPForUrl(WiFi.localIP()).c_str(),
+        HTTP_RESTART_RECONNECT_TIME
+      );
+    } else {
+      WSContentSend_P(HTTP_SCRIPT_RELOAD_TIME, HTTP_RESTART_RECONNECT_TIME);
+    }
+  #else
+    if (!(3 == type)) {
+      WSContentSend_P(HTTP_SCRIPT_RELOAD_TIME, HTTP_RESTART_RECONNECT_TIME);
+    }
+  #endif
+  WSScriptStop();
   if (type) {
     if (!(3 == type)) {
       WSContentSend_P(PSTR("<div style='text-align:center;'><b>%s</b><br><br></div>"),
@@ -1904,9 +2027,9 @@ void HandleWifiLogin(void) {
   WSContentCardStart(PSTR("Actions"), nullptr);
   if (HTTP_MANAGER_RESET_ONLY == Web.state) {
     WSContentButton(BUTTON_RESTART);
-#ifndef FIRMWARE_MINIMAL
+
     WSContentSpaceButton(BUTTON_RESET_CONFIGURATION);
-#endif
+
   }
   WSContentCardEnd();
 
@@ -1968,7 +2091,6 @@ void HandleRoot(void) {
   }
 
   if (WifiIsInManagerMode()) {
-#ifndef FIRMWARE_MINIMAL
     if (strlen(SettingsText(SET_WEBPWD)) && 
         !(Webserver->hasArg(F("USER1"))) && 
         !(Webserver->hasArg(F("PASS1"))) && 
@@ -1985,7 +2107,6 @@ void HandleRoot(void) {
         HandleWifiLogin();
       }
     }
-#endif  // Not FIRMWARE_MINIMAL
     return;
   }
 
@@ -2010,17 +2131,12 @@ void HandleRoot(void) {
   char stemp[33];
 
   WSContentStart_P(PSTR(D_MAIN_MENU));
-  WSContentSend_P(HTTP_SCRIPT_ROOT, Settings->web_refresh);
-  WSContentSend_P(HTTP_SCRIPT_ROOT_PART2);
   WSContentSendStyle();
-
-  // hidden ajax buffer - root už senzory nezobrazuje, ale helper JS ostáva k dispozícii
-  WSContentSend_P(PSTR("<div id='l1' name='l1' style='display:none;'></div>"));
+  WSSendPageScripts(WS_SCRIPT_ROOT | WS_SCRIPT_ROOT_AUTOLOAD);
 
 // REMOVED DEVICE BUTTONS BY TASMOTA ON DASHBOARD
 /*
 
-#ifndef FIRMWARE_MINIMAL
 
   if (TasmotaGlobal.devices_present) {
     WebGetDeviceCounts();
@@ -2112,20 +2228,103 @@ void HandleRoot(void) {
     WSContentSend_P(PSTR("</script>"));
   }
 
-#endif  // Not FIRMWARE_MINIMAL
 
 */
 
+  WSContentRefreshSectionBegin(WS_SECTION_ROOT_LIVE); // Prepare for root widgets
+    WSContentSendRootLive();
+  WSContentSectionEnd();
+
+
   XdrvXsnsCall(FUNC_WEB_ADD_MAIN_BUTTON);
-
-
-
   WSContentStop();
 }
 
 /*-------------------------------------------------------------------------------------------*\
  * HandleRootStatusRefresh
 \*-------------------------------------------------------------------------------------------*/
+
+void WSContentSendRootLive(void) {
+  // Rezervované miesto pre budúce auto-refresh widgety na root page.
+  // Zatiaľ zámerne prázdne.
+}
+
+void WSContentSendSensorLive(void) {
+  char svalue[32];
+
+  WSContentSend_P(PSTR("{t}"));
+  WSContentSeparator(3);
+
+  if (Settings->web_time_end) {
+    WSContentSend_P(PSTR("{s}" D_TIME_OF_DAY "{m}%s{e}"),
+      GetDateAndTime(DT_LOCAL).substring(Settings->web_time_start, Settings->web_time_end).c_str());
+    WSContentSeparator(0);
+  }
+
+  XsnsXdrvCall(FUNC_WEB_SENSOR);
+  WSContentSend_P(PSTR("</table>"));
+
+  if (!Settings->flag6.gui_no_state_text) {
+    if (!Web.buttons_non_light_non_shutter) {
+      WebGetDeviceCounts();
+    }
+
+    if ((Web.buttons_non_light_non_shutter > 0) &&
+        (Web.buttons_non_light_non_shutter <= 8)) {
+      WSContentSend_P(PSTR("{t}<tr>"));
+
+      uint32_t cols = Web.buttons_non_light_non_shutter;
+      uint32_t fontsize = (cols < 5) ? 70 - (cols * 8) : 32;
+      uint32_t button_ptr = 0;
+
+      for (uint32_t button_idx = 1; button_idx <= TasmotaGlobal.devices_present; button_idx++) {
+        if (bitRead(Web.light_shutter_button_mask, button_idx -1)) { continue; }
+
+        bool power_state = bitRead(TasmotaGlobal.power, button_idx -1);
+        snprintf_P(svalue, sizeof(svalue), PSTR("%d"), power_state);
+
+        WSContentSend_P(HTTP_DEVICE_STATE,
+          100 / cols,
+          (power_state) ? PSTR("bold") : PSTR("normal"),
+          fontsize,
+          (cols < 5) ? GetStateText(power_state) : svalue);
+
+        button_ptr++;
+        if (button_ptr >= Web.buttons_non_light_non_shutter) { break; }
+      }
+
+      WSContentSend_P(PSTR("</tr></table>"));
+    }
+  }
+}
+
+const WSRefreshSection kWSRefreshSections[] = {
+  { WS_SECTION_TOPBAR_STATUS, WSContentSendToolbarStatusInner },
+  { WS_SECTION_ROOT_LIVE,     WSContentSendRootLive },
+  { WS_SECTION_SENSOR_LIVE,   WSContentSendSensorLive }
+};
+
+void WSSendRequestedRefreshSections(void) {
+  String rf = Webserver->arg(F("rf"));
+  const char *rf_list = rf.length() ? rf.c_str() : nullptr;
+
+  // bezpečný fallback:
+  // ak klient neposlal rf zoznam, obnov len topbar status
+  if (!rf_list) {
+    WSSendRefreshFragmentBegin(WS_SECTION_TOPBAR_STATUS);
+    WSContentSendToolbarStatusInner();
+    WSSendRefreshFragmentEnd();
+    return;
+  }
+
+  for (uint32_t i = 0; i < nitems(kWSRefreshSections); i++) {
+    if (WSRefreshListContains(rf_list, kWSRefreshSections[i].id)) {
+      WSSendRefreshFragmentBegin(kWSRefreshSections[i].id);
+      kWSRefreshSections[i].render();
+      WSSendRefreshFragmentEnd();
+    }
+  }
+}
 
 bool WebUpdateSliderTime(void) {
   uint32_t slider_update_time = millis();
@@ -2151,7 +2350,6 @@ bool HandleRootStatusRefresh(void) {
     return false;
   }
 
-#ifndef FIRMWARE_MINIMAL
 
   char tmp[8];                       // WebGetArg numbers only
   char svalue[32];                   // Command and number parameter
@@ -2209,7 +2407,10 @@ bool HandleRootStatusRefresh(void) {
   WSContentBegin(200, CT_HTML);
 #endif  // USE_WEB_SSE
 
-  bool msg_exec_javascript = false;
+  bool has_js_fragment = false;
+/*
+
+
   if (TasmotaGlobal.devices_present) {
     // Update changed web buttons
     uint32_t max_devices = TasmotaGlobal.devices_present;
@@ -2224,112 +2425,46 @@ bool HandleRootStatusRefresh(void) {
         idx, (active) ? PSTR("") : PSTR("off"));
     }
   }
+*/
 
 #ifdef USE_SHUTTER
   for (uint32_t i = 0; i < TasmotaGlobal.shutters_present; i++) {
     if (Web.shutter_slider[i] != -1) {
       uint32_t shutter_real_to_percent_position = ShutterRealToPercentPosition(-9999, i);
       uint32_t current_value = (ShutterGetOptions(i) & 1) ? (100 - shutter_real_to_percent_position) : shutter_real_to_percent_position;
+
       if (current_value != Web.shutter_slider[i]) {
         if (WebUpdateSliderTime()) {
           Web.shutter_slider[i] = current_value;
         }
-        if (!msg_exec_javascript) {
-          WSContentSend_P(HTTP_MSG_EXEC_JAVASCRIPT);  // "<img style='display:none;' src onerror=\""
-          msg_exec_javascript = true;
+
+        if (!has_js_fragment) {
+          has_js_fragment = true;
+          WSSendRefreshFragmentBegin(WS_SECTION_JS);
         }
+
         WSContentSend_P(PSTR("eb('s27%d').value='%d';"), i +1, current_value);
       }
     }
   }
 #endif  // USE_SHUTTER
 
-
-  if (msg_exec_javascript) {
-    WSContentSend_P(PSTR("\">"));
+  if (has_js_fragment) {
+    WSSendRefreshFragmentEnd();
   }
 
-  /*
-#ifdef USE_WEB_STATUS_LINE
-  // create a first DIV for the upper left status bar, positioned left-justified
-  // we use the same string literal for both lines to reduce Flash
-  WSContentSend_P(PSTR("<div style='font-size:9px;font-weight:bold;text-align:%s;position:absolute;top:0;%s:0;display:inline-flex;'>"), 
-    PSTR("left"), PSTR("left"));
-#ifdef USE_WEB_STATUS_LINE_WIFI
-  if (Settings->flag4.network_wifi) {
-    int32_t rssi = WiFi.RSSI();
-    WSContentSend_P(PSTR("<div class='wifi' title='%s: " D_RSSI " %d%% (%d dBm)'><div class='arc a3%s'></div><div class='arc a2%s'></div><div class='arc a1%s'></div><div class='arc a0'></div></div>"),
-                          SettingsTextEscaped(SET_STASSID1 + Settings->sta_active).c_str(),                      
-                          WifiGetRssiAsQuality(rssi), rssi,
-                          rssi < -55 ? " o30" : "",
-                          rssi < -70 ? " o30" : "",
-                          rssi < -85 ? " o30" : "");
-  }
-#endif // USE_WEB_STATUS_LINE_WIFI
-#ifdef USE_WEB_STATUS_LINE_HEAP
-  WSContentSend_P("<span>&nbsp;%ik</span>", ESP_getFreeHeap() / 1024);
-#endif // USE_WEB_STATUS_LINE_HEAP
-  // display here anything that goes on the left side
-  XsnsXdrvCall(FUNC_WEB_STATUS_LEFT);
-  WSContentSend_P(PSTR("</div>"));
-
-  // create a second DIV for the upper right status bar, positioned right-justified
-  WSContentSend_P(PSTR("<div style='font-size:9px;font-weight:bold;text-align:%s;position:absolute;top:0;%s:0;display:inline-flex;'>"), 
-    PSTR("right"), PSTR("right"));
-  XsnsXdrvCall(FUNC_WEB_STATUS_RIGHT);
-  WSContentSend_P(PSTR("</div>"));
-#endif // USE_WEB_STATUS_LINE
-*/
-
-  WSContentSend_P(PSTR("{t}"));        // <table style='width:100%'>
-  WSContentSeparator(3);               // Reset seperator to ignore previous outputs 
-  if (Settings->web_time_end) {
-    WSContentSend_P(PSTR("{s}" D_TIME_OF_DAY "{m}%s{e}"),
-      GetDateAndTime(DT_LOCAL).substring(Settings->web_time_start, Settings->web_time_end).c_str());
-    WSContentSeparator(0);             // Print separator
-  }
-  XsnsXdrvCall(FUNC_WEB_SENSOR);
-  WSContentSend_P(PSTR("</table>"));
-
-  if (!Settings->flag6.gui_no_state_text) {          // SetOption161 - (GUI) Disable display of state text (1)
-    if (!Web.buttons_non_light_non_shutter) {        // Might still be zero on restart so chk if we have at least one 
-      WebGetDeviceCounts();
-    }
-    if ((Web.buttons_non_light_non_shutter > 0) &&
-       ( Web.buttons_non_light_non_shutter <= 8)) {  // We need at least one non light AND non shutter button
-      WSContentSend_P(PSTR("{t}<tr>"));
-        uint32_t cols = Web.buttons_non_light_non_shutter;
-        uint32_t fontsize = (cols < 5) ? 70 - (cols * 8) : 32;
-        uint32_t button_ptr = 0;
-        for (uint32_t button_idx = 1; button_idx <= TasmotaGlobal.devices_present; button_idx++) {
-          if (bitRead(Web.light_shutter_button_mask, button_idx -1)) { continue; }  // Skip non-sequential shutter button
-          bool power_state = bitRead(TasmotaGlobal.power, button_idx -1);
-          snprintf_P(svalue, sizeof(svalue), PSTR("%d"), power_state);
-          WSContentSend_P(HTTP_DEVICE_STATE,
-            100 / cols,
-            (power_state) ? PSTR("bold") : PSTR("normal"),
-            fontsize,
-            (cols < 5) ? GetStateText(power_state) : svalue);
-          button_ptr++;
-          if (button_ptr >= Web.buttons_non_light_non_shutter) { break; }
-        }
-      WSContentSend_P(PSTR("</tr></table>"));
-    }
-  }
+  WSSendRequestedRefreshSections();
 
   if (1 == Web.slider_update_time) {
     Web.slider_update_time = 0;
   }
 
-  WSContentSend_P(PSTR("\n\n"));  // Prep for SSE
+  WSContentSend_P(PSTR("\n\n"));
   WSContentEnd();
-
-#endif  // not FIRMWARE_MINIMAL
 
   return true;
 }
 
-#ifndef FIRMWARE_MINIMAL
 
 /*********************************************************************************************\
  * HandleConfiguration
@@ -2500,18 +2635,22 @@ void HandleWifiConfiguration(void) {
   }
 
   WSContentStart_P(PSTR(D_CONFIGURE_WIFI), !WifiIsInManagerMode());
-  WSContentSend_P(HTTP_SCRIPT_WIFI);
+
+  #ifdef USE_ENHANCED_GUI_WIFI_SCAN
+    WSContentSendStyle_P("%s", HTTP_HEAD_STYLE_SSI);
+  #else
+    WSContentSendStyle();
+  #endif
+
+  uint16_t wifi_scripts = WS_SCRIPT_WIFI;
   if (WifiIsInManagerMode()) {
-    WSContentSend_P(HTTP_SCRIPT_HIDE);
+    wifi_scripts |= WS_SCRIPT_HIDE;
   }
   if (WIFI_TESTING == Wifi.wifiTest) {
-    WSContentSend_P(HTTP_SCRIPT_RELOAD_TIME, HTTP_RESTART_RECONNECT_TIME);
+    wifi_scripts |= WS_SCRIPT_RELOAD;
   }
-#ifdef USE_ENHANCED_GUI_WIFI_SCAN
-  WSContentSendStyle_P("%s", HTTP_HEAD_STYLE_SSI);
-#else
-  WSContentSendStyle();
-#endif
+
+  WSSendPageScripts(wifi_scripts, HTTP_RESTART_RECONNECT_TIME);
 
   WSContentPageHeader(
     PSTR(D_CONFIGURE_WIFI),
@@ -2678,7 +2817,7 @@ void HandleWifiConfiguration(void) {
       SettingsTextEscaped(SET_STASSID1).c_str());
 
     if (WifiIsInManagerMode()) {
-      WSContentSend_P(PSTR("></p>"));
+      WSContentSend_P(PSTR("></div>"));
     } else {
 #ifdef USE_CORS
       WSContentSend_P(HTTP_FORM_WIFI_PART2,
@@ -2700,7 +2839,6 @@ void HandleWifiConfiguration(void) {
   WSContentCardStart(PSTR("Actions"), nullptr);
 
   if (WifiIsInManagerMode()) {
-#ifndef FIRMWARE_MINIMAL
     if (WIFI_TESTING == Wifi.wifiTest) {
       WSContentSend_P(PSTR("<div class='ts-note ts-soft'>" D_TRYING_TO_CONNECT " %s</div>"),
         SettingsTextEscaped(SET_STASSID1).c_str());
@@ -2721,7 +2859,6 @@ void HandleWifiConfiguration(void) {
     WSContentSend_P(PSTR("<div id='wm-reset' style='display:%s;'>"), Web.initial_config ? "none" : "block");
     WSContentButton(BUTTON_RESET_CONFIGURATION, true);
     WSContentSend_P(PSTR("</div>"));
-#endif
     WSContentSend_P(PSTR("<div id='wm-restart' style='display:%s;'>"), Web.initial_config ? "none" : "block");
     WSContentSpaceButton(BUTTON_RESTART, true);
     WSContentSend_P(PSTR("</div>"));
@@ -2944,6 +3081,7 @@ void HandleRestoreConfiguration(void) {
 
   WSContentStart_P(PSTR(D_RESTORE_CONFIGURATION));
   WSContentSendStyle();
+  WSSendPageScripts(WS_SCRIPT_UPLOAD);
   WSContentPageHeader(PSTR(D_RESTORE_CONFIGURATION), PSTR("Restore settings from a previously downloaded configuration file."));
 
   WSContentCardStart(PSTR(D_RESTORE_CONFIGURATION), nullptr);
@@ -3016,14 +3154,14 @@ void HandleInformationSensors(void) {
   AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP "Sensors"));
 
   WSContentStart_P(PSTR("Sensors"));
-  WSContentSend_P(HTTP_SCRIPT_ROOT, Settings->web_refresh);
-  WSContentSend_P(HTTP_SCRIPT_ROOT_PART2);
-  WSContentSend_P(HTTP_SCRIPT_ROOT_AUTOLOAD);
   WSContentSendStyle();
+  WSSendPageScripts(WS_SCRIPT_ROOT | WS_SCRIPT_ROOT_AUTOLOAD);
 
   WSContentPageHeader(PSTR("Sensors"), PSTR("Live sensor values and device status refreshed automatically."));
   WSContentCardStart(PSTR("Sensors"), nullptr);
-  WSContentSend_P(PSTR("<div style='padding:0;' id='l1' name='l1'></div>"));
+  WSContentRefreshSectionBegin(WS_SECTION_SENSOR_LIVE);
+    WSContentSendSensorLive();
+  WSContentSectionEnd();
   WSContentCardEnd();
 
   WSContentStop();
@@ -3039,10 +3177,8 @@ void HandleInformationDevice(void) {
   char stopic[TOPSZ];
 
   WSContentStart_P(PSTR("Device Info"));
-  // Save 1k of code space replacing table html with javascript replace codes
-  // }1 = </td></tr><tr><th>
-  // }2 = </th><td>
-  WSContentSend_P(HTTP_SCRIPT_INFO_BEGIN);
+  WSScriptStart();
+  WSContentSendRaw_P(HTTP_SCRIPT_INFO_BEGIN);
   WSContentSend_P(PSTR("<table style='width:100%%'><tr><th>"));
   WSContentSend_P(PSTR(D_PROGRAM_VERSION "}2%s %s %s"), 
     TasmotaGlobal.version, 
@@ -3270,7 +3406,8 @@ void HandleInformationDevice(void) {
 
   WSContentSend_P(PSTR("</td></tr></table>"));
 
-  WSContentSend_P(HTTP_SCRIPT_INFO_END);
+  WSContentSendRaw_P(HTTP_SCRIPT_INFO_END);
+  WSScriptStop();
 
   WSContentSendStyle();
 
@@ -3281,8 +3418,6 @@ void HandleInformationDevice(void) {
 
   WSContentStop();
 }
-
-#endif  // Not FIRMWARE_MINIMAL
 
 /*********************************************************************************************\
  * HandleUpgradeFirmware
@@ -3347,6 +3482,7 @@ void HandleUpgradeFirmware(void) {
 
   WSContentStart_P(PSTR(D_FIRMWARE_UPGRADE));
   WSContentSendStyle();
+  WSSendPageScripts(WS_SCRIPT_UPLOAD);
   WSContentPageHeader(PSTR(D_FIRMWARE_UPGRADE), PSTR("Update firmware using OTA URL or a local file upload."));
 
   WSContentCardStart(PSTR(D_UPGRADE_BY_WEBSERVER), nullptr);
@@ -3389,8 +3525,8 @@ void HandleUpgradeFirmwareStart(void) {
   }
 
   WSContentStart_P(PSTR(D_INFORMATION));
-  WSContentSend_P(HTTP_SCRIPT_RELOAD_TIME, HTTP_OTA_RESTART_RECONNECT_TIME);
   WSContentSendStyle();
+  WSSendPageScripts(WS_SCRIPT_RELOAD, HTTP_OTA_RESTART_RECONNECT_TIME);
   WSContentSend_P(PSTR("<div style='text-align:center;'><b>" D_UPGRADE_STARTED " ...</b></div>"));
   WSContentSend_P(HTTP_MSG_RSTRT);
   WSContentStop();
@@ -3420,11 +3556,11 @@ void HandleUploadDone(void) {
   UploadServices(1);
 
   WSContentStart_P(PSTR(D_INFORMATION));
-  if (!Web.upload_error) {
-    WSContentSend_P(HTTP_SCRIPT_RELOAD_TIME, 
-      (UPL_TASMOTA == Web.upload_file_type) ? HTTP_OTA_RESTART_RECONNECT_TIME : HTTP_RESTART_RECONNECT_TIME);  // Refesh main web ui after OTA upgrade
-  }
   WSContentSendStyle();
+  if (!Web.upload_error) {
+    WSSendPageScripts(WS_SCRIPT_RELOAD,
+      (UPL_TASMOTA == Web.upload_file_type) ? HTTP_OTA_RESTART_RECONNECT_TIME : HTTP_RESTART_RECONNECT_TIME);
+  }
   WSContentSend_P(PSTR("<div style='text-align:center;'><b>" D_UPLOAD " <font color='#"));
   if (Web.upload_error) {
     WSContentSend_P(PSTR("%06x'>" D_FAILED "</font></b><br><br>"), WebColor(COL_TEXT_WARNING));
@@ -3898,9 +4034,8 @@ void HandleConsole(void) {
   AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP D_CONSOLE));
 
   WSContentStart_P(PSTR(D_CONSOLE));
-  WSContentSend_P(HTTP_SCRIPT_CONSOL, Settings->web_refresh);
-
   WSContentSendStyle_P(HTTP_CMND_STYLE);
+  WSSendPageScripts(WS_SCRIPT_CONSOLE);
 
   WSContentSend_P(HTTP_FORM_CMND);
   WSContentStop();
@@ -3984,7 +4119,6 @@ bool CaptivePortal(void) {
  * Commands
 \*********************************************************************************************/
 
-#ifndef FIRMWARE_MINIMAL
 
 enum {QUERY_DEFAULT=0, QUERY_RUN};
 int WebQuery(char *buffer, int query_function);
@@ -4481,9 +4615,7 @@ void CmndWebColor(void) {
       }
     }
     else {
-#ifndef FIRMWARE_MINIMAL      // if tasmota-minimal, read only and don't parse JSON
       JsonWebColor(XdrvMailbox.data);
-#endif // FIRMWARE_MINIMAL
     }
   }
   Response_P(PSTR("{\"%s\":["), XdrvMailbox.command);
@@ -4583,8 +4715,6 @@ void CmndCors(void) {
 }
 #endif  // USE_CORS
 
-#endif  // not FIRMWARE_MINIMAL
-
 /*********************************************************************************************\
  * Interface
 \*********************************************************************************************/
@@ -4668,11 +4798,9 @@ bool Xdrv01(uint32_t function) {
         }
       }
       break;
-#ifndef FIRMWARE_MINIMAL
     case FUNC_COMMAND:
       result = DecodeCommand(kWebCommands, WebCommand);
       break;
-#endif  // FIRMWARE_MINIMAL
     case FUNC_ACTIVE:
       result = true;
       break;

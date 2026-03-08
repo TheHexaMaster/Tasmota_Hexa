@@ -781,13 +781,16 @@ void HandleBerryConsole(void)
   AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP "Berry " D_CONSOLE));
 
   WSContentStart_P(PSTR("Berry " D_CONSOLE));
+  WSContentSendStyle();
+  WSScriptStart();
   WSContentSend_P(HTTP_SCRIPT_BERRY_CONSOLE, Settings->web_refresh);
   WSContentSend_P(HTTP_SCRIPT_BERRY_CONSOLE2);
-  WSContentSendStyle();
+  WSScriptStop();
+  
   WSContentFlush();
   _WSContentSend(HTTP_BERRY_STYLE_CMND);
   _WSContentSend(HTTP_BERRY_FORM_CMND);
-  WSContentSpaceButton(BUTTON_MANAGEMENT);
+//  WSContentSpaceButton(BUTTON_MANAGEMENT);
   WSContentStop();
 }
 
