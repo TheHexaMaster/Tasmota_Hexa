@@ -30,8 +30,6 @@
 // Enable below demo feature only if defines USE_UNISHOX_COMPRESSION and USE_SCRIPT_WEB_DISPLAY are disabled
 //#define USE_WEB_SSE
 
-#define USE_CONSOLE_CSS_FLEX
-
 #ifndef WIFI_SOFT_AP_CHANNEL
 #define WIFI_SOFT_AP_CHANNEL                      1      // Soft Access Point Channel number between 1 and 11 as used by WifiManager web GUI
 #endif
@@ -77,10 +75,6 @@ const char HTTP_HEADER1[] PROGMEM =
   ;
 
 
-#ifdef USE_ALPINEJS
-#include "include/alpinejs.h"
-#endif  // USE_ALPINEJS
-
 const char HTTP_SCRIPT_COUNTER[] PROGMEM =
   "var cn=180;"                           // seconds
   "function u(){"
@@ -107,12 +101,12 @@ const char HTTP_SCRIPT_ROOT[] PROGMEM =
 //                            ".replace(/{m}/g,\"</th><td>\")"
                             ".replace(/{m}/g,\"</th><td style='width:20px;white-space:nowrap'>\")"  // I want a right justified column with left justified text
                             ".replace(/{e}/g,\"</td></tr>\");"
-        "eb('l1').innerHTML=s;"
+        "var e=eb('l1');if(e)e.innerHTML=s;"
         "clearTimeout(ft);clearTimeout(lt);"
         "lt=setTimeout(la,%d);"               // Settings.web_refresh
       "}"
     "};"
-    "x.open('GET','.?m=1'+a,true);"       // ?m related to Webserver->hasArg("m")
+    "x.open('GET','?m=1'+a,true);"       // ?m related to Webserver->hasArg("m")
     "x.send();"
     "ft=setTimeout(la,2e4);"              // 20s failure timeout
   "}";
@@ -127,7 +121,9 @@ const char HTTP_SCRIPT_ROOT_PART2[] PROGMEM =
       "}"
     "}"
     "la('&'+v+i+'='+p);"
-  "}"
+  "}";
+
+const char HTTP_SCRIPT_ROOT_AUTOLOAD[] PROGMEM =
   "wl(la);";
 
 
@@ -140,13 +136,11 @@ const char HTTP_SCRIPT_WIFI[] PROGMEM =
 
 const char HTTP_SCRIPT_HIDE[] PROGMEM =
   "function hidBtns(){"
-    "eb('butmo').style.display='none';"
-    "eb('butmod').style.display='none';"
-    "eb('but0').style.display='block';"
-    "eb('but1').style.display='block';"
-    "eb('but13').style.display='block';"
-    "eb('but0d').style.display='block';"
-    "eb('but13d').style.display='block';"
+    "if(eb('butmo'))eb('butmo').style.display='none';"
+    "if(eb('butmod'))eb('butmod').style.display='none';"
+    "if(eb('wm-restart'))eb('wm-restart').style.display='block';"
+    "if(eb('wm-reset'))eb('wm-reset').style.display='block';"
+    "if(eb('wm-restore'))eb('wm-restore').style.display='block';"
   "}";
 
 const char HTTP_SCRIPT_RELOAD_TIME[] PROGMEM =
@@ -354,7 +348,6 @@ const char HTTP_HEAD_STYLE2[] PROGMEM =
   ".ts-brand{width:auto;}";
 
 const char HTTP_HEAD_STYLE_SHELL[] PROGMEM =
-  "[x-cloak]{display:none!important;}"
   ".ts-shell{min-height:100vh;width:100%;margin:0;padding:0;}"
   ".ts-topbar{"
     "position:sticky;top:0;left:0;z-index:1000;"
@@ -391,6 +384,7 @@ const char HTTP_HEAD_STYLE_SHELL[] PROGMEM =
   ".ts-content{width:min(1180px,calc(100vw - 20px));margin:14px auto 28px;padding:0;text-align:left;}"
   ".ts-hostline{margin:0 0 12px;padding:0 2px;font-size:.9rem;color:var(--c_ttl);opacity:.86;line-height:1.4;}"
   ".ts-menu{"
+    "display:none;"
     "position:absolute;top:64px;left:0;"
     "width:min(340px,calc(100vw - 24px));"
     "max-height:calc(100vh - 108px);overflow:auto;"
@@ -414,7 +408,7 @@ const char HTTP_HEAD_STYLE_SHELL[] PROGMEM =
   ".ts-menu-copy{display:block;min-width:0;}"
   ".ts-menu-label{display:block;font-weight:700;color:var(--c_ttl);}"
   ".ts-menu-note{display:block;margin-top:2px;font-size:12px;opacity:.72;}"
-  ".ts-menu-sub{margin:6px 0 0 14px;padding-left:10px;border-left:1px solid rgba(255,255,255,.10);display:grid;gap:6px;}"
+  ".ts-menu-sub{margin:6px 0 0 14px;padding-left:10px;border-left:1px solid rgba(255,255,255,.10);display:none;gap:6px;}"
   ".ts-sub-link{display:block;padding:10px 12px;border-radius:12px;color:var(--c_txt);font-size:13px;line-height:1.3;}"
   ".ts-sub-link:hover{background:rgba(255,255,255,.06);}"
   ".ts-chevron{font-size:12px;opacity:.72;transition:transform .16s ease;}"
@@ -429,6 +423,14 @@ const char HTTP_HEAD_STYLE_SHELL[] PROGMEM =
   "}";
 
 const char HTTP_HEAD_STYLE_SHELL2[] PROGMEM =
+  ".ts-info-wrap table{width:100%%;border-collapse:collapse;}"
+  ".ts-info-wrap th{padding-right:8px;text-align:left;color:var(--c_ttl);vertical-align:top;}"
+  ".ts-info-wrap td{color:var(--c_txt);vertical-align:top;word-break:break-word;}"
+  ".ts-table{width:100%;border-collapse:collapse;}"
+  ".ts-table th,.ts-table td{padding:10px 12px;text-align:left;vertical-align:top;border-top:1px solid rgba(255,255,255,.08);}"
+  ".ts-table tr:first-child th,.ts-table tr:first-child td{border-top:0;}"
+  ".ts-table th{color:var(--c_ttl);}"
+  ".ts-table td{color:var(--c_txt);word-break:break-word;}"
   ".ts-pagehead{margin:0 0 16px;padding:2px 2px 6px;}"
   ".ts-pagehead h1{margin:0;font-size:1.55rem;line-height:1.1;color:var(--c_ttl);}"
   ".ts-pagehead p{margin:8px 0 0;font-size:.93rem;opacity:.78;max-width:760px;}"
@@ -452,13 +454,33 @@ const char HTTP_HEAD_STYLE_SHELL2[] PROGMEM =
   ".ts-card-head{margin:0 0 12px;}"
   ".ts-card-head h2{margin:0;font-size:1.08rem;line-height:1.2;color:var(--c_ttl);}"
   ".ts-card-head p{margin:6px 0 0;font-size:.9rem;opacity:.74;}"
-  ".ts-card-body{}";
+  ".ts-card-body{}"
+".ts-formset{"
+  "margin:0 0 16px;"
+  "padding:16px 18px 18px;"
+  "border-radius:20px;"
+  "background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.06)),var(--c_frm);"
+  "border:1px solid rgba(255,255,255,.08);"
+  "box-shadow:0 12px 30px rgba(0,0,0,.18);"
+"}"
+".ts-formset legend{padding:0 8px;color:var(--c_ttl);font-weight:700;}"
+".ts-form{display:grid;gap:14px;}"
+".ts-field{display:grid;gap:6px;}"
+".ts-field label{color:var(--c_ttl);font-weight:700;}"
+".ts-field-note{font-size:.9rem;opacity:.72;font-weight:400;}"
+".ts-inline-check{display:inline-flex;align-items:center;gap:8px;}"
+".ts-inline-check input[type=checkbox]{margin:0;width:1rem;}"
+".ts-check-row{display:grid;gap:10px;}"
+".ts-check-item{display:inline-flex;align-items:center;gap:8px;font-weight:700;color:var(--c_ttl);}"
+".ts-check-item input[type=checkbox]{margin:0;width:1rem;}"
+".ts-form-actions{padding-top:4px;}"
+".ts-form-actions button{margin:0;}";
 
 const char HTTP_HEAD_STYLE3[] PROGMEM =
   "</style>"
   "</head>"
   "<body>"
-  "<div class='ts-shell' x-data='{nav:false,cfg:false,maint:false}'>";
+  "<div class='ts-shell'>";
 
 const char HTTP_HEAD_STYLE_WIFI[] PROGMEM =
   ".wifi{width:18px;height:12px;position:relative}"
@@ -470,6 +492,92 @@ const char HTTP_HEAD_STYLE_WIFI[] PROGMEM =
   ".o30{opacity:.3}"
   ;
 
+
+const char HTTP_SCRIPT_SHELL[] PROGMEM =
+  "function tsSetDisp(i,v){var e=eb(i);if(e)e.style.display=v;}"
+  "function tsSetRot(i,on){var e=eb(i);if(e)e.className=on?'ts-chevron rot':'ts-chevron';}"
+  "function tsCloseMenus(){"
+    "tsSetDisp('ts-nav','none');"
+    "tsSetDisp('ts-sub-cfg','none');"
+    "tsSetDisp('ts-sub-info','none');"
+    "tsSetDisp('ts-sub-maint','none');"
+    "tsSetRot('ts-ch-cfg',false);"
+    "tsSetRot('ts-ch-info',false);"
+    "tsSetRot('ts-ch-maint',false);"
+  "}"
+  "function tsToggleNav(ev){"
+    "if(ev)ev.stopPropagation();"
+    "var n=eb('ts-nav');"
+    "if(!n)return false;"
+    "var open=('block'===n.style.display);"
+    "tsCloseMenus();"
+    "if(!open){n.style.display='block';}"
+    "return false;"
+  "}"
+  "function tsToggleSub(id,ch,ev){"
+    "if(ev)ev.stopPropagation();"
+    "var e=eb(id);"
+    "if(!e)return false;"
+    "var open=('grid'===e.style.display);"
+    "tsSetDisp('ts-sub-cfg','none');"
+    "tsSetDisp('ts-sub-info','none');"
+    "tsSetDisp('ts-sub-maint','none');"
+    "tsSetRot('ts-ch-cfg',false);"
+    "tsSetRot('ts-ch-info',false);"
+    "tsSetRot('ts-ch-maint',false);"
+    "if(!open){"
+      "e.style.display='grid';"
+      "tsSetRot(ch,true);"
+    "}"
+    "return false;"
+  "}"
+  "function tsDocClick(ev){"
+    "var nav=eb('ts-nav'),btn=eb('ts-nav-btn');"
+    "if(!nav||!btn)return;"
+    "if('block'!==nav.style.display)return;"
+    "if(nav.contains(ev.target)||btn.contains(ev.target))return;"
+    "tsCloseMenus();"
+  "}"
+  "function tsInit(){"
+    "tsCloseMenus();"
+    "document.addEventListener('click',tsDocClick);"
+    "document.addEventListener('keydown',function(e){if('Escape'===e.key)tsCloseMenus();});"
+  "}"
+  "wl(tsInit);";
+
+const char HTTP_FORM_UPG_CARD[] PROGMEM =
+  "<form method='get' action='u1'>"
+  "<p><b>" D_OTA_URL "</b><br><input id='o' placeholder=\"OTA_URL\" value=\"%s\"></p>"
+  "<button type='submit'>" D_START_UPGRADE "</button>"
+  "</form>";
+
+const char HTTP_FORM_RST_UPG_CARD[] PROGMEM =
+  "<form method='post' action='u2?fsz=' enctype='multipart/form-data'>"
+  "<input type='file' name='u2'><br><br>"
+  "<button type='submit' "
+  "onclick='"
+    "eb(\"f1\").style.display=\"none\";"
+    "eb(\"f2\").style.display=\"block\";"
+    "this.form.action+=this.form[\"u2\"].files[0].size;"
+    "this.form.submit();"
+  "'>%s</button></form>"
+  "</div>"
+  "<div id='f2' style='display:none;text-align:center;'><b>" D_UPLOAD_STARTED "...</b></div>";
+
+const char HTTP_FORM_RST_UPG_FCT_CARD[] PROGMEM =
+  "<form method='post' action='u2?fsz=' enctype='multipart/form-data'>"
+  "<input type='file' name='u2'><br><br>"
+  "<button type='submit' "
+  "onclick='"
+    "eb(\"f1\").style.display=\"none\";"
+    "var fs=this.form[\"u2\"].files[0].size;"
+    "eb((fs>900000)?\"f3\":\"f2\").style.display=\"block\";"
+    "this.form.action+=fs;"
+    "return upl(this);"
+  "'>%s</button></form>"
+  "</div>"
+  "<div id='f3' style='display:none;text-align:center;'><b>" D_UPLOAD_FACTORY "...</b></div>"
+  "<div id='f2' style='display:none;text-align:center;'><b>" D_UPLOAD_STARTED "...</b></div>";
 
 #if defined(USE_ZIGBEE) || defined(USE_LORAWAN_BRIDGE)
 // Styles used for Zigbee and LoRaWan Web UI
@@ -483,10 +591,12 @@ const char HTTP_HEAD_STYLE_WIFI[] PROGMEM =
 #endif // USE_ZIGBEE
 
 const char HTTP_HEAD_STYLE_SSI[] PROGMEM =
-  // Signal Strength Indicator
-  ".si{display:inline-flex;align-items:flex-end;height:15px;padding:0;"
-  "i{width:3px;margin-right:1px;border-radius:3px;background-color:var(--c_txt)}"
-  ".b0{height:25%}.b1{height:50%}.b2{height:75%}.b3{height:100%}}"
+  ".si{display:inline-flex;align-items:flex-end;height:15px;padding:0;}"
+  ".si i{width:3px;margin-right:1px;border-radius:3px;background-color:var(--c_txt);}"
+  ".si .b0{height:25%}"
+  ".si .b1{height:50%}"
+  ".si .b2{height:75%}"
+  ".si .b3{height:100%}"
   ".o30{opacity:.3}";
 
 // special case if MINIMAL, then we don't use compressed version
@@ -495,7 +605,7 @@ const char HTTP_HEAD_STYLE3_MINIMAL[] PROGMEM =
   "</style>"
   "</head>"
   "<body>"
-  "<div class='ts-shell' x-data='{nav:false,cfg:false,maint:false}'>"
+  "<div class='ts-shell'>"
 #ifdef FIRMWARE_SAFEBOOT
   "<span style='text-align:center;color:var(--c_txtwrn);'><h3>" D_SAFEBOOT "</h3></span>"
 #else
@@ -505,9 +615,6 @@ const char HTTP_HEAD_STYLE3_MINIMAL[] PROGMEM =
   "<h3>%s</h3>"
   "<h2>%s</h2>";
 #endif  // FIRMWARE_MINIMAL
-
-const char HTTP_MENU_HEAD[] PROGMEM =
-  "<div style='padding:0px 5px;text-align:center;'><h3><hr>%s<hr></h3></div>";
 
 const char HTTP_MSG_SLIDER_SHUTTER[] PROGMEM =
   "<td style='width:70%%'>"
@@ -531,100 +638,114 @@ const char HTTP_MSG_RSTRT[] PROGMEM =
   "<br><div style='text-align:center;'>" D_DEVICE_WILL_RESTART "</div><br>";
 
 const char HTTP_FORM_LOGIN[] PROGMEM =
-  "<fieldset>"
-  "<form method='post' action='/'>"
-  "<p><b>" D_USER "</b><br><input name='USER1' placeholder='" D_USER "'></p>"
-  "<p><b>" D_PASSWORD "</b><br><input name='PASS1' type='password' placeholder='" D_PASSWORD "'></p>"
-  "<br>"
-  "<button>" D_OK "</button>"
-  "</form></fieldset>";
+  "<fieldset class='ts-formset'>"
+    "<form method='post' action='/' class='ts-form'>"
+      "<div class='ts-field'>"
+        "<label>" D_USER "</label>"
+        "<input name='USER1' placeholder='" D_USER "'>"
+      "</div>"
+      "<div class='ts-field'>"
+        "<label>" D_PASSWORD "</label>"
+        "<input name='PASS1' type='password' placeholder='" D_PASSWORD "'>"
+      "</div>"
+      "<div class='ts-form-actions'>"
+        "<button>" D_OK "</button>"
+      "</div>"
+    "</form>"
+  "</fieldset>";
 
 const char HTTP_FIELDSET_LEGEND[] PROGMEM =
-  "<fieldset><legend><b>&nbsp;%s&nbsp;</b></legend>";
+  "<fieldset class='ts-formset'><legend>%s</legend>";
 
 const char HTTP_FORM_GET_ACTION[] PROGMEM =
-  "<form method='get' action='%s'>";
+  "<form method='get' action='%s' class='ts-form'>";
 
 const char HTTP_FORM_BUTTON[] PROGMEM =
-  "<p></p><form method='get' action='%s'><button>%s</button></form>";
+  "<form method='get' action='%s' class='ts-form'><div class='ts-form-actions'><button>%s</button></div></form>";
 
 
 const char HTTP_FORM_WIFI_PART1[] PROGMEM =
-  "<p><b>" D_AP1_SSID "</b>%s<br><input id='s1' placeholder=\"" D_AP1_SSID_HELP "\" value=\"%s\"></p>"  // Need \" instead of ' to be able to use ' in text (#8489)
-  "<p><label><b>" D_AP_PASSWORD "</b><input type='checkbox' onclick='sp(\"p1\")'></label><br><input id='p1' type='password' placeholder=\"" D_AP_PASSWORD_HELP "\"";
+  "<div class='ts-field'>"
+    "<label>" D_AP1_SSID "%s</label>"
+    "<input id='s1' placeholder=\"" D_AP1_SSID_HELP "\" value=\"%s\">"
+  "</div>"
+  "<div class='ts-field'>"
+    "<label class='ts-inline-check'>"
+      "<span>" D_AP_PASSWORD "</span>"
+      "<input type='checkbox' onclick='sp(\"p1\")'>"
+    "</label>"
+    "<input id='p1' type='password' placeholder=\"" D_AP_PASSWORD_HELP "\"";
 
 const char HTTP_FORM_WIFI_PART2[] PROGMEM =
-  " value=\"" D_ASTERISK_PWD "\"></p>"
-  "<p><b>" D_AP2_SSID "</b> (" STA_SSID2 ")<br><input id='s2' placeholder=\"" D_AP2_SSID_HELP "\" value=\"%s\"></p>"
-  "<p><label><b>" D_AP_PASSWORD "</b><input type='checkbox' onclick='sp(\"p2\")'></label><br><input id='p2' type='password' placeholder=\"" D_AP_PASSWORD_HELP "\" value=\"" D_ASTERISK_PWD "\"></p>"
-  "<p><b>" D_HOSTNAME "</b> (%s)<br><input id='h' placeholder=\"%s\" value=\"%s\"></p>"
+  " value=\"" D_ASTERISK_PWD "\">"
+  "</div>"
+  "<div class='ts-field'>"
+    "<label>" D_AP2_SSID " (" STA_SSID2 ")</label>"
+    "<input id='s2' placeholder=\"" D_AP2_SSID_HELP "\" value=\"%s\">"
+  "</div>"
+  "<div class='ts-field'>"
+    "<label class='ts-inline-check'>"
+      "<span>" D_AP_PASSWORD "</span>"
+      "<input type='checkbox' onclick='sp(\"p2\")'>"
+    "</label>"
+    "<input id='p2' type='password' placeholder=\"" D_AP_PASSWORD_HELP "\" value=\"" D_ASTERISK_PWD "\">"
+  "</div>"
+  "<div class='ts-field'>"
+    "<label>" D_HOSTNAME " <span class='ts-field-note'>(%s)</span></label>"
+    "<input id='h' placeholder=\"%s\" value=\"%s\">"
+  "</div>"
 #ifdef USE_CORS
-  "<p><b>" D_CORS_DOMAIN "</b><input id='c' placeholder=\"" CORS_DOMAIN "\" value=\"%s\"></p>"
+  "<div class='ts-field'>"
+    "<label>" D_CORS_DOMAIN "</label>"
+    "<input id='c' placeholder=\"" CORS_DOMAIN "\" value=\"%s\">"
+  "</div>"
 #endif
   ;
 
 const char HTTP_FORM_LOG[] PROGMEM =
-  "<p><b>" D_SYSLOG_HOST "</b> (" SYS_LOG_HOST ")<br><input id='lh' placeholder=\"" SYS_LOG_HOST "\" value=\"%s\"></p>"
-  "<p><b>" D_SYSLOG_PORT "</b> (" STR(SYS_LOG_PORT) ")<br><input id='lp' placeholder='" STR(SYS_LOG_PORT) "' value='%d'></p>"
-  "<p><b>" D_TELEMETRY_PERIOD "</b> (" STR(TELE_PERIOD) ")<br><input id='lt' placeholder='" STR(TELE_PERIOD) "' value='%d'></p>";
+  "<div class='ts-field'>"
+    "<label>" D_SYSLOG_HOST " <span class='ts-field-note'>(" SYS_LOG_HOST ")</span></label>"
+    "<input id='lh' placeholder=\"" SYS_LOG_HOST "\" value=\"%s\">"
+  "</div>"
+  "<div class='ts-field'>"
+    "<label>" D_SYSLOG_PORT " <span class='ts-field-note'>(" STR(SYS_LOG_PORT) ")</span></label>"
+    "<input id='lp' placeholder='" STR(SYS_LOG_PORT) "' value='%d'>"
+  "</div>"
+  "<div class='ts-field'>"
+    "<label>" D_TELEMETRY_PERIOD " <span class='ts-field-note'>(" STR(TELE_PERIOD) ")</span></label>"
+    "<input id='lt' placeholder='" STR(TELE_PERIOD) "' value='%d'>"
+  "</div>";
 
 const char HTTP_FORM_OTHER[] PROGMEM =
-  "<label><b>" D_WEB_ADMIN_PASSWORD "</b><input type='checkbox' onclick='sp(\"wp\")'></label><br><input id='wp' type='password' placeholder=\"" D_WEB_ADMIN_PASSWORD "\" value=\"" D_ASTERISK_PWD "\"><br>"
-  "<br>"
-  "<label><input id='b3' type='checkbox'%s><b>" D_HTTP_API_ENABLE "</b></label><br>"
-  "<label><input id='b1' type='checkbox'%s><b>" D_MQTT_ENABLE "</b></label><br>"
-  "<br>"
-  "<label><b>" D_DEVICE_NAME "</b> (%s)</label><br><input id='dn' placeholder=\"\" value=\"%s\"><br>"
-  "<br>";
+  "<div class='ts-field'>"
+    "<label class='ts-inline-check'>"
+      "<span>" D_WEB_ADMIN_PASSWORD "</span>"
+      "<input type='checkbox' onclick='sp(\"wp\")'>"
+    "</label>"
+    "<input id='wp' type='password' placeholder=\"" D_WEB_ADMIN_PASSWORD "\" value=\"" D_ASTERISK_PWD "\">"
+  "</div>"
+  "<div class='ts-check-row'>"
+    "<label class='ts-check-item'><input id='b3' type='checkbox'%s><span>" D_HTTP_API_ENABLE "</span></label>"
+    "<label class='ts-check-item'><input id='b1' type='checkbox'%s><span>" D_MQTT_ENABLE "</span></label>"
+  "</div>"
+  "<div class='ts-field'>"
+    "<label>" D_DEVICE_NAME " <span class='ts-field-note'>(%s)</span></label>"
+    "<input id='dn' placeholder=\"\" value=\"%s\">"
+  "</div>";
 
 const char HTTP_FORM_END[] PROGMEM =
-  "<br>"
-  "<button name='save' type='submit' class='button bgrn'>" D_SAVE "</button>"
+  "<div class='ts-form-actions'>"
+    "<button name='save' type='submit' class='button bgrn'>" D_SAVE "</button>"
+  "</div>"
   "</form></fieldset>";
 
 const char HTTP_DIV_F1_BLOCK[] PROGMEM =
-  "<div id='f1' name='f1' style='display:block;'>";
+  "<div id='f1' name='f1' class='ts-field' style='display:block;'>";
 
-const char HTTP_FORM_UPG[] PROGMEM =
-  "<br><b>" D_OTA_URL "</b><br><input id='o' placeholder=\"OTA_URL\" value=\"%s\"><br>"
-  "<br><button type='submit'>" D_START_UPGRADE "</button></form>"
-  "</fieldset><br><br>";
-
-const char HTTP_FORM_RST_UPG[] PROGMEM =                  // ESP8266 or ESP32 dual partition
-  "<form method='post' action='u2?fsz=' enctype='multipart/form-data'>"
-  "<br><input type='file' name='u2'><br>"
-  "<br><button type='submit' "
-  "onclick='"
-    "eb(\"f1\").style.display=\"none\";"                  // Disable display of form f1
-    "eb(\"f2\").style.display=\"block\";"                 // Enable display of D_UPLOAD_STARTED
-    "this.form.action+=this.form[\"u2\"].files[0].size;"  // Set return file size
-    "this.form.submit();"                                 // Form response
-  "'>%s</button></form>"
-  "</fieldset>"
-  "</div>"
-  "<div id='f2' style='display:none;text-align:center;'><b>" D_UPLOAD_STARTED "...</b></div>";
-
-// upload via factory partition
-const char HTTP_FORM_RST_UPG_FCT[] PROGMEM =              // ESP32 safeboot partition
-  "<form method='post' action='u2?fsz=' enctype='multipart/form-data'>"
-  "<br><input type='file' name='u2'><br>"
-  "<br><button type='submit' "
-  "onclick='"
-    "eb(\"f1\").style.display=\"none\";"                  // Disable display of form f1
-    "var fs=this.form[\"u2\"].files[0].size;"             // Retreive file size of requested file
-    "eb((fs>900000)?\"f3\":\"f2\").style.display=\"block\";"  // Enable display of either D_UPLOAD_FACTORY or D_UPLOAD_STARTED based on arbitrary file size of 900k
-    "this.form.action+=fs;"                               // Set return file size
-    "return upl(this);"                                   // Form response
-  "'>%s</button></form>"
-  "</fieldset>"
-  "</div>"
-  "<div id='f3' style='display:none;text-align:center;'><b>" D_UPLOAD_FACTORY "...</b></div>"
-  "<div id='f2' style='display:none;text-align:center;'><b>" D_UPLOAD_STARTED "...</b></div>";
-
-#ifdef USE_CONSOLE_CSS_FLEX
 const char HTTP_CMND_STYLE[] PROGMEM =
-  ".ts-console-wrap{display:flex;flex-direction:column;gap:12px;min-height:calc(100vh - 220px);}"
-  ".ts-console-wrap textarea{resize:none;flex:1 1 auto;min-height:420px;width:100%;margin:0;}"
+  ".ts-console-wrap{display:flex;flex-direction:column;gap:12px;height:calc(100vh - 220px);min-height:calc(100vh - 220px);}"
+  ".ts-console-wrap .ts-card-body{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;}"
+  ".ts-console-wrap textarea{resize:none;flex:1 1 auto;min-height:0;width:100%;margin:0;}"
   ".ts-console-wrap form{margin:0;}"
   ".ts-console-wrap input{width:100%;}";
 
@@ -638,14 +759,6 @@ const char HTTP_FORM_CMND[] PROGMEM =
       "</form>"
     "</div>"
   "</section>";
-#else
-const char HTTP_FORM_CMND[] PROGMEM =
-  "<br><textarea readonly id='t1' cols='340' wrap='off'></textarea><br><br>"
-  "<form method='get' onsubmit='return l(1);'>"
-  "<input id='c1' placeholder='" D_ENTER_COMMAND "' autofocus><br>"
-  //  "<br><button type='submit'>Send command</button>"
-  "</form>";
-#endif  // USE_CONSOLE_CSS_FLEX
 
 const char HTTP_TABLE100[] PROGMEM =
   "<table style='width:100%%'>";
@@ -654,7 +767,7 @@ const char HTTP_COUNTER[] PROGMEM =
   "<br><div id='t' style='text-align:center;'></div>";
 
 const char HTTP_END[] PROGMEM =
-  "<p></p><div style='text-align:right;font-size:11px;'><hr><a href='https://github.com/arendst/Tasmota' target='_blank' style='color:#aaa;'>Tasmota %s %s " D_BY " Theo Arends</a></div>"
+  "<p></p><div style='text-align:right;font-size:11px;'><hr>Tasmota %s %s " D_BY " Theo Arends</div>"
   "</main>"
   "</div>"
   "</body>"
@@ -675,20 +788,33 @@ const char HTTP_STATUS_STICKER[] PROGMEM =
   "%s"
   "</span>";
 
+const char HTTP_FORM_RESTORE_CARD[] PROGMEM =
+  "<form method='post' action='u2?fsz=' enctype='multipart/form-data'>"
+  "<input type='file' name='u2'><br><br>"
+  "<button type='submit' "
+  "onclick='"
+    "eb(\"f1\").style.display=\"none\";"
+    "eb(\"f2\").style.display=\"block\";"
+    "this.form.action+=this.form[\"u2\"].files[0].size;"
+    "this.form.submit();"
+  "'>%s</button></form>"
+  "</div>"
+  "<div id='f2' style='display:none;text-align:center;'><b>" D_UPLOAD_STARTED "...</b></div>";
+
 enum ButtonTitle {
   BUTTON_RESTART, BUTTON_RESET_CONFIGURATION,
   BUTTON_MAIN, BUTTON_CONFIGURATION, BUTTON_INFORMATION, BUTTON_FIRMWARE_UPGRADE, BUTTON_MANAGEMENT,
-  BUTTON_MODULE, BUTTON_WIFI, BUTTON_LOGGING, BUTTON_OTHER, BUTTON_TEMPLATE, BUTTON_BACKUP, BUTTON_RESTORE,
+  BUTTON_MODULE, BUTTON_WIFI, BUTTON_LOGGING, BUTTON_OTHER, BUTTON_BACKUP, BUTTON_RESTORE,
   BUTTON_CONSOLE };
 const char kButtonTitle[] PROGMEM =
   D_RESTART "|" D_RESET_CONFIGURATION "|"
   D_MAIN_MENU "|" D_CONFIGURATION "|" D_INFORMATION "|" D_FIRMWARE_UPGRADE "|" D_MANAGEMENT "|"
-  D_CONFIGURE_MODULE "|" D_CONFIGURE_WIFI"|" D_CONFIGURE_LOGGING "|" D_CONFIGURE_OTHER "|" D_CONFIGURE_TEMPLATE "|" D_BACKUP_CONFIGURATION "|" D_RESTORE_CONFIGURATION "|"
+  D_CONFIGURE_MODULE "|" D_CONFIGURE_WIFI "|" D_CONFIGURE_LOGGING "|" D_CONFIGURE_OTHER "|" D_BACKUP_CONFIGURATION "|" D_RESTORE_CONFIGURATION "|"
   D_CONSOLE;
 const char kButtonAction[] PROGMEM =
   ".|rt|"
   ".|cn|in|up|mn|"
-  "md|wi|lg|co|tp|dl|rs|"
+  "md|wi|lg|co|dl|rs|"
   "cs";
 const char kButtonConfirm[] PROGMEM = D_CONFIRM_RESTART "|" D_CONFIRM_RESET_CONFIGURATION;
 
@@ -843,7 +969,9 @@ const WebServerDispatch_t WebServerDispatch[] PROGMEM = {
   { "dl", HTTP_ANY, HandleBackupConfiguration },
   { "rs", HTTP_ANY, HandleRestoreConfiguration },
   { "rt", HTTP_ANY, HandleResetConfiguration },
-  { "in", HTTP_ANY, HandleInformation }
+  { "in", HTTP_ANY, HandleInformation },
+  { "if", HTTP_ANY, HandleInformationDevice },
+  { "is", HTTP_ANY, HandleInformationSensors }
 #endif  // Not FIRMWARE_MINIMAL
 };
 
@@ -901,9 +1029,6 @@ void StartWebserver(int type) {
 //      Webserver->on(F("/u2"), HTTP_POST, HandleUploadDone, HandleUploadLoop);  // this call requires 2 functions so we keep a direct call
       Webserver->on("/u2", HTTP_POST, HandleUploadDone, HandleUploadLoop);  // this call requires 2 functions so we keep a direct call
 #ifndef FIRMWARE_MINIMAL
-#ifdef USE_ALPINEJS
-      Webserver->on("/alpinejs", HTTP_ANY, HandleAlpinejsRequest);
-#endif // USE_ALPINEJS
       XdrvXsnsCall(FUNC_WEB_ADD_HANDLER);
 #endif  // Not FIRMWARE_MINIMAL
 
@@ -1084,19 +1209,19 @@ void WSContentSendToolbarStatus(void) {
 
 void WSContentSendToolbarMenu(void) {
   WSContentSend_P(PSTR(
-    "<nav class='ts-menu' x-show='nav' x-cloak @click.away='nav=false'>"
+  "<nav id='ts-nav' class='ts-menu'>"
   ));
 
   if (WifiIsInManagerMode()) {
     WSContentSend_P(PSTR(
       "<div class='ts-menu-group'>"
-        "<a class='ts-menu-link' href='wi'>"
+        "<a class='ts-menu-link' href='wi' onclick='tsCloseMenus();'>"
           "<span class='ts-menu-copy'>"
             "<span class='ts-menu-label'>" D_CONFIGURE_WIFI "</span>"
             "<span class='ts-menu-note'>WiFi manager and onboarding</span>"
           "</span>"
         "</a>"
-        "<a class='ts-menu-link' href='.'>"
+        "<a class='ts-menu-link' href='.' onclick='tsCloseMenus();'>"
           "<span class='ts-menu-copy'>"
             "<span class='ts-menu-label'>" D_MAIN_MENU "</span>"
             "<span class='ts-menu-note'>Back to the root page</span>"
@@ -1107,7 +1232,7 @@ void WSContentSendToolbarMenu(void) {
 #ifndef FIRMWARE_MINIMAL
     WSContentSend_P(PSTR(
       "<div class='ts-menu-group'>"
-        "<a class='ts-menu-link' href='rs'>"
+        "<a class='ts-menu-link' href='rs' onclick='tsCloseMenus();'>"
           "<span class='ts-menu-copy'>"
             "<span class='ts-menu-label'>" D_RESTORE_CONFIGURATION "</span>"
             "<span class='ts-menu-note'>Restore a previously saved configuration</span>"
@@ -1122,7 +1247,7 @@ void WSContentSendToolbarMenu(void) {
 
   WSContentSend_P(PSTR(
     "<div class='ts-menu-group'>"
-      "<a class='ts-menu-link' href='.'>"
+      "<a class='ts-menu-link' href='.' onclick='tsCloseMenus();'>"
         "<span class='ts-menu-copy'>"
           "<span class='ts-menu-label'>" D_MAIN_MENU "</span>"
           "<span class='ts-menu-note'>Dashboard and live status</span>"
@@ -1134,30 +1259,43 @@ void WSContentSendToolbarMenu(void) {
 #ifndef FIRMWARE_MINIMAL
   WSContentSend_P(PSTR(
     "<div class='ts-menu-group'>"
-      "<button type='button' class='ts-menu-toggle' @click='cfg=!cfg'>"
+      "<button type='button' class='ts-menu-toggle' onclick='return tsToggleSub(\"ts-sub-cfg\",\"ts-ch-cfg\",event);'>"
         "<span class='ts-menu-copy'>"
           "<span class='ts-menu-label'>" D_CONFIGURATION "</span>"
           "<span class='ts-menu-note'>Device settings and runtime options</span>"
         "</span>"
-        "<span class='ts-chevron' :class=\"cfg ? 'rot' : ''\">&#9656;</span>"
+        "<span id='ts-ch-cfg' class='ts-chevron'>&#9656;</span>"
       "</button>"
-      "<div class='ts-menu-sub' x-show='cfg' x-cloak>"
-        "<a class='ts-sub-link' href='cn'>" D_CONFIGURATION "</a>"
-        "<a class='ts-sub-link' href='md'>" D_CONFIGURE_MODULE "</a>"
-        "<a class='ts-sub-link' href='wi'>" D_CONFIGURE_WIFI "</a>"
-        "<a class='ts-sub-link' href='lg'>" D_CONFIGURE_LOGGING "</a>"
-        "<a class='ts-sub-link' href='co'>" D_CONFIGURE_OTHER "</a>"
+      "<div id='ts-sub-cfg' class='ts-menu-sub'>"
+        "<a class='ts-sub-link' href='cn' onclick='tsCloseMenus();'>" D_CONFIGURATION "</a>"
+        "<a class='ts-sub-link' href='md' onclick='tsCloseMenus();'>" D_CONFIGURE_MODULE "</a>"
+        "<a class='ts-sub-link' href='wi' onclick='tsCloseMenus();'>" D_CONFIGURE_WIFI "</a>"  ));
+if (Settings->flag.mqtt_enabled) {
+  WSContentSend_P(PSTR("<a class='ts-sub-link' href='mq' onclick='tsCloseMenus();'>" D_CONFIGURE_MQTT "</a>"  ));
+}
+
+  WSContentSend_P(PSTR(
+        "<a class='ts-sub-link' href='lg' onclick='tsCloseMenus();'>" D_CONFIGURE_LOGGING "</a>"
+        "<a class='ts-sub-link' href='co' onclick='tsCloseMenus();'>" D_CONFIGURE_OTHER "</a>"
       "</div>"
     "</div>"
 
     "<div class='ts-menu-group'>"
-      "<a class='ts-menu-link' href='in'>"
+      "<button type='button' class='ts-menu-toggle' onclick='return tsToggleSub(\"ts-sub-info\",\"ts-ch-info\",event);'>"
         "<span class='ts-menu-copy'>"
           "<span class='ts-menu-label'>" D_INFORMATION "</span>"
-          "<span class='ts-menu-note'>Firmware, network and hardware info</span>"
+          "<span class='ts-menu-note'>Device details and live sensor view</span>"
         "</span>"
-      "</a>"
-      "<a class='ts-menu-link' href='up'>"
+        "<span id='ts-ch-info' class='ts-chevron'>&#9656;</span>"
+      "</button>"
+      "<div id='ts-sub-info' class='ts-menu-sub'>"
+        "<a class='ts-sub-link' href='if' onclick='tsCloseMenus();'>Device Info</a>"
+        "<a class='ts-sub-link' href='is' onclick='tsCloseMenus();'>Sensors</a>"
+      "</div>"
+    "</div>"
+
+    "<div class='ts-menu-group'>"
+      "<a class='ts-menu-link' href='up' onclick='tsCloseMenus();'>"
         "<span class='ts-menu-copy'>"
           "<span class='ts-menu-label'>" D_FIRMWARE_UPGRADE "</span>"
           "<span class='ts-menu-note'>OTA or local upload</span>"
@@ -1166,31 +1304,34 @@ void WSContentSendToolbarMenu(void) {
     "</div>"
 
     "<div class='ts-menu-group'>"
-      "<button type='button' class='ts-menu-toggle' @click='maint=!maint'>"
+      "<button type='button' class='ts-menu-toggle' onclick='return tsToggleSub(\"ts-sub-maint\",\"ts-ch-maint\",event);'>"
         "<span class='ts-menu-copy'>"
           "<span class='ts-menu-label'>" D_MANAGEMENT "</span>"
           "<span class='ts-menu-note'>Console, backup and maintenance actions</span>"
         "</span>"
-        "<span class='ts-chevron' :class=\"maint ? 'rot' : ''\">&#9656;</span>"
+        "<span id='ts-ch-maint' class='ts-chevron'>&#9656;</span>"
       "</button>"
-      "<div class='ts-menu-sub' x-show='maint' x-cloak>"
-        "<a class='ts-sub-link' href='cs'>" D_CONSOLE "</a>"
-        "<a class='ts-sub-link' href='dl'>" D_BACKUP_CONFIGURATION "</a>"
-        "<a class='ts-sub-link' href='rs'>" D_RESTORE_CONFIGURATION "</a>"
-        "<a class='ts-sub-link' href='mn'>" D_MANAGEMENT "</a>"
+      "<div id='ts-sub-maint' class='ts-menu-sub'>"
+        "<a class='ts-sub-link' href='cs' onclick='tsCloseMenus();'>Tasmota " D_CONSOLE "</a>"
+        "<a class='ts-sub-link' href='bc' onclick='tsCloseMenus();'> Berry Console </a>"
+        "<a class='ts-sub-link' href='ufsu' onclick='tsCloseMenus();'> Manage File System</a>"
+        "<a class='ts-sub-link' href='dl' onclick='tsCloseMenus();'>" D_BACKUP_CONFIGURATION "</a>"
+        "<a class='ts-sub-link' href='rs' onclick='tsCloseMenus();'>" D_RESTORE_CONFIGURATION "</a>"
+        "<a class='ts-sub-link' href='mn' onclick='tsCloseMenus();'>Other " D_MANAGEMENT "</a>"
+        
       "</div>"
     "</div>"
   ));
 #else
   WSContentSend_P(PSTR(
     "<div class='ts-menu-group'>"
-      "<a class='ts-menu-link' href='up'>"
+      "<a class='ts-menu-link' href='up' onclick='tsCloseMenus();'>"
         "<span class='ts-menu-copy'>"
           "<span class='ts-menu-label'>" D_FIRMWARE_UPGRADE "</span>"
           "<span class='ts-menu-note'>OTA or local upload</span>"
         "</span>"
       "</a>"
-      "<a class='ts-menu-link' href='cs'>"
+      "<a class='ts-menu-link' href='cs' onclick='tsCloseMenus();'>"
         "<span class='ts-menu-copy'>"
           "<span class='ts-menu-label'>" D_CONSOLE "</span>"
           "<span class='ts-menu-note'>Command line and logs</span>"
@@ -1202,7 +1343,7 @@ void WSContentSendToolbarMenu(void) {
 
   WSContentSend_P(PSTR(
     "<div class='ts-menu-group'>"
-      "<a class='ts-menu-link' href='/?rst=1'>"
+      "<a class='ts-menu-link' href='/?rst=1' onclick='tsCloseMenus();'>"
         "<span class='ts-menu-copy'>"
           "<span class='ts-menu-label'>" D_RESTART "</span>"
           "<span class='ts-menu-note'>Restart the device</span>"
@@ -1219,7 +1360,7 @@ void WSContentSendToolbarShell(void) {
   WSContentSend_P(PSTR("<div class='ts-topbar-left'>"));
 
   WSContentSend_P(PSTR(
-    "<button type='button' class='ts-brand' @click='nav=!nav'>Tasmota</button>"
+  "<button id='ts-nav-btn' type='button' class='ts-brand' onclick='return tsToggleNav(event);'>System</button>"
   ));
 
   WSContentSendToolbarMenu();
@@ -1433,12 +1574,8 @@ void WSContentSendStyle_P(const char* formatP, ...) {
     }
   }
 
+  WSContentSend_P(HTTP_SCRIPT_SHELL);
   WSContentSend_P(HTTP_HEAD_LAST_SCRIPT32);
-
-
-#ifdef USE_ALPINEJS
-  WSContentSend_P(PSTR("<script defer src='/alpinejs'></script>"));
-#endif
 
   // Output style root colors by names
   WSContentSend_P(HTTP_HEAD_STYLE_ROOT_COLOR,
@@ -1749,17 +1886,7 @@ void WebRestart(uint32_t type) {
 
 /*********************************************************************************************/
 
-uint32_t WebUseManagementSubmenu(void) {
-  static uint32_t management_count = 0;
 
-  if (!management_count) {
-    XdrvMailbox.index = 1;
-    XdrvXsnsCall(FUNC_WEB_ADD_CONSOLE_BUTTON);
-    XdrvCall(FUNC_WEB_ADD_MANAGEMENT_BUTTON);
-    management_count = XdrvMailbox.index;
-  }
-  return management_count -1;
-}
 
 /*********************************************************************************************\
  * HandleRoot
@@ -1887,12 +2014,17 @@ void HandleRoot(void) {
   WSContentSend_P(HTTP_SCRIPT_ROOT_PART2);
   WSContentSendStyle();
 
-  WSContentSend_P(PSTR("<div style='padding:0;' id='l1' name='l1'></div><div></div>"));
+  // hidden ajax buffer - root už senzory nezobrazuje, ale helper JS ostáva k dispozícii
+  WSContentSend_P(PSTR("<div id='l1' name='l1' style='display:none;'></div>"));
+
+// REMOVED DEVICE BUTTONS BY TASMOTA ON DASHBOARD
+/*
 
 #ifndef FIRMWARE_MINIMAL
 
   if (TasmotaGlobal.devices_present) {
     WebGetDeviceCounts();
+
 
     if (Web.buttons_non_light_non_shutter) {   // Any non light AND non shutter button - Show toggle buttons
       WSContentSend_P(HTTP_TABLE100);      // "<table style='width:100%%'>"
@@ -1919,6 +2051,7 @@ void HandleRoot(void) {
 
       WSContentSend_P(PSTR("</tr></table>"));
     }
+
 
 #ifdef USE_SHUTTER
     if (TasmotaGlobal.shutters_present) {  // Any shutter present - Show shutter buttons and slider
@@ -1979,27 +2112,14 @@ void HandleRoot(void) {
     WSContentSend_P(PSTR("</script>"));
   }
 
-  XdrvXsnsCall(FUNC_WEB_ADD_MAIN_BUTTON);
 #endif  // Not FIRMWARE_MINIMAL
 
-/*
-  if (HTTP_ADMIN == Web.state) {
-#ifdef FIRMWARE_MINIMAL
-    WSContentSpaceButton(BUTTON_FIRMWARE_UPGRADE);
-    WSContentButton(BUTTON_CONSOLE);
-#else   // Not FIRMWARE_MINIMAL
-    WSContentSpaceButton(BUTTON_CONFIGURATION);
-    WSContentButton(BUTTON_INFORMATION);
-    WSContentButton(BUTTON_FIRMWARE_UPGRADE);
-    if (!WebUseManagementSubmenu()) {
-      WSContentButton(BUTTON_CONSOLE);
-    } else {
-      WSContentButton(BUTTON_MANAGEMENT);
-    }
-#endif  // Not FIRMWARE_MINIMAL
-    WSContentButton(BUTTON_RESTART);
-  } 
-    */
+*/
+
+  XdrvXsnsCall(FUNC_WEB_ADD_MAIN_BUTTON);
+
+
+
   WSContentStop();
 }
 
@@ -2211,25 +2331,6 @@ bool HandleRootStatusRefresh(void) {
 
 #ifndef FIRMWARE_MINIMAL
 
-#ifdef USE_ALPINEJS
-/*********************************************************************************************\
- * Serve AlpineJS 2.8.2 in gzip format
- * Content-Encoding: gzip
- * Content-Type: text/javascript
-\*********************************************************************************************/
-
-void HandleAlpinejsRequest(void) {
-  Webserver->client().flush();
-  WSHeaderSend();
-  Webserver->sendHeader(F("Content-Encoding"), F("gzip"));
-  Webserver->sendHeader(F("Vary"), F("Accept-Encoding"));
-  Webserver->setContentLength(sizeof(alpine_min_js_gz));
-  Webserver->send(200, PSTR("text/javascript"), "");
-  Webserver->sendContent_P(alpine_min_js_gz, sizeof(alpine_min_js_gz));
-  Webserver->client().stop();
-}
-#endif  // USE_ALPINEJS
-
 /*********************************************************************************************\
  * HandleConfiguration
 \*********************************************************************************************/
@@ -2241,9 +2342,33 @@ void HandleConfiguration(void) {
 
   WSContentStart_P(PSTR(D_CONFIGURATION));
   WSContentSendStyle();
-  WSContentPageHeader(PSTR(D_CONFIGURATION), PSTR("Legacy body navigation was removed. Use the top dropdown menu."));
+  WSContentPageHeader(PSTR(D_CONFIGURATION), PSTR("Select a configuration section below."));
+
+  WSContentCardStart(PSTR(D_CONFIGURATION), nullptr);
+  WSContentSend_P(PSTR( "<div class='ts-actions-grid'>" ));
+    
+        WSContentSend_P(PSTR( "<form method='get' action='md'><button>" D_CONFIGURE_MODULE "</button></form>" ));
+        WSContentSend_P(PSTR( "<form method='get' action='wi'><button>" D_CONFIGURE_WIFI "</button></form>" ));
+if (Settings->flag.mqtt_enabled) {
+        WSContentSend_P(PSTR( "<form method='get' action='mq'><button>" D_CONFIGURE_MQTT "</button></form>" ));
+        }
+        WSContentSend_P(PSTR( "<form method='get' action='lg'><button>" D_CONFIGURE_LOGGING "</button></form>" ));
+        WSContentSend_P(PSTR( "<form method='get' action='co'><button>" D_CONFIGURE_OTHER "</button></form>" ));
+    
+  WSContentSend_P(PSTR( "</div>" ));
+  WSContentCardEnd();
+
+
+/*
+  WSContentButton(BUTTON_MODULE);
+  WSContentButton(BUTTON_WIFI);
 
   XdrvXsnsCall(FUNC_WEB_ADD_BUTTON);
+
+  WSContentButton(BUTTON_LOGGING);
+  WSContentButton(BUTTON_OTHER);
+*/
+
 
   WSContentStop();
 }
@@ -2286,22 +2411,22 @@ void HandleModuleConfiguration(void) {
   AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP D_CONFIGURE_MODULE));
 
   myio template_gp;
-  TemplateGpios(&template_gp);   // po tvojej úprave už berie iba MODULE z buildu
+  TemplateGpios(&template_gp);
 
   WSContentStart_P(PSTR(D_CONFIGURE_MODULE));
   WSContentSendStyle();
+  WSContentPageHeader(PSTR(D_CONFIGURE_MODULE), PSTR("Read-only GPIO assignments from the build-time module definition."));
 
-  WSContentSend_P(HTTP_FIELDSET_LEGEND, PSTR(D_MODULE_PARAMETERS));
+  WSContentCardStart(PSTR(D_MODULE_PARAMETERS), nullptr);
   WSContentSend_P(PSTR("<p><b>" D_MODULE_TYPE "</b>: %s</p>"), AnyModuleName(MODULE).c_str());
 
-  WSContentSend_P(PSTR("<table style='width:100%%'>"
-                       "<tr><th style='text-align:left'>GPIO</th>"
-                       "<th style='text-align:left'>Function</th>"
-                       "<th style='text-align:left'>Value</th></tr>"));
+  WSContentSend_P(PSTR(
+    "<table class='ts-table'>"
+      "<tr><th>GPIO</th><th>Function</th><th>Value</th></tr>"
+  ));
 
   for (uint32_t i = 0; i < nitems(template_gp.io); i++) {
     uint32_t sensor_type = template_gp.io[i];
-
     if ((sensor_type > GPIO_NONE) && (sensor_type < AGPIO(GPIO_USER))) {
       WSContentSend_P(PSTR("<tr><td><b>GPIO%d</b></td><td>%s</td><td>%d</td></tr>"),
         i,
@@ -2311,6 +2436,7 @@ void HandleModuleConfiguration(void) {
   }
 
   WSContentSend_P(PSTR("</table>"));
+  WSContentCardEnd();
   WSContentStop();
 }
 
@@ -2588,10 +2714,17 @@ void HandleWifiConfiguration(void) {
       Web.initial_config ? "block" : "none"
     );
 
-    WSContentSpaceButton(BUTTON_RESTORE, !Web.initial_config);
-    WSContentButton(BUTTON_RESET_CONFIGURATION, !Web.initial_config);
+    WSContentSend_P(PSTR("<div id='wm-restore' style='display:%s;'>"), Web.initial_config ? "none" : "block");
+    WSContentSpaceButton(BUTTON_RESTORE, true);
+    WSContentSend_P(PSTR("</div>"));
+
+    WSContentSend_P(PSTR("<div id='wm-reset' style='display:%s;'>"), Web.initial_config ? "none" : "block");
+    WSContentButton(BUTTON_RESET_CONFIGURATION, true);
+    WSContentSend_P(PSTR("</div>"));
 #endif
-    WSContentSpaceButton(BUTTON_RESTART, !Web.initial_config);
+    WSContentSend_P(PSTR("<div id='wm-restart' style='display:%s;'>"), Web.initial_config ? "none" : "block");
+    WSContentSpaceButton(BUTTON_RESTART, true);
+    WSContentSend_P(PSTR("</div>"));
   } 
 
   WSContentCardEnd();
@@ -2720,6 +2853,11 @@ void HandleOtherConfiguration(void) {
 
   WSContentSend_P(HTTP_FORM_END);
 
+  
+  WSContentButton(BUTTON_BACKUP);
+  WSContentButton(BUTTON_RESTORE);
+  WSContentSpaceButton(BUTTON_RESET_CONFIGURATION);
+
 
   WSContentStop();
 }
@@ -2811,8 +2949,7 @@ void HandleRestoreConfiguration(void) {
   WSContentCardStart(PSTR(D_RESTORE_CONFIGURATION), nullptr);
   WSContentSend_P(HTTP_DIV_F1_BLOCK);
   WSContentSend_P(PSTR("<div class='ts-note'>Choose a backup file and upload it to replace the active configuration.</div>"));
-  WSContentSend_P(HTTP_FIELDSET_LEGEND, PSTR(D_RESTORE_CONFIGURATION));
-  WSContentSend_P(HTTP_FORM_RST_UPG, PSTR(D_START_RESTORE));
+  WSContentSend_P(HTTP_FORM_RESTORE_CARD, PSTR(D_START_RESTORE));
   WSContentCardEnd();
 
   WSContentStop();
@@ -2850,12 +2987,58 @@ void WSContentSeparatorIThin(void) {
 void HandleInformation(void) {
   if (!HttpCheckPriviledgedAccess()) { return; }
 
-  float freemem = ((float)ESP_getFreeHeap()) / 1024;
   AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP D_INFORMATION));
 
+  WSContentStart_P(PSTR(D_INFORMATION));
+  WSContentSendStyle();
+  WSContentPageHeader(PSTR(D_INFORMATION), PSTR("Choose which information page you want to open."));
+
+  WSContentCardStart(PSTR(D_INFORMATION), nullptr);
+  WSContentSend_P(PSTR(
+    "<div class='ts-actions-grid'>"
+      "<form method='get' action='if'><button>Device Info</button></form>"
+      "<form method='get' action='is'><button>Sensors</button></form>"
+    "</div>"
+  ));
+  WSContentCardEnd();
+
+  WSContentStop();
+}
+
+
+void HandleInformationSensors(void) {
+  if (!HttpCheckPriviledgedAccess()) { return; }
+
+  if (HandleRootStatusRefresh()) {
+    return;
+  }
+
+  AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP "Sensors"));
+
+  WSContentStart_P(PSTR("Sensors"));
+  WSContentSend_P(HTTP_SCRIPT_ROOT, Settings->web_refresh);
+  WSContentSend_P(HTTP_SCRIPT_ROOT_PART2);
+  WSContentSend_P(HTTP_SCRIPT_ROOT_AUTOLOAD);
+  WSContentSendStyle();
+
+  WSContentPageHeader(PSTR("Sensors"), PSTR("Live sensor values and device status refreshed automatically."));
+  WSContentCardStart(PSTR("Sensors"), nullptr);
+  WSContentSend_P(PSTR("<div style='padding:0;' id='l1' name='l1'></div>"));
+  WSContentCardEnd();
+
+  WSContentStop();
+}
+
+
+
+void HandleInformationDevice(void) {
+  if (!HttpCheckPriviledgedAccess()) { return; }
+
+  float freemem = ((float)ESP_getFreeHeap()) / 1024;
+  AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP "Device Info"));
   char stopic[TOPSZ];
 
-  WSContentStart_P(PSTR(D_INFORMATION));
+  WSContentStart_P(PSTR("Device Info"));
   // Save 1k of code space replacing table html with javascript replace codes
   // }1 = </td></tr><tr><th>
   // }2 = </th><td>
@@ -3091,16 +3274,9 @@ void HandleInformation(void) {
 
   WSContentSendStyle();
 
-  WSContentPageHeader(PSTR(D_INFORMATION), PSTR("Firmware, network, MQTT and hardware details."));
-  WSContentCardStart(PSTR(D_INFORMATION), nullptr);
-  WSContentSend_P(PSTR(
-    "<style>"
-      ".ts-info-wrap table{width:100%%;border-collapse:collapse;}"
-      ".ts-info-wrap th{padding-right:8px;text-align:left;color:var(--c_ttl);vertical-align:top;}"
-      ".ts-info-wrap td{color:var(--c_txt);vertical-align:top;word-break:break-word;}"
-    "</style>"
-    "<div id='i' name='i' class='ts-info-wrap'></div>"
-  ));
+  WSContentPageHeader(PSTR("Device Info"), PSTR("Firmware, network, MQTT and hardware details."));
+  WSContentCardStart(PSTR("Device Info"), nullptr);
+  WSContentSend_P(PSTR("<div id='i' name='i' class='ts-info-wrap'></div>"));
   WSContentCardEnd();
 
   WSContentStop();
@@ -3174,8 +3350,7 @@ void HandleUpgradeFirmware(void) {
   WSContentPageHeader(PSTR(D_FIRMWARE_UPGRADE), PSTR("Update firmware using OTA URL or a local file upload."));
 
   WSContentCardStart(PSTR(D_UPGRADE_BY_WEBSERVER), nullptr);
-  WSContentSend_P(HTTP_FORM_GET_ACTION, PSTR("u1"));
-  WSContentSend_P(HTTP_FORM_UPG, SettingsTextEscaped(SET_OTAURL).c_str());
+  WSContentSend_P(HTTP_FORM_UPG_CARD, SettingsTextEscaped(SET_OTAURL).c_str());
   WSContentCardEnd();
 
   WSContentCardStart(PSTR(D_UPGRADE_BY_FILE_UPLOAD), nullptr);
@@ -3183,9 +3358,9 @@ void HandleUpgradeFirmware(void) {
   WSContentSend_P(PSTR("<div class='ts-note'>Upload a firmware image directly from your device.</div>"));
 
   if (EspSingleOtaPartition() && !EspRunningFactoryPartition()) {
-    WSContentSend_P(HTTP_FORM_RST_UPG_FCT, PSTR(D_START_UPGRADE));
+    WSContentSend_P(HTTP_FORM_RST_UPG_FCT_CARD, PSTR(D_START_UPGRADE));
   } else {
-    WSContentSend_P(HTTP_FORM_RST_UPG, PSTR(D_START_UPGRADE));
+    WSContentSend_P(HTTP_FORM_RST_UPG_CARD, PSTR(D_START_UPGRADE));
   }
 
   WSContentCardEnd();
@@ -3724,11 +3899,9 @@ void HandleConsole(void) {
 
   WSContentStart_P(PSTR(D_CONSOLE));
   WSContentSend_P(HTTP_SCRIPT_CONSOL, Settings->web_refresh);
-#ifdef USE_CONSOLE_CSS_FLEX
+
   WSContentSendStyle_P(HTTP_CMND_STYLE);
-#else
-  WSContentSendStyle();
-#endif  // USE_CONSOLE_CSS_FLEX
+
   WSContentSend_P(HTTP_FORM_CMND);
   WSContentStop();
 }
