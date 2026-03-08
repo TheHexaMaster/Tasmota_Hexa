@@ -592,17 +592,6 @@ const char HTTP_FORM_RST_UPG_FCT_CARD[] PROGMEM =
   "<div id='f3' style='display:none;text-align:center;'><b>" D_UPLOAD_FACTORY "...</b></div>"
   "<div id='f2' style='display:none;text-align:center;'><b>" D_UPLOAD_STARTED "...</b></div>";
 
-#if defined(USE_ZIGBEE) || defined(USE_LORAWAN_BRIDGE)
-// Styles used for Zigbee and LoRaWan Web UI
-// Battery icon from https://css.gg/battery
-//
-  #ifdef USE_UNISHOX_COMPRESSION
-    #include "./html_compressed/HTTP_HEAD_STYLE_ZIGBEE.h"
-  #else
-    #include "./html_uncompressed/HTTP_HEAD_STYLE_ZIGBEE.h"
-  #endif
-#endif // USE_ZIGBEE
-
 const char HTTP_HEAD_STYLE_SSI[] PROGMEM =
   ".si{display:inline-flex;align-items:flex-end;height:15px;padding:0;}"
   ".si i{width:3px;margin-right:1px;border-radius:3px;background-color:var(--c_txt);}"
@@ -690,12 +679,6 @@ const char HTTP_FORM_WIFI_PART2[] PROGMEM =
     "<label>" D_HOSTNAME " <span class='ts-field-note'>(%s)</span></label>"
     "<input id='h' placeholder=\"%s\" value=\"%s\">"
   "</div>"
-#ifdef USE_CORS
-  "<div class='ts-field'>"
-    "<label>" D_CORS_DOMAIN "</label>"
-    "<input id='c' placeholder=\"" CORS_DOMAIN "\" value=\"%s\">"
-  "</div>"
-#endif
   ;
 
 const char HTTP_FORM_LOG[] PROGMEM =
@@ -1175,15 +1158,6 @@ bool HttpCheckPriviledgedAccess(bool autorequestauth = true) {
   }
 }
 
-#ifdef USE_CORS
-/*-------------------------------------------------------------------------------------------*/
-
-void HttpHeaderCors(void) {
-  if (strlen(SettingsText(SET_CORS))) {
-    Webserver->sendHeader(F("Access-Control-Allow-Origin"), SettingsText(SET_CORS));
-  }
-}
-#endif
 /*********************************************************************************************\
  * NEW HELPER
 \*********************************************************************************************/
@@ -1546,9 +1520,6 @@ void WSHeaderSend(void) {
   Webserver->sendHeader(F("Cache-Control"), F("no-cache, no-store, must-revalidate"));
   Webserver->sendHeader(F("Pragma"), F("no-cache"));
   Webserver->sendHeader(F("Expires"), F("-1"));
-#ifdef USE_CORS
-  HttpHeaderCors();
-#endif
 }
 
 /*********************************************************************************************\
@@ -1748,9 +1719,6 @@ void WSContentSendStyle_P(const char* formatP, ...) {
 #ifdef USE_WEB_STATUS_LINE_WIFI
   WSContentSendRaw_P(HTTP_HEAD_STYLE_WIFI);
 #endif
-#if defined(USE_ZIGBEE) || defined(USE_LORAWAN_BRIDGE)
-  WSContentSendRaw_P(HTTP_HEAD_STYLE_ZIGBEE);
-#endif // USE_ZIGBEE
   if (formatP != nullptr) {
     // This uses char strings. Be aware of sending %% if % is needed
     va_list arg;
@@ -2309,19 +2277,6 @@ bool HandleRootStatusRefresh(void) {
   }
 
 
-#ifdef USE_ZIGBEE
-  WebGetArg(PSTR("zbj"), tmp, sizeof(tmp));
-  if (strlen(tmp)) {
-    snprintf_P(svalue, sizeof(svalue), PSTR("ZbPermitJoin"));
-    ExecuteWebCommand(svalue);
-  }
-  WebGetArg(PSTR("zbr"), tmp, sizeof(tmp));
-  if (strlen(tmp)) {
-    snprintf_P(svalue, sizeof(svalue), PSTR("ZbMap"));
-    ExecuteWebCommand(svalue);
-  }
-#endif // USE_ZIGBEE
-
   XsnsXdrvCall(FUNC_WEB_GET_ARG);
 
 
@@ -2713,18 +2668,11 @@ void HandleWifiConfiguration(void) {
     if (WifiIsInManagerMode()) {
       WSContentSend_P(PSTR("></div>"));
     } else {
-#ifdef USE_CORS
-      WSContentSend_P(HTTP_FORM_WIFI_PART2,
-        SettingsTextEscaped(SET_STASSID2).c_str(),
-        WIFI_HOSTNAME, WIFI_HOSTNAME,
-        SettingsTextEscaped(SET_HOSTNAME).c_str(),
-        SettingsTextEscaped(SET_CORS).c_str());
-#else
       WSContentSend_P(HTTP_FORM_WIFI_PART2,
         SettingsTextEscaped(SET_STASSID2).c_str(),
         WIFI_HOSTNAME, WIFI_HOSTNAME,
         SettingsTextEscaped(SET_HOSTNAME).c_str());
-#endif
+
     }
 
     WSContentSend_P(HTTP_FORM_END);
@@ -2770,9 +2718,6 @@ void HandleWifiConfiguration(void) {
 void WifiSaveSettings(void) {
   String cmnd = F(D_CMND_BACKLOG "0 ");
   cmnd += AddWebCommand(PSTR(D_CMND_HOSTNAME), PSTR("h"), PSTR("1"));
-#ifdef USE_CORS
-  cmnd += AddWebCommand(PSTR(D_CMND_CORS), PSTR("c"), PSTR("1"));
-#endif  // USE_CORS
   cmnd += AddWebCommand(PSTR(D_CMND_SSID "1"), PSTR("s1"), PSTR("1"));
   cmnd += AddWebCommand(PSTR(D_CMND_SSID "2"), PSTR("s2"), PSTR("1"));
   cmnd += AddWebCommand(PSTR(D_CMND_PASSWORD "3"), PSTR("p1"), PSTR("\""));
@@ -3426,7 +3371,7 @@ void HandleInformationDevice(void) {
  * HandleUpgradeFirmware
 \*********************************************************************************************/
 
-#if defined(USE_ZIGBEE_EZSP) || defined(USE_TASMOTA_CLIENT) || defined(USE_RF_FLASH) || defined(USE_CCLOADER)
+#if defined(USE_TASMOTA_CLIENT) || defined(USE_RF_FLASH) || defined(USE_CCLOADER)
 #define USE_WEB_FW_UPGRADE
 #endif
 
@@ -3542,16 +3487,6 @@ void HandleUpgradeFirmwareStart(void) {
 
 void HandleUploadDone(void) {
   if (!HttpCheckPriviledgedAccess()) { return; }
-
-#if defined(USE_ZIGBEE_EZSP)
-  if ((UPL_EFR32 == Web.upload_file_type) && !Web.upload_error && BUpload.ready) {
-    BUpload.ready = false;  //  Make sure not to follow thru again
-    // GUI xmodem
-    ZigbeeUploadStep1Done(FlashWriteStartSector(), BUpload.spi_hex_size);
-    HandleZigbeeXfer();
-    return;
-  }
-#endif  // USE_ZIGBEE_EZSP
 
   AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP D_UPLOAD_DONE));
 
@@ -3706,18 +3641,6 @@ void HandleUploadLoop(void) {
         BUploadInit(UPL_CCL);
       }
 #endif  // USE_CCLOADER
-#ifdef USE_ZIGBEE_EZSP
-
-
-      else if (PinUsed(GPIO_ZIGBEE_RX) && PinUsed(GPIO_ZIGBEE_TX) && (0xEB == upload.buf[0])) {  // Check if this is a Zigbee bridge FW file
-
-        // Read complete file into ESP8266 flash
-        // Current files are about 200k
-        Web.upload_error = ZigbeeUploadStep1Init();  // 1
-        if (Web.upload_error != 0) { return; }
-        BUploadInit(UPL_EFR32);
-      }
-#endif  // USE_ZIGBEE_EZSP
 #endif  // USE_WEB_FW_UPGRADE
       else if (UPL_TASMOTA == Web.upload_file_type) {
         if ((upload.buf[0] != 0xE9) && (upload.buf[0] != 0x1F)) {  // 0x1F is gzipped 0xE9
@@ -3822,11 +3745,6 @@ void HandleUploadLoop(void) {
         error = CLLFlashFirmware(data, BUpload.spi_hex_size);
       }
 #endif  
-#ifdef USE_ZIGBEE_EZSP
-      if (UPL_EFR32 == Web.upload_file_type) {
-        BUpload.ready = true;  // So we know on upload success page if it needs to flash hex or do a normal restart
-      }
-#endif  // USE_ZIGBEE_EZSP
       if (error != 0) {
 //        AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_UPLOAD "Transfer error %d"), error);
         Web.upload_error = error + (100 * (Web.upload_file_type -1));  // Add offset to discriminate transfer errors
@@ -3859,9 +3777,6 @@ void HandleUploadLoop(void) {
 \*********************************************************************************************/
 
 void HandlePreflightRequest(void) {
-#ifdef USE_CORS
-  HttpHeaderCors();
-#endif
   Webserver->sendHeader("Access-Control-Allow-Methods", "GET, POST");
   Webserver->sendHeader("Access-Control-Allow-Headers", "authorization");
   WSSend(200, CT_HTML, "");
@@ -4305,9 +4220,6 @@ const char kWebCommands[] PROGMEM = "|"  // No prefix
 #ifdef USE_WEBRUN
   "|" D_CMND_WEBRUN
 #endif
-#ifdef USE_CORS
-  "|" D_CMND_CORS
-#endif
 ;
 
 void (* const WebCommand[])(void) PROGMEM = {
@@ -4323,9 +4235,6 @@ void (* const WebCommand[])(void) PROGMEM = {
 #endif
 #ifdef USE_WEBRUN
   , &CmndWebRun
-#endif
-#ifdef USE_CORS
-  , &CmndCors
 #endif
   };
 
@@ -4706,17 +4615,6 @@ void CmndWebCanvas(void) {
   }
   ResponseCmndChar(SettingsText(SET_CANVAS));
 }
-
-#ifdef USE_CORS
-/*-------------------------------------------------------------------------------------------*/
-
-void CmndCors(void) {
-  if (XdrvMailbox.data_len > 0) {
-    SettingsUpdateText(SET_CORS, (SC_CLEAR == Shortcut()) ? "" : (SC_DEFAULT == Shortcut()) ? CORS_DOMAIN : XdrvMailbox.data);
-  }
-  ResponseCmndChar(SettingsText(SET_CORS));
-}
-#endif  // USE_CORS
 
 /*********************************************************************************************\
  * Interface
