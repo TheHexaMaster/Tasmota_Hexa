@@ -27,9 +27,6 @@
 
 #define XDRV_01                                   1
 
-// Enable below demo feature only if defines USE_UNISHOX_COMPRESSION and USE_SCRIPT_WEB_DISPLAY are disabled
-//#define USE_WEB_SSE
-
 #ifndef WIFI_SOFT_AP_CHANNEL
 #define WIFI_SOFT_AP_CHANNEL                      1      // Soft Access Point Channel number between 1 and 11 as used by WifiManager web GUI
 #endif
@@ -1453,8 +1450,6 @@ if (Settings->flag.mqtt_enabled) {
         "<a class='ts-sub-link' href='cs' onclick='tsCloseMenus();'>Tasmota " D_CONSOLE "</a>"
         "<a class='ts-sub-link' href='bc' onclick='tsCloseMenus();'> Berry Console </a>"
         "<a class='ts-sub-link' href='ufsu' onclick='tsCloseMenus();'> Manage File System</a>"
-        "<a class='ts-sub-link' href='dl' onclick='tsCloseMenus();'>" D_BACKUP_CONFIGURATION "</a>"
-        "<a class='ts-sub-link' href='rs' onclick='tsCloseMenus();'>" D_RESTORE_CONFIGURATION "</a>"
         "<a class='ts-sub-link' href='mn' onclick='tsCloseMenus();'>Other " D_MANAGEMENT "</a>"
         
       "</div>"
@@ -1520,6 +1515,26 @@ void WSContentCardStart(const char* title, const char* subtitle) {
 
 void WSContentCardEnd(void) {
   WSContentSend_P(PSTR("</div></section>"));
+}
+
+void WSContentActionsStart(void) {
+  WSContentSend_P(PSTR("<div class='ts-actions-grid'>"));
+}
+
+void WSContentActionsEnd(void) {
+  WSContentSend_P(PSTR("</div>"));
+}
+
+void WSContentActionButton(const char* action, const char* label) {
+  WSContentSend_P(PSTR("<form method='get' action='%s'><button>%s</button></form>"), action, label);
+}
+
+void WSContentFormStart(const char* legend, const char* action) {
+  WSContentSend_P(PSTR("<fieldset class='ts-formset'><legend>%s</legend><form method='get' action='%s' class='ts-form'>"), legend, action);
+}
+
+void WSContentFormEnd(void) {
+  WSContentSend_P(PSTR("<div class='ts-form-actions'><button name='save' type='submit' class='button bgrn'>" D_SAVE "</button></div></form></fieldset>"));
 }
 
 /*-------------------------------------------------------------------------------------------*/
@@ -2400,12 +2415,8 @@ bool HandleRootStatusRefresh(void) {
 
   XsnsXdrvCall(FUNC_WEB_GET_ARG);
 
-#ifdef USE_WEB_SSE
-  WSContentBegin(200, CT_STREAM);
-  WSContentSend_P(PSTR("data: "));
-#else
+
   WSContentBegin(200, CT_HTML);
-#endif  // USE_WEB_SSE
 
   bool has_js_fragment = false;
 /*
@@ -2480,21 +2491,18 @@ void HandleConfiguration(void) {
   WSContentPageHeader(PSTR(D_CONFIGURATION), PSTR("Select a configuration section below."));
 
   WSContentCardStart(PSTR(D_CONFIGURATION), nullptr);
-  WSContentSend_P(PSTR( "<div class='ts-actions-grid'>" ));
-    
-        WSContentSend_P(PSTR( "<form method='get' action='md'><button>" D_CONFIGURE_MODULE "</button></form>" ));
-        WSContentSend_P(PSTR( "<form method='get' action='wi'><button>" D_CONFIGURE_WIFI "</button></form>" ));
-if (Settings->flag.mqtt_enabled) {
-        WSContentSend_P(PSTR( "<form method='get' action='mq'><button>" D_CONFIGURE_MQTT "</button></form>" ));
-        }
-        WSContentSend_P(PSTR( "<form method='get' action='lg'><button>" D_CONFIGURE_LOGGING "</button></form>" ));
-        WSContentSend_P(PSTR( "<form method='get' action='co'><button>" D_CONFIGURE_OTHER "</button></form>" ));
-    
-  WSContentSend_P(PSTR( "</div>" ));
+  WSContentActionsStart();
+  WSContentActionButton(PSTR("md"), PSTR(D_CONFIGURE_MODULE));
+  WSContentActionButton(PSTR("wi"), PSTR(D_CONFIGURE_WIFI));
+  if (Settings->flag.mqtt_enabled) {
+    WSContentActionButton(PSTR("mq"), PSTR(D_CONFIGURE_MQTT));
+  }
+  WSContentActionButton(PSTR("lg"), PSTR(D_CONFIGURE_LOGGING));
+  WSContentActionButton(PSTR("co"), PSTR(D_CONFIGURE_OTHER));
+  WSContentActionsEnd();
   WSContentCardEnd();
 
-
-/*
+  /* TODO
   WSContentButton(BUTTON_MODULE);
   WSContentButton(BUTTON_WIFI);
 
@@ -2503,7 +2511,6 @@ if (Settings->flag.mqtt_enabled) {
   WSContentButton(BUTTON_LOGGING);
   WSContentButton(BUTTON_OTHER);
 */
-
 
   WSContentStop();
 }
@@ -2836,9 +2843,10 @@ void HandleWifiConfiguration(void) {
     WSContentSend_P(HTTP_FORM_END);
   }
 
-  WSContentCardStart(PSTR("Actions"), nullptr);
+
 
   if (WifiIsInManagerMode()) {
+    WSContentCardStart(PSTR("Actions"), nullptr);
     if (WIFI_TESTING == Wifi.wifiTest) {
       WSContentSend_P(PSTR("<div class='ts-note ts-soft'>" D_TRYING_TO_CONNECT " %s</div>"),
         SettingsTextEscaped(SET_STASSID1).c_str());
@@ -2862,9 +2870,10 @@ void HandleWifiConfiguration(void) {
     WSContentSend_P(PSTR("<div id='wm-restart' style='display:%s;'>"), Web.initial_config ? "none" : "block");
     WSContentSpaceButton(BUTTON_RESTART, true);
     WSContentSend_P(PSTR("</div>"));
+    WSContentCardEnd();
   } 
 
-  WSContentCardEnd();
+  
 
   WSContentStop();
 }
@@ -2903,26 +2912,35 @@ void HandleLoggingConfiguration(void) {
   WSContentSendStyle();
   WSContentPageHeader(PSTR(D_CONFIGURE_LOGGING), PSTR("Adjust verbosity for serial, web, MQTT and syslog outputs."));
 
-  WSContentSend_P(HTTP_FIELDSET_LEGEND, PSTR(D_LOGGING_PARAMETERS));
-  WSContentSend_P(HTTP_FORM_GET_ACTION, PSTR("lg"));
-
   char stemp1[45];
   char stemp2[32];
   uint8_t dlevel[4] = { LOG_LEVEL_INFO, LOG_LEVEL_INFO, LOG_LEVEL_NONE, LOG_LEVEL_NONE };
 
+  WSContentFormStart(PSTR(D_LOGGING_PARAMETERS), PSTR("lg"));
+
   for (uint32_t idx = 0; idx < 4; idx++) {
     if ((2 == idx) && !Settings->flag.mqtt_enabled) { continue; }
-    uint32_t llevel = (0==idx)?Settings->seriallog_level:(1==idx)?Settings->weblog_level:(2==idx)?Settings->mqttlog_level:Settings->syslog_level;
-    WSContentSend_P(PSTR("<p><b>%s</b> (%s)<br><select id='l%d'>"),
+
+    uint32_t llevel = (0 == idx) ? Settings->seriallog_level :
+                      (1 == idx) ? Settings->weblog_level :
+                      (2 == idx) ? Settings->mqttlog_level :
+                                   Settings->syslog_level;
+
+    WSContentSend_P(PSTR("<div class='ts-field'>"
+                         "<label>%s <span class='ts-field-note'>(%s)</span></label>"
+                         "<select id='l%d'>"),
       GetTextIndexed(stemp1, sizeof(stemp1), idx, kLoggingOptions),
       GetTextIndexed(stemp2, sizeof(stemp2), dlevel[idx], kLoggingLevels),
       idx);
+
     for (uint32_t i = LOG_LEVEL_NONE; i <= LOG_LEVEL_DEBUG_MORE; i++) {
       WSContentSend_P(PSTR("<option%s value='%d'>%d %s</option>"),
-        (i == llevel) ? PSTR(" selected") : "", i, i,
+        (i == llevel) ? PSTR(" selected") : PSTR(""),
+        i, i,
         GetTextIndexed(stemp1, sizeof(stemp1), i, kLoggingLevels));
     }
-    WSContentSend_P(PSTR("</select></p>"));
+
+    WSContentSend_P(PSTR("</select></div>"));
   }
 
   WSContentSend_P(HTTP_FORM_LOG,
@@ -2930,9 +2948,7 @@ void HandleLoggingConfiguration(void) {
     Settings->syslog_port,
     Settings->tele_period);
 
-  WSContentSend_P(HTTP_FORM_END);
-
-
+  WSContentFormEnd();
   WSContentStop();
 }
 /*-------------------------------------------------------------------------------------------*/
@@ -2968,37 +2984,45 @@ void HandleOtherConfiguration(void) {
   WSContentSendStyle();
   WSContentPageHeader(PSTR(D_CONFIGURE_OTHER), PSTR("Security, identity and web-facing runtime options."));
 
-  WSContentSend_P(HTTP_FIELDSET_LEGEND, PSTR(D_OTHER_PARAMETERS));
-  WSContentSend_P(HTTP_FORM_GET_ACTION, PSTR("co"));
+  WSContentFormStart(PSTR(D_OTHER_PARAMETERS), PSTR("co"));
+
   WSContentSend_P(HTTP_FORM_OTHER,
-    (Settings->flag5.disable_referer_chk) ? PSTR(" checked") : "",
-    (Settings->flag.mqtt_enabled) ? PSTR(" checked") : "",
+    (Settings->flag5.disable_referer_chk) ? PSTR(" checked") : PSTR(""),
+    (Settings->flag.mqtt_enabled) ? PSTR(" checked") : PSTR(""),
     SettingsTextEscaped(SET_FRIENDLYNAME1).c_str(),
     SettingsTextEscaped(SET_DEVICENAME).c_str());
 
   char stemp[32];
-  uint32_t maxfn = (TasmotaGlobal.devices_present > MAX_FRIENDLYNAMES) ? MAX_FRIENDLYNAMES : (!TasmotaGlobal.devices_present) ? 1 : TasmotaGlobal.devices_present;
+  uint32_t maxfn = (TasmotaGlobal.devices_present > MAX_FRIENDLYNAMES) ? MAX_FRIENDLYNAMES :
+                   (!TasmotaGlobal.devices_present) ? 1 :
+                   TasmotaGlobal.devices_present;
+
   for (uint32_t i = 0; i < maxfn; i++) {
-    snprintf_P(stemp, sizeof(stemp), PSTR("%d"), i +1);
-    WSContentSend_P(PSTR("<b>" D_FRIENDLY_NAME " %d</b> (" FRIENDLY_NAME "%s)<br><input id='a%d' placeholder=\"" FRIENDLY_NAME "%s\" value=\"%s\"><p></p>"),
-      i +1,
+    snprintf_P(stemp, sizeof(stemp), PSTR("%d"), i + 1);
+
+    WSContentSend_P(PSTR("<div class='ts-field'>"
+                         "<label>" D_FRIENDLY_NAME " %d <span class='ts-field-note'>(" FRIENDLY_NAME "%s)</span></label>"
+                         "<input id='a%d' placeholder=\"" FRIENDLY_NAME "%s\" value=\"%s\">"
+                         "</div>"),
+      i + 1,
       (i) ? stemp : "",
       i,
       (i) ? stemp : "",
       SettingsTextEscaped(SET_FRIENDLYNAME1 + i).c_str());
   }
 
-  WSContentSend_P(HTTP_FORM_END);
+  WSContentFormEnd();
 
-  
-  WSContentButton(BUTTON_BACKUP);
-  WSContentButton(BUTTON_RESTORE);
-  WSContentSpaceButton(BUTTON_RESET_CONFIGURATION);
-
+  WSContentCardStart(PSTR("Actions"), nullptr);
+  WSContentActionsStart();
+  WSContentActionButton(PSTR("dl"), PSTR(D_BACKUP_CONFIGURATION));
+  WSContentActionButton(PSTR("rs"), PSTR(D_RESTORE_CONFIGURATION));
+  WSContentActionButton(PSTR("rt"), PSTR(D_RESET_CONFIGURATION));
+  WSContentActionsEnd();
+  WSContentCardEnd();
 
   WSContentStop();
 }
-
 /*-------------------------------------------------------------------------------------------*/
 
 void OtherSaveSettings(void) {
@@ -3172,250 +3196,342 @@ void HandleInformationSensors(void) {
 void HandleInformationDevice(void) {
   if (!HttpCheckPriviledgedAccess()) { return; }
 
-  float freemem = ((float)ESP_getFreeHeap()) / 1024;
   AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP "Device Info"));
+
+  float freemem = ((float)ESP_getFreeHeap()) / 1024;
   char stopic[TOPSZ];
+  char label[64];
+  char value[256];
+  char fmem[32];
 
   WSContentStart_P(PSTR("Device Info"));
-  WSScriptStart();
-  WSContentSendRaw_P(HTTP_SCRIPT_INFO_BEGIN);
-  WSContentSend_P(PSTR("<table style='width:100%%'><tr><th>"));
-  WSContentSend_P(PSTR(D_PROGRAM_VERSION "}2%s %s %s"), 
-    TasmotaGlobal.version, 
-    TasmotaGlobal.image_name, 
+  WSContentSendStyle();
+  WSContentPageHeader(PSTR("Device Info"), PSTR("Firmware, network, MQTT and hardware details."));
+
+  WSContentCardStart(PSTR("Device Info"), nullptr);
+  WSContentSend_P(PSTR("<table class='ts-table'>"));
+
+  // Firmware / runtime
+  WSContentSend_P(PSTR("<tr><th>" D_PROGRAM_VERSION "</th><td>%s %s %s</td></tr>"),
+    TasmotaGlobal.version,
+    TasmotaGlobal.image_name,
     GetCodeCores().c_str());
-  WSContentSend_P(PSTR("}1" D_BUILD_DATE_AND_TIME "}2%s"), GetBuildDateAndTime().c_str());
-  WSContentSend_P(PSTR("}1" D_CORE_AND_SDK_VERSION "}2" ARDUINO_CORE_RELEASE "/%s"), ESP.getSdkVersion());
-  WSContentSend_P(PSTR("}1" D_UPTIME "}2%s"), GetUptime().c_str());
 
+  WSContentSend_P(PSTR("<tr><th>" D_BUILD_DATE_AND_TIME "</th><td>%s</td></tr>"),
+    GetBuildDateAndTime().c_str());
 
-  WSContentSend_P(PSTR("}1" D_FLASH_WRITE_COUNT "}2%d"), Settings->save_flag);
-  WSContentSend_P(PSTR("}1" D_BOOT_COUNT "}2%d"), Settings->bootcount);
-  WSContentSend_P(PSTR("}1" D_RESTART_REASON "}2%s"), GetResetReason().c_str());
+  WSContentSend_P(PSTR("<tr><th>" D_CORE_AND_SDK_VERSION "</th><td>" ARDUINO_CORE_RELEASE "/%s</td></tr>"),
+    ESP.getSdkVersion());
+
+  WSContentSend_P(PSTR("<tr><th>" D_UPTIME "</th><td>%s</td></tr>"),
+    GetUptime().c_str());
+
+  WSContentSend_P(PSTR("<tr><th>" D_FLASH_WRITE_COUNT "</th><td>%d</td></tr>"),
+    Settings->save_flag);
+
+  WSContentSend_P(PSTR("<tr><th>" D_BOOT_COUNT "</th><td>%d</td></tr>"),
+    Settings->bootcount);
+
+  WSContentSend_P(PSTR("<tr><th>" D_RESTART_REASON "</th><td>%s</td></tr>"),
+    GetResetReason().c_str());
+
   uint32_t maxfn = (TasmotaGlobal.devices_present > MAX_FRIENDLYNAMES) ? MAX_FRIENDLYNAMES : TasmotaGlobal.devices_present;
   for (uint32_t i = 0; i < maxfn; i++) {
-    WSContentSend_P(PSTR("}1" D_FRIENDLY_NAME " %d}2%s"),
-      i +1,
-      SettingsTextEscaped(SET_FRIENDLYNAME1 +i).c_str());
+    snprintf_P(label, sizeof(label), PSTR(D_FRIENDLY_NAME " %d"), i + 1);
+    WSContentSend_P(PSTR("<tr><th>%s</th><td>%s</td></tr>"),
+      label,
+      SettingsTextEscaped(SET_FRIENDLYNAME1 + i).c_str());
   }
-  WSContentSeparatorIFat();
+
 #ifdef CONFIG_ESP_WIFI_REMOTE_ENABLED
-  WSContentSend_P(PSTR("}1" D_HOSTED_MCU "}2%s (%s)"), 
+  WSContentSend_P(PSTR("<tr><th>" D_HOSTED_MCU "</th><td>%s (%s)</td></tr>"),
     GetHostedMCU().c_str(),
     GetHostedFwVersion(1).c_str());
-  WSContentSeparatorIFat();
-#endif  // CONFIG_ESP_WIFI_REMOTE_ENABLED
-  bool show_hr = false;
+#endif
+
+  // AP info
   if ((WiFi.getMode() >= WIFI_AP) && (static_cast<uint32_t>(WiFi.softAPIP()) != 0)) {
-    WSContentSend_P(PSTR("}1" D_MAC_ADDRESS "}2%s"), WiFi.softAPmacAddress().c_str());
-    WSContentSend_P(PSTR("}1" D_IP_ADDRESS " (AP)}2%_I"), (uint32_t)WiFi.softAPIP());
-    WSContentSend_P(PSTR("}1" D_GATEWAY "}2%_I"), (uint32_t)WiFi.softAPIP());
-    WSContentSeparatorIThin();
+    WSContentSend_P(PSTR("<tr><th>" D_MAC_ADDRESS " (AP)</th><td>%s</td></tr>"),
+      WiFi.softAPmacAddress().c_str());
+
+    WSContentSend_P(PSTR("<tr><th>" D_IP_ADDRESS " (AP)</th><td>%_I</td></tr>"),
+      (uint32_t)WiFi.softAPIP());
+
+    WSContentSend_P(PSTR("<tr><th>" D_GATEWAY " (AP)</th><td>%_I</td></tr>"),
+      (uint32_t)WiFi.softAPIP());
   }
+
+  // WiFi info
+  bool show_hr = false;
   if (Settings->flag4.network_wifi) {
     int32_t rssi = WiFi.RSSI();
-    WSContentSend_P(PSTR("}1" D_AP "%d " D_INFORMATION "}2" D_SSID " %s<br>" D_RSSI " %d%% (%d dBm)<br>" D_MODE " %s<br>" D_CHANNEL " %d<br>" D_BSSID " %s"), 
-      Settings->sta_active +1,
+
+    snprintf_P(value, sizeof(value),
+      PSTR(D_SSID " %s<br>" D_RSSI " %d%% (%d dBm)<br>" D_MODE " %s<br>" D_CHANNEL " %d<br>" D_BSSID " %s"),
       SettingsTextEscaped(SET_STASSID1 + Settings->sta_active).c_str(),
       WifiGetRssiAsQuality(rssi), rssi,
       WifiGetPhyMode().c_str(),
       WiFi.channel(),
       WiFi.BSSIDstr().c_str());
-    WSContentSeparatorIFat();
-    WSContentSend_P(PSTR("}1" D_HOSTNAME "}2%s%s"), 
-      TasmotaGlobal.hostname, 
-      (Mdns.begun) ? PSTR(".local") : "");
+
+    snprintf_P(label, sizeof(label), PSTR(D_AP "%d " D_INFORMATION), Settings->sta_active + 1);
+    WSContentSend_P(PSTR("<tr><th>%s</th><td>%s</td></tr>"), label, value);
+
+    WSContentSend_P(PSTR("<tr><th>" D_HOSTNAME "</th><td>%s%s</td></tr>"),
+      TasmotaGlobal.hostname,
+      (Mdns.begun) ? PSTR(".local") : PSTR(""));
+
 #ifdef USE_IPV6
-    String ipv6_addr = WifiGetIPv6Str();
-    if (ipv6_addr != "") {
-      WSContentSend_P(PSTR("}1 IPv6 Global (WiFi)}2%s"), ipv6_addr.c_str());
+    {
+      String ipv6_addr = WifiGetIPv6Str();
+      if (ipv6_addr != "") {
+        WSContentSend_P(PSTR("<tr><th>IPv6 Global (WiFi)</th><td>%s</td></tr>"), ipv6_addr.c_str());
+      }
+      ipv6_addr = WifiGetIPv6LinkLocalStr();
+      if (ipv6_addr != "") {
+        WSContentSend_P(PSTR("<tr><th>IPv6 Local (WiFi)</th><td>%s</td></tr>"), ipv6_addr.c_str());
+      }
     }
-    ipv6_addr = WifiGetIPv6LinkLocalStr();
-    if (ipv6_addr != "") {
-      WSContentSend_P(PSTR("}1 IPv6 Local (WiFi)}2%s"), ipv6_addr.c_str());
-    }
-#endif  // USE_IPV6
+#endif
+
     if (static_cast<uint32_t>(WiFi.localIP()) != 0) {
-      WSContentSend_P(PSTR("}1" D_MAC_ADDRESS "}2%s"), WiFiHelper::macAddress().c_str());
-      WSContentSend_P(PSTR("}1" D_IP_ADDRESS " (WiFi)}2%_I"), (uint32_t)WiFi.localIP());
+      WSContentSend_P(PSTR("<tr><th>" D_MAC_ADDRESS " (WiFi)</th><td>%s</td></tr>"),
+        WiFiHelper::macAddress().c_str());
+
+      WSContentSend_P(PSTR("<tr><th>" D_IP_ADDRESS " (WiFi)</th><td>%_I</td></tr>"),
+        (uint32_t)WiFi.localIP());
     }
     show_hr = true;
   }
+
   if (!TasmotaGlobal.global_state.wifi_down) {
-    WSContentSend_P(PSTR("}1" D_GATEWAY "}2%_I"), Settings->ipv4_address[1]);
-    WSContentSend_P(PSTR("}1" D_SUBNET_MASK "}2%_I"), Settings->ipv4_address[2]);
+    WSContentSend_P(PSTR("<tr><th>" D_GATEWAY " (WiFi)</th><td>%_I</td></tr>"),
+      Settings->ipv4_address[1]);
+
+    WSContentSend_P(PSTR("<tr><th>" D_SUBNET_MASK " (WiFi)</th><td>%_I</td></tr>"),
+      Settings->ipv4_address[2]);
+
 #ifdef USE_IPV6
-    WSContentSend_P(PSTR("}1" D_DNS_SERVER "1}2%s"), DNSGetIPStr(0).c_str());
-    WSContentSend_P(PSTR("}1" D_DNS_SERVER "2}2%s"), DNSGetIPStr(1).c_str());
-#else // USE_IPV6
-    WSContentSend_P(PSTR("}1" D_DNS_SERVER "1}2%_I"), Settings->ipv4_address[3]);
-    WSContentSend_P(PSTR("}1" D_DNS_SERVER "2}2%_I"), Settings->ipv4_address[4]);
-#endif // USE_IPV6
+    WSContentSend_P(PSTR("<tr><th>" D_DNS_SERVER "1</th><td>%s</td></tr>"),
+      DNSGetIPStr(0).c_str());
+    WSContentSend_P(PSTR("<tr><th>" D_DNS_SERVER "2</th><td>%s</td></tr>"),
+      DNSGetIPStr(1).c_str());
+#else
+    WSContentSend_P(PSTR("<tr><th>" D_DNS_SERVER "1</th><td>%_I</td></tr>"),
+      Settings->ipv4_address[3]);
+    WSContentSend_P(PSTR("<tr><th>" D_DNS_SERVER "2</th><td>%_I</td></tr>"),
+      Settings->ipv4_address[4]);
+#endif
   }
 
 #if defined(USE_ETHERNET)
   if (EthernetHasIP()) {
-    if (show_hr) {
-      WSContentSeparatorIThin();
-    }
-    WSContentSend_P(PSTR("}1" D_HOSTNAME "}2%s%s"), 
-      EthernetHostname(), 
-      (Mdns.begun) ? PSTR(".local") : "");
+    WSContentSend_P(PSTR("<tr><th>" D_HOSTNAME " (ETH)</th><td>%s%s</td></tr>"),
+      EthernetHostname(),
+      (Mdns.begun) ? PSTR(".local") : PSTR(""));
+
 #ifdef USE_IPV6
-    String ipv6_eth_addr = EthernetGetIPv6Str();
-    if (ipv6_eth_addr != "") {
-      WSContentSend_P(PSTR("}1 IPv6 Global (eth)}2%s"), ipv6_eth_addr.c_str());
-    }
-    ipv6_eth_addr = EthernetGetIPv6LinkLocalStr();
-    if (ipv6_eth_addr != "") {
-      WSContentSend_P(PSTR("}1 IPv6 Local (eth)}2%s"), ipv6_eth_addr.c_str());
-    }
-#endif  // USE_IPV6
-    WSContentSend_P(PSTR("}1" D_MAC_ADDRESS "}2%s"), EthernetMacAddress().c_str());
-    WSContentSend_P(PSTR("}1" D_IP_ADDRESS " (eth)}2%_I"), (uint32_t)EthernetLocalIP());
-  }
-  if (!TasmotaGlobal.global_state.eth_down) {
-    WSContentSend_P(PSTR("}1" D_GATEWAY "}2%_I"), Settings->eth_ipv4_address[1]);
-    WSContentSend_P(PSTR("}1" D_SUBNET_MASK "}2%_I"), Settings->eth_ipv4_address[2]);
-#ifdef USE_IPV6
-    WSContentSend_P(PSTR("}1" D_DNS_SERVER "1}2%s"), DNSGetIPStr(0).c_str());
-    WSContentSend_P(PSTR("}1" D_DNS_SERVER "2}2%s"), DNSGetIPStr(1).c_str());
-#else // USE_IPV6
-    WSContentSend_P(PSTR("}1" D_DNS_SERVER "1}2%_I"), Settings->eth_ipv4_address[3]);
-    WSContentSend_P(PSTR("}1" D_DNS_SERVER "2}2%_I"), Settings->eth_ipv4_address[4]);
-#endif // USE_IPV6
-  }
-#endif  // USE_ETHERNET
-  WSContentSeparatorIFat();
-  WSContentSend_P(PSTR("}1" D_HTTP_API "}2%s"), 
-    Settings->flag5.disable_referer_chk ? PSTR(D_ENABLED) : PSTR(D_DISABLED)); // SetOption 128
-  WSContentSeparatorIFat();
-  if (Settings->flag.mqtt_enabled) {  // SetOption3 - Enable MQTT
-    WSContentSend_P(PSTR("}1" D_MQTT_HOST "}2%s"), SettingsTextEscaped(SET_MQTT_HOST).c_str());
-    WSContentSend_P(PSTR("}1" D_MQTT_PORT "}2%d"), Settings->mqtt_port);
-#ifdef USE_MQTT_TLS
-    WSContentSend_P(PSTR("}1" D_MQTT_TLS_ENABLE "}2%s"), 
-      Settings->flag4.mqtt_tls ? PSTR(D_ENABLED) : PSTR(D_DISABLED));
-#endif  // USE_MQTT_TLS
-    WSContentSend_P(PSTR("}1" D_MQTT_USER "}2%s"), SettingsTextEscaped(SET_MQTT_USER).c_str());
-    WSContentSend_P(PSTR("}1" D_MQTT_CLIENT "}2%s"), TasmotaGlobal.mqtt_client);
-    WSContentSend_P(PSTR("}1" D_MQTT_TOPIC "}2%s"), SettingsTextEscaped(SET_MQTT_TOPIC).c_str());
-    uint32_t real_index = SET_MQTT_GRP_TOPIC;
-    for (uint32_t i = 0; i < MAX_GROUP_TOPICS; i++) {
-      if (1 == i) { real_index = SET_MQTT_GRP_TOPIC2 -1; }
-      if (strlen(SettingsText(real_index +i))) {
-        WSContentSend_P(PSTR("}1" D_MQTT_GROUP_TOPIC " %d}2%s"),
-          1 +i,
-          GetGroupTopic_P(stopic, "", 
-          real_index +i));
+    {
+      String ipv6_eth_addr = EthernetGetIPv6Str();
+      if (ipv6_eth_addr != "") {
+        WSContentSend_P(PSTR("<tr><th>IPv6 Global (ETH)</th><td>%s</td></tr>"), ipv6_eth_addr.c_str());
+      }
+      ipv6_eth_addr = EthernetGetIPv6LinkLocalStr();
+      if (ipv6_eth_addr != "") {
+        WSContentSend_P(PSTR("<tr><th>IPv6 Local (ETH)</th><td>%s</td></tr>"), ipv6_eth_addr.c_str());
       }
     }
-    WSContentSend_P(PSTR("}1" D_MQTT_FULL_TOPIC "}2%s"), 
+#endif
+
+    WSContentSend_P(PSTR("<tr><th>" D_MAC_ADDRESS " (ETH)</th><td>%s</td></tr>"),
+      EthernetMacAddress().c_str());
+
+    WSContentSend_P(PSTR("<tr><th>" D_IP_ADDRESS " (ETH)</th><td>%_I</td></tr>"),
+      (uint32_t)EthernetLocalIP());
+  }
+
+  if (!TasmotaGlobal.global_state.eth_down) {
+    WSContentSend_P(PSTR("<tr><th>" D_GATEWAY " (ETH)</th><td>%_I</td></tr>"),
+      Settings->eth_ipv4_address[1]);
+
+    WSContentSend_P(PSTR("<tr><th>" D_SUBNET_MASK " (ETH)</th><td>%_I</td></tr>"),
+      Settings->eth_ipv4_address[2]);
+
+#ifdef USE_IPV6
+    WSContentSend_P(PSTR("<tr><th>" D_DNS_SERVER "1 (ETH)</th><td>%s</td></tr>"),
+      DNSGetIPStr(0).c_str());
+    WSContentSend_P(PSTR("<tr><th>" D_DNS_SERVER "2 (ETH)</th><td>%s</td></tr>"),
+      DNSGetIPStr(1).c_str());
+#else
+    WSContentSend_P(PSTR("<tr><th>" D_DNS_SERVER "1 (ETH)</th><td>%_I</td></tr>"),
+      Settings->eth_ipv4_address[3]);
+    WSContentSend_P(PSTR("<tr><th>" D_DNS_SERVER "2 (ETH)</th><td>%_I</td></tr>"),
+      Settings->eth_ipv4_address[4]);
+#endif
+  }
+#endif  // USE_ETHERNET
+
+  // HTTP / MQTT / discovery
+  WSContentSend_P(PSTR("<tr><th>" D_HTTP_API "</th><td>%s</td></tr>"),
+    Settings->flag5.disable_referer_chk ? PSTR(D_ENABLED) : PSTR(D_DISABLED));
+
+  if (Settings->flag.mqtt_enabled) {
+    WSContentSend_P(PSTR("<tr><th>" D_MQTT_HOST "</th><td>%s</td></tr>"),
+      SettingsTextEscaped(SET_MQTT_HOST).c_str());
+
+    WSContentSend_P(PSTR("<tr><th>" D_MQTT_PORT "</th><td>%d</td></tr>"),
+      Settings->mqtt_port);
+
+#ifdef USE_MQTT_TLS
+    WSContentSend_P(PSTR("<tr><th>" D_MQTT_TLS_ENABLE "</th><td>%s</td></tr>"),
+      Settings->flag4.mqtt_tls ? PSTR(D_ENABLED) : PSTR(D_DISABLED));
+#endif
+
+    WSContentSend_P(PSTR("<tr><th>" D_MQTT_USER "</th><td>%s</td></tr>"),
+      SettingsTextEscaped(SET_MQTT_USER).c_str());
+
+    WSContentSend_P(PSTR("<tr><th>" D_MQTT_CLIENT "</th><td>%s</td></tr>"),
+      TasmotaGlobal.mqtt_client);
+
+    WSContentSend_P(PSTR("<tr><th>" D_MQTT_TOPIC "</th><td>%s</td></tr>"),
+      SettingsTextEscaped(SET_MQTT_TOPIC).c_str());
+
+    uint32_t real_index = SET_MQTT_GRP_TOPIC;
+    for (uint32_t i = 0; i < MAX_GROUP_TOPICS; i++) {
+      if (1 == i) { real_index = SET_MQTT_GRP_TOPIC2 - 1; }
+      if (strlen(SettingsText(real_index + i))) {
+        snprintf_P(label, sizeof(label), PSTR(D_MQTT_GROUP_TOPIC " %d"), 1 + i);
+        WSContentSend_P(PSTR("<tr><th>%s</th><td>%s</td></tr>"),
+          label,
+          GetGroupTopic_P(stopic, "", real_index + i));
+      }
+    }
+
+    WSContentSend_P(PSTR("<tr><th>" D_MQTT_FULL_TOPIC "</th><td>%s</td></tr>"),
       GetTopic_P(stopic, CMND, TasmotaGlobal.mqtt_topic, ""));
-    WSContentSend_P(PSTR("}1" D_MQTT " " D_FALLBACK_TOPIC "}2%s"),
+
+    WSContentSend_P(PSTR("<tr><th>" D_MQTT " " D_FALLBACK_TOPIC "</th><td>%s</td></tr>"),
       GetFallbackTopic_P(stopic, ""));
-    WSContentSend_P(PSTR("}1" D_MQTT_NO_RETAIN "}2%s"), 
+
+    WSContentSend_P(PSTR("<tr><th>" D_MQTT_NO_RETAIN "</th><td>%s</td></tr>"),
       Settings->flag4.mqtt_no_retain ? PSTR(D_ENABLED) : PSTR(D_DISABLED));
   } else {
-    WSContentSend_P(PSTR("}1" D_MQTT "}2" D_DISABLED));
+    WSContentSend_P(PSTR("<tr><th>" D_MQTT "</th><td>" D_DISABLED "</td></tr>"));
   }
 
 #if defined(USE_DISCOVERY)
-  WSContentSeparatorIFat();
-  WSContentSend_P(PSTR("}1" D_MDNS_DISCOVERY "}2%s"), 
-    (Settings->flag3.mdns_enabled) ? D_ENABLED : D_DISABLED);  // SetOption55 - Control mDNS service
-  if (Settings->flag3.mdns_enabled) {  // SetOption55 - Control mDNS service
-#ifdef WEBSERVER_ADVERTISE
-    WSContentSend_P(PSTR("}1" D_MDNS_ADVERTISE "}2" D_WEB_SERVER));
-#else
-    WSContentSend_P(PSTR("}1" D_MDNS_ADVERTISE "}2" D_DISABLED));
-#endif  // WEBSERVER_ADVERTISE
-  }
-#endif  // USE_DISCOVERY
+  WSContentSend_P(PSTR("<tr><th>" D_MDNS_DISCOVERY "</th><td>%s</td></tr>"),
+    (Settings->flag3.mdns_enabled) ? PSTR(D_ENABLED) : PSTR(D_DISABLED));
 
-  WSContentSeparatorIFat();
-  WSContentSend_P(PSTR("}1" D_ESP_CHIP_ID "}2%d (%s)"), 
-    ESP_getChipId(), 
+  if (Settings->flag3.mdns_enabled) {
+#ifdef WEBSERVER_ADVERTISE
+    WSContentSend_P(PSTR("<tr><th>" D_MDNS_ADVERTISE "</th><td>" D_WEB_SERVER "</td></tr>"));
+#else
+    WSContentSend_P(PSTR("<tr><th>" D_MDNS_ADVERTISE "</th><td>" D_DISABLED "</td></tr>"));
+#endif
+  }
+#endif
+
+  // Hardware / memory
+  WSContentSend_P(PSTR("<tr><th>" D_ESP_CHIP_ID "</th><td>%d (%s)</td></tr>"),
+    ESP_getChipId(),
     GetDeviceHardwareRevision().c_str());
 
-  uint64_t mac = ESP.getEfuseMac();
-  uint8_t b0 = (uint8_t)(mac >> 0);
-  uint8_t b1 = (uint8_t)(mac >> 8);
-  uint8_t b2 = (uint8_t)(mac >> 16);
-  uint8_t b3 = (uint8_t)(mac >> 24);
-  uint8_t b4 = (uint8_t)(mac >> 32);
-  uint8_t b5 = (uint8_t)(mac >> 40);
+  {
+    uint64_t mac = ESP.getEfuseMac();
+    uint8_t b0 = (uint8_t)(mac >> 0);
+    uint8_t b1 = (uint8_t)(mac >> 8);
+    uint8_t b2 = (uint8_t)(mac >> 16);
+    uint8_t b3 = (uint8_t)(mac >> 24);
+    uint8_t b4 = (uint8_t)(mac >> 32);
+    uint8_t b5 = (uint8_t)(mac >> 40);
 
-  WSContentSend_P(PSTR("}1EFuse MAC}2%02X:%02X:%02X:%02X:%02X:%02X"),
-                  b0,b1,b2,b3,b4,b5);
+    snprintf_P(value, sizeof(value), PSTR("%02X:%02X:%02X:%02X:%02X:%02X"),
+      b0, b1, b2, b3, b4, b5);
 
-  WSContentSend_P(PSTR("}1" D_FLASH_CHIP_SIZE "}2%d KB"), ESP.getFlashChipSize() / 1024);
-  WSContentSend_P(PSTR("}1" D_PROGRAM_FLASH_SIZE "}2%d KB"), ESP_getFlashChipMagicSize() / 1024);
+    WSContentSend_P(PSTR("<tr><th>EFuse MAC</th><td>%s</td></tr>"), value);
+  }
 
-  WSContentSend_P(PSTR("}1" D_PROGRAM_SIZE "}2%d KB"), ESP_getSketchSize() / 1024);
-  WSContentSend_P(PSTR("}1" D_FREE_PROGRAM_SPACE "}2%d KB"), ESP_getFreeSketchSpace() / 1024);
+  WSContentSend_P(PSTR("<tr><th>" D_FLASH_CHIP_SIZE "</th><td>%d KB</td></tr>"),
+    ESP.getFlashChipSize() / 1024);
 
+  WSContentSend_P(PSTR("<tr><th>" D_PROGRAM_FLASH_SIZE "</th><td>%d KB</td></tr>"),
+    ESP_getFlashChipMagicSize() / 1024);
+
+  WSContentSend_P(PSTR("<tr><th>" D_PROGRAM_SIZE "</th><td>%d KB</td></tr>"),
+    ESP_getSketchSize() / 1024);
+
+  WSContentSend_P(PSTR("<tr><th>" D_FREE_PROGRAM_SPACE "</th><td>%d KB</td></tr>"),
+    ESP_getFreeSketchSpace() / 1024);
+
+  dtostrfd(freemem, 1, fmem);
 #ifdef USE_GT911
-  WSContentSend_PD(PSTR("}1" D_FREE_MEMORY "}2%1_f KB"), &freemem);
+  WSContentSend_P(PSTR("<tr><th>" D_FREE_MEMORY "</th><td>%s KB</td></tr>"), fmem);
 #else
-  WSContentSend_PD(PSTR("}1" D_FREE_MEMORY "}2%1_f KB (" D_FRAGMENTATION " %d%%)"), 
-    &freemem,
+  WSContentSend_P(PSTR("<tr><th>" D_FREE_MEMORY "</th><td>%s KB (" D_FRAGMENTATION " %d%%)</td></tr>"),
+    fmem,
     ESP_getHeapFragmentation());
-#endif // USE_GT911
+#endif
+
   if (UsePSRAM()) {
-    WSContentSend_P(PSTR("}1" D_PSR_MAX_MEMORY "}2%d KB"), ESP.getPsramSize() / 1024);
-    WSContentSend_P(PSTR("}1" D_PSR_FREE_MEMORY "}2%d KB"), ESP.getFreePsram() / 1024);
+    WSContentSend_P(PSTR("<tr><th>" D_PSR_MAX_MEMORY "</th><td>%d KB</td></tr>"),
+      ESP.getPsramSize() / 1024);
+
+    WSContentSend_P(PSTR("<tr><th>" D_PSR_FREE_MEMORY "</th><td>%d KB</td></tr>"),
+      ESP.getFreePsram() / 1024);
   }
-  WSContentSeparatorIFat();
-  uint32_t cur_part = ESP_PARTITION_SUBTYPE_APP_FACTORY;   // 0
-  const esp_partition_t *running_ota = esp_ota_get_running_partition();
-  if (running_ota) { cur_part = running_ota->subtype; }    // 16 - 32
-  esp_partition_iterator_t it = esp_partition_find(ESP_PARTITION_TYPE_ANY, ESP_PARTITION_SUBTYPE_ANY, NULL);
-  for (; it != NULL; it = esp_partition_next(it)) {
-    const esp_partition_t *part = esp_partition_get(it);
 
-//    AddLog(LOG_LEVEL_DEBUG, PSTR("PRT: Type %d, Subtype %d, Name %s, Size %d"), part->type, part->subtype, part->label, part->size);
+  // Partitions
+  {
+    uint32_t cur_part = ESP_PARTITION_SUBTYPE_APP_FACTORY;
+    const esp_partition_t *running_ota = esp_ota_get_running_partition();
+    if (running_ota) { cur_part = running_ota->subtype; }
 
-    uint32_t part_size = part->size / 1024;
-    if (ESP_PARTITION_TYPE_APP == part->type) {
-      uint32_t prog_size = 0;                              // No active ota partition
-      if (part->subtype == ESP_PARTITION_SUBTYPE_APP_FACTORY) {
-        prog_size = EspProgramSize(part->label);           // safeboot partition (slow response)
-      }
-      else if ((part->subtype >= ESP_PARTITION_SUBTYPE_APP_OTA_MIN) && (part->subtype <= ESP_PARTITION_SUBTYPE_APP_OTA_MAX)) {
-        if (cur_part == part->subtype) {
-          prog_size = ESP_getSketchSize();                 // Active running ota partition (fast response)
+    esp_partition_iterator_t it = esp_partition_find(ESP_PARTITION_TYPE_ANY, ESP_PARTITION_SUBTYPE_ANY, NULL);
+    for (; it != NULL; it = esp_partition_next(it)) {
+      const esp_partition_t *part = esp_partition_get(it);
+      uint32_t part_size = part->size / 1024;
+
+      if (ESP_PARTITION_TYPE_APP == part->type) {
+        uint32_t prog_size = 0;
+
+        if (part->subtype == ESP_PARTITION_SUBTYPE_APP_FACTORY) {
+          prog_size = EspProgramSize(part->label);
         }
-        else if (cur_part == ESP_PARTITION_SUBTYPE_APP_FACTORY) {
-          prog_size = EspProgramSize(part->label);         // One app partition when safeboot partitions (slow response)
+        else if ((part->subtype >= ESP_PARTITION_SUBTYPE_APP_OTA_MIN) &&
+                 (part->subtype <= ESP_PARTITION_SUBTYPE_APP_OTA_MAX)) {
+          if (cur_part == part->subtype) {
+            prog_size = ESP_getSketchSize();
+          } else if (cur_part == ESP_PARTITION_SUBTYPE_APP_FACTORY) {
+            prog_size = EspProgramSize(part->label);
+          }
         }
+
+        snprintf_P(label, sizeof(label), PSTR(D_PARTITION " %s%s"),
+          part->label,
+          (part->subtype == cur_part) ? "*" : "");
+
+        if (prog_size) {
+          uint32_t part_used = ((prog_size / 1024) * 100) / part_size;
+          snprintf_P(value, sizeof(value), PSTR("%d KB (" D_USED " %d%%)"), part_size, part_used);
+        } else {
+          snprintf_P(value, sizeof(value), PSTR("%d KB"), part_size);
+        }
+
+        WSContentSend_P(PSTR("<tr><th>%s</th><td>%s</td></tr>"), label, value);
       }
-      char running[2] = { 0 };
-      if (part->subtype == cur_part) { running[0] = '*'; }
-      WSContentSend_PD(PSTR("}1" D_PARTITION " %s%s}2%d KB"), part->label, running, part_size);
-      if (prog_size) {
-        uint32_t part_used = ((prog_size / 1024) * 100) / part_size;
-        WSContentSend_PD(PSTR(" (" D_USED " %d%%)"), part_used);
+
+      if ((ESP_PARTITION_TYPE_DATA == part->type) && (ESP_PARTITION_SUBTYPE_DATA_SPIFFS == part->subtype)) {
+        snprintf_P(label, sizeof(label), PSTR(D_PARTITION " fs"));
+        snprintf_P(value, sizeof(value), PSTR("%d KB"), part_size);
+        WSContentSend_P(PSTR("<tr><th>%s</th><td>%s</td></tr>"), label, value);
       }
     }
-    if ((ESP_PARTITION_TYPE_DATA == part->type) && (ESP_PARTITION_SUBTYPE_DATA_SPIFFS == part->subtype)) {
-      WSContentSend_PD(PSTR("}1" D_PARTITION " fs}2%d KB"), part_size);
-    }
+    esp_partition_iterator_release(it);
   }
-  esp_partition_iterator_release(it);
 
-  WSContentSend_P(PSTR("</td></tr></table>"));
-
-  WSContentSendRaw_P(HTTP_SCRIPT_INFO_END);
-  WSScriptStop();
-
-  WSContentSendStyle();
-
-  WSContentPageHeader(PSTR("Device Info"), PSTR("Firmware, network, MQTT and hardware details."));
-  WSContentCardStart(PSTR("Device Info"), nullptr);
-  WSContentSend_P(PSTR("<div id='i' name='i' class='ts-info-wrap'></div>"));
+  WSContentSend_P(PSTR("</table>"));
   WSContentCardEnd();
-
   WSContentStop();
 }
 
