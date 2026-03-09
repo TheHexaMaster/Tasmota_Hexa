@@ -1,6 +1,3 @@
-#pragma once
-#include <Arduino.h>
-
 const char HTTP_COREUI_JS[] PROGMEM = R"TSCOREUI(
 (function (w, d) {
   'use strict';
@@ -38,7 +35,6 @@ const char HTTP_COREUI_JS[] PROGMEM = R"TSCOREUI(
 
   TS.init = {
     shellBound: false,
-    jdDone: false
   };
 
   function eb(id) {
@@ -51,21 +47,6 @@ const char HTTP_COREUI_JS[] PROGMEM = R"TSCOREUI(
 
   function wl(fn) {
     w.addEventListener('load', fn);
-  }
-
-  function jd() {
-    if (TS.init.jdDone) { return; }
-    TS.init.jdDone = true;
-
-    var items = d.querySelectorAll('input,button,textarea,select');
-    var i, el;
-
-    for (i = 0; i < items.length; i++) {
-      el = items[i];
-      if (el.hasAttribute('id') && !el.hasAttribute('name')) {
-        el.name = el.id;
-      }
-    }
   }
 
   function sf(show) {
@@ -148,114 +129,6 @@ const char HTTP_COREUI_JS[] PROGMEM = R"TSCOREUI(
     counterTick();
   }
 
-  function tsRfIds() {
-    var n = d.querySelectorAll('[data-tsrf="1"][id]');
-    var a = [];
-    var i;
-
-    for (i = 0; i < n.length; i++) {
-      a.push(n[i].id);
-    }
-    return a.join(',');
-  }
-
-  function tsRfFmt(s) {
-    return s
-      .replace(/{t}/g, "<table style='width:100%'>")
-      .replace(/{s}/g, "<tr><th>")
-      .replace(/{m}/g, "</th><td style='width:20px;white-space:nowrap'>")
-      .replace(/{e}/g, "</td></tr>");
-  }
-
-  function tsRfApply(s) {
-    var b = '~#RF#~';
-    var m = '~#RM#~';
-    var e = '~#RE#~';
-    var p = 0;
-
-    while (true) {
-      var i = s.indexOf(b, p);
-      if (i < 0) { break; }
-
-      var j = s.indexOf(m, i + b.length);
-      if (j < 0) { break; }
-
-      var k = s.indexOf(e, j + m.length);
-      if (k < 0) { break; }
-
-      var id = s.substring(i + b.length, j);
-      var html = s.substring(j + m.length, k);
-
-      if (id === '@js') {
-        try { (new Function(html))(); } catch (ex) {}
-      } else {
-        var el = eb(id);
-        if (el) {
-          el.innerHTML = tsRfFmt(html);
-        }
-      }
-
-      p = k + e.length;
-    }
-  }
-
-  function la(extra) {
-    var a = extra || '';
-    var ids = tsRfIds();
-    var u = '?m=1';
-
-    if (!ids && !a) { return; }
-
-    clearTimeout(TS.root.failTimer);
-    clearTimeout(TS.root.loopTimer);
-
-    if (TS.root.xhr !== null) {
-      TS.root.xhr.abort();
-    }
-
-    if (ids) {
-      u += '&rf=' + encodeURIComponent(ids);
-    }
-    u += a;
-
-    TS.root.xhr = new XMLHttpRequest();
-    TS.root.xhr.onreadystatechange = function () {
-      if (TS.root.xhr.readyState === 4 && TS.root.xhr.status === 200) {
-        tsRfApply(TS.root.xhr.responseText);
-        clearTimeout(TS.root.failTimer);
-        clearTimeout(TS.root.loopTimer);
-        TS.root.loopTimer = setTimeout(function () { la(); }, TS.rootRefreshMs);
-      }
-    };
-
-    TS.root.xhr.open('GET', u, true);
-    TS.root.xhr.send();
-
-    TS.root.failTimer = setTimeout(function () { la(); }, 20000);
-  }
-
-  function lc(v, i, p) {
-    if (eb('s')) {
-      if (v === 'h' || v === 'd') {
-        var sl = eb('sl4') ? eb('sl4').value : 0;
-        var s = eb('s');
-        var sl2 = eb('sl2');
-        if (s && sl2) {
-          s.style.background =
-            'linear-gradient(to right,rgb(' + sl + '%,' + sl + '%,' + sl + '%),hsl(' +
-            sl2.value + ',100%,50%))';
-        }
-      }
-    }
-    la('&' + v + i + '=' + p);
-  }
-
-  function tsRootStart(refreshMs) {
-    if (typeof refreshMs === 'number' && refreshMs > 0) {
-      TS.rootRefreshMs = refreshMs;
-    }
-    la();
-  }
 
   function tsSetReload(ms, url) {
     clearTimeout(TS.reload.timer);
@@ -377,13 +250,153 @@ const char HTTP_COREUI_JS[] PROGMEM = R"TSCOREUI(
     consoleRequest();
   }
 
-  wl(jd);
+
+function tsLivePatch(id, html) {
+  var el = eb(id);
+  if (el && typeof html === 'string') {
+    el.innerHTML = html;
+  }
+}
+
+function tsLiveRequest(page, extra, onDone) {
+  var xhr = new XMLHttpRequest();
+  var u = 'lv?p=' + encodeURIComponent(page);
+
+  if (extra) {
+    u += (extra.charAt(0) === '&') ? extra : ('&' + extra);
+  }
+
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      try {
+        onDone(JSON.parse(xhr.responseText || '{}'));
+      } catch (e) {}
+    }
+  };
+
+  xhr.open('GET', u, true);
+  xhr.send();
+  return xhr;
+}
+
+function tsLivePage(page, refreshMs) {
+  return {
+    page: page,
+    refreshMs: (typeof refreshMs === 'number' && refreshMs > 0) ? refreshMs : TS.rootRefreshMs,
+    xhr: null,
+    loopTimer: null,
+    failTimer: null,
+
+    stop: function () {
+      clearTimeout(this.loopTimer);
+      clearTimeout(this.failTimer);
+      if (this.xhr !== null) {
+        this.xhr.abort();
+        this.xhr = null;
+      }
+    },
+
+    apply: function (data) {
+      if (typeof data.topbar === 'string') {
+        tsLivePatch('ts-topbar-status', data.topbar);
+      }
+      if (this.$refs.live && typeof data.body === 'string') {
+        this.$refs.live.innerHTML = data.body;
+      }
+    },
+
+    tick: function (extra) {
+      var self = this;
+
+      clearTimeout(this.loopTimer);
+      clearTimeout(this.failTimer);
+
+      if (this.xhr !== null) {
+        this.xhr.abort();
+      }
+
+      this.xhr = tsLiveRequest(this.page, extra || '', function (data) {
+        self.apply(data);
+        clearTimeout(self.failTimer);
+        self.loopTimer = setTimeout(function () {
+          self.tick();
+        }, self.refreshMs);
+      });
+
+      this.failTimer = setTimeout(function () {
+        self.tick();
+      }, 20000);
+    },
+
+    start: function () {
+      this.tick();
+    },
+
+    action: function (extra) {
+      this.tick(extra || '');
+    }
+  };
+}
+
+/*
+  compatibility wrapper for legacy root widgets/buttons
+*/
+function la(extra) {
+  clearTimeout(TS.root.failTimer);
+  clearTimeout(TS.root.loopTimer);
+
+  if (TS.root.xhr !== null) {
+    TS.root.xhr.abort();
+  }
+
+  TS.root.xhr = tsLiveRequest('root', extra || '', function (data) {
+    if (typeof data.topbar === 'string') {
+      tsLivePatch('ts-topbar-status', data.topbar);
+    }
+    if (typeof data.body === 'string') {
+      tsLivePatch('ts-root-live', data.body);
+    }
+
+    clearTimeout(TS.root.failTimer);
+    clearTimeout(TS.root.loopTimer);
+    TS.root.loopTimer = setTimeout(function () {
+      la();
+    }, TS.rootRefreshMs);
+  });
+
+  TS.root.failTimer = setTimeout(function () {
+    la();
+  }, 20000);
+}
+
+function lc(v, i, p) {
+  if (eb('s')) {
+    if (v === 'h' || v === 'd') {
+      var sl = eb('sl4') ? eb('sl4').value : 0;
+      var s = eb('s');
+      var sl2 = eb('sl2');
+      if (s && sl2) {
+        s.style.background =
+          'linear-gradient(to right,rgb(' + sl + '%,' + sl + '%,' + sl + '%),hsl(' +
+          sl2.value + ',100%,50%))';
+      }
+    }
+  }
+  la('&' + v + i + '=' + p);
+}
+
+function tsRootStart(refreshMs) {
+  if (typeof refreshMs === 'number' && refreshMs > 0) {
+    TS.rootRefreshMs = refreshMs;
+  }
+  la();
+}
+
 
   w.eb = eb;
   w.qs = qs;
   w.wl = wl;
 
-  w.jd = jd;
   w.sf = sf;
 
   w.su = su;
@@ -393,9 +406,7 @@ const char HTTP_COREUI_JS[] PROGMEM = R"TSCOREUI(
   w.u = counterTick;
   w.tsCounterStart = tsCounterStart;
 
-  w.tsRfIds = tsRfIds;
-  w.tsRfFmt = tsRfFmt;
-  w.tsRfApply = tsRfApply;
+  w.tsLivePage = tsLivePage;
   w.la = la;
   w.lc = lc;
   w.tsRootStart = tsRootStart;

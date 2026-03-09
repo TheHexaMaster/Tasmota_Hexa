@@ -264,7 +264,7 @@ const char HTTP_HEAD_STYLE_END[] PROGMEM =
 
 const char HTTP_FORM_UPG_CARD[] PROGMEM =
   "<form method='get' action='u1'>"
-  "<p><b>" D_OTA_URL "</b><br><input id='o' placeholder=\"OTA_URL\" value=\"%s\"></p>"
+  "<p><b>" D_OTA_URL "</b><br><input id='o' name='o' placeholder=\"OTA_URL\" value=\"%s\"></p>"
   "<button type='submit'>" D_START_UPGRADE "</button>"
   "</form>";
 
@@ -352,47 +352,47 @@ const char HTTP_FORM_BUTTON[] PROGMEM =
 const char HTTP_FORM_WIFI_PART1[] PROGMEM =
   "<div class='ts-field'>"
     "<label>" D_AP1_SSID "%s</label>"
-    "<input x-ref='s1' id='s1' placeholder=\"" D_AP1_SSID_HELP "\" value=\"%s\">"
+    "<input x-ref='s1' id='s1' name='s1' placeholder=\"" D_AP1_SSID_HELP "\" value=\"%s\">"
   "</div>"
   "<div class='ts-field'>"
     "<label class='ts-inline-check'>"
       "<span>" D_AP_PASSWORD "</span>"
       "<input type='checkbox' @click='showP1=!showP1'>"
     "</label>"
-    "<input x-ref='p1' id='p1' :type='showP1 ? \"text\" : \"password\"' placeholder=\"" D_AP_PASSWORD_HELP "\"";
+    "<input x-ref='p1' id='p1' name='p1' :type='showP1 ? \"text\" : \"password\"' placeholder=\"" D_AP_PASSWORD_HELP "\"";
 
 const char HTTP_FORM_WIFI_PART2[] PROGMEM =
   " value=\"" D_ASTERISK_PWD "\">"
   "</div>"
   "<div class='ts-field'>"
     "<label>" D_AP2_SSID " (" STA_SSID2 ")</label>"
-    "<input id='s2' placeholder=\"" D_AP2_SSID_HELP "\" value=\"%s\">"
+    "<input id='s2' name='s2' placeholder=\"" D_AP2_SSID_HELP "\" value=\"%s\">"
   "</div>"
   "<div class='ts-field'>"
     "<label class='ts-inline-check'>"
       "<span>" D_AP_PASSWORD "</span>"
       "<input type='checkbox' @click='showP2=!showP2'>"
     "</label>"
-    "<input id='p2' :type='showP2 ? \"text\" : \"password\"' placeholder=\"" D_AP_PASSWORD_HELP "\" value=\"" D_ASTERISK_PWD "\">"
+    "<input id='p2' name='p2' :type='showP2 ? \"text\" : \"password\"' placeholder=\"" D_AP_PASSWORD_HELP "\" value=\"" D_ASTERISK_PWD "\">"
   "</div>"
   "<div class='ts-field'>"
     "<label>" D_HOSTNAME " <span class='ts-field-note'>(%s)</span></label>"
-    "<input id='h' placeholder=\"%s\" value=\"%s\">"
+    "<input id='h' name='h' placeholder=\"%s\" value=\"%s\">"
   "</div>"
   ;
 
 const char HTTP_FORM_LOG[] PROGMEM =
   "<div class='ts-field'>"
     "<label>" D_SYSLOG_HOST " <span class='ts-field-note'>(" SYS_LOG_HOST ")</span></label>"
-    "<input id='lh' placeholder=\"" SYS_LOG_HOST "\" value=\"%s\">"
+    "<input id='lh' name='lh' placeholder=\"" SYS_LOG_HOST "\" value=\"%s\">"
   "</div>"
   "<div class='ts-field'>"
     "<label>" D_SYSLOG_PORT " <span class='ts-field-note'>(" STR(SYS_LOG_PORT) ")</span></label>"
-    "<input id='lp' placeholder='" STR(SYS_LOG_PORT) "' value='%d'>"
+    "<input id='lp' name='lp' placeholder='" STR(SYS_LOG_PORT) "' value='%d'>"
   "</div>"
   "<div class='ts-field'>"
     "<label>" D_TELEMETRY_PERIOD " <span class='ts-field-note'>(" STR(TELE_PERIOD) ")</span></label>"
-    "<input id='lt' placeholder='" STR(TELE_PERIOD) "' value='%d'>"
+    "<input id='lt' name='lt' placeholder='" STR(TELE_PERIOD) "' value='%d'>"
   "</div>";
 
 const char HTTP_FORM_OTHER[] PROGMEM =
@@ -401,15 +401,15 @@ const char HTTP_FORM_OTHER[] PROGMEM =
       "<span>" D_WEB_ADMIN_PASSWORD "</span>"
       "<input type='checkbox' @click='showWp=!showWp'>"
     "</label>"
-    "<input id='wp' :type='showWp ? \"text\" : \"password\"' placeholder=\"" D_WEB_ADMIN_PASSWORD "\" value=\"" D_ASTERISK_PWD "\">"
+    "<input id='wp' name='wp' :type='showWp ? \"text\" : \"password\"' placeholder=\"" D_WEB_ADMIN_PASSWORD "\" value=\"" D_ASTERISK_PWD "\">"
   "</div>"
   "<div class='ts-check-row'>"
-    "<label class='ts-check-item'><input id='b3' type='checkbox'%s><span>" D_HTTP_API_ENABLE "</span></label>"
-    "<label class='ts-check-item'><input id='b1' type='checkbox'%s><span>" D_MQTT_ENABLE "</span></label>"
+    "<label class='ts-check-item'><input id='b3' name='b3' type='checkbox'%s><span>" D_HTTP_API_ENABLE "</span></label>"
+    "<label class='ts-check-item'><input id='b1' name='b1' type='checkbox'%s><span>" D_MQTT_ENABLE "</span></label>"
   "</div>"
   "<div class='ts-field'>"
     "<label>" D_DEVICE_NAME " <span class='ts-field-note'>(%s)</span></label>"
-    "<input id='dn' placeholder=\"\" value=\"%s\">"
+    "<input id='dn' name='dn' placeholder=\"\" value=\"%s\">"
   "</div>";
 
 const char HTTP_FORM_END[] PROGMEM =
@@ -523,43 +523,32 @@ static const char WS_SECTION_TOPBAR_STATUS[] = "ts-topbar-status";
 static const char WS_SECTION_ROOT_LIVE[]     = "ts-root-live";
 static const char WS_SECTION_SENSOR_LIVE[]   = "ts-sensor-live";
 
-static const char WS_RF_BEGIN[] = "~#RF#~";
-static const char WS_RF_MID[]   = "~#RM#~";
-static const char WS_RF_END[]   = "~#RE#~";
-
 void WSContentSendToolbarStatusInner(void);
 void WSContentSendRootLive(void);
 void WSContentSendSensorLive(void);
-
-typedef void (*WSRefreshRenderer)(void);
-
-struct WSRefreshSection {
-  const char *id;
-  WSRefreshRenderer render;
-};
-
 
 DNSServer *DnsServer;
 ESP8266WebServer *Webserver;
 
 struct WEB {
-  String chunk_buffer = "";                         // Could be max 2 * CHUNKED_BUFFER_SIZE
+  String chunk_buffer = "";
+  String capture_buffer = "";
   uint32_t upload_size = 0;
   uint32_t light_shutter_button_mask;
   uint32_t buttons_non_light_non_shutter;
   uint32_t slider_update_time = 0;
   int slider[LST_MAX];
-  int8_t shutter_slider[16];                        // MAX_SHUTTERS_ESP32
+  int8_t shutter_slider[16];
   uint16_t upload_error = 0;
   uint8_t state = HTTP_OFF;
   uint8_t upload_file_type;
   uint8_t config_block_count = 0;
   bool upload_services_stopped = false;
-  bool reset_web_log_flag = false;                  // Reset web console log
+  bool reset_web_log_flag = false;
   bool initial_config = false;
   bool cflg;
+  bool capture = false;
 } Web;
-
 /*********************************************************************************************/
 
 // Helper function to avoid code duplication (saves 4k Flash)
@@ -652,6 +641,7 @@ typedef struct WebServerDispatch_t {
 
 const WebServerDispatch_t WebServerDispatch[] PROGMEM = {
   { "",   HTTP_ANY, HandleRoot },
+  { "lv", HTTP_GET, HandleLiveData },
   { "up", HTTP_ANY, HandleUpgradeFirmware },
   { "u1", HTTP_ANY, HandleUpgradeFirmwareStart },   // OTA
   { "u2", HTTP_OPTIONS, HandlePreflightRequest },
@@ -908,11 +898,6 @@ void WSSendPageInitCounterIfNeeded(void) {
   }
 }
 
-void WSSendPageInitRootAutoload(void) {
-  WSScriptStart();
-  WSContentSend_P(PSTR("wl(function(){tsRootStart(%u);});"), Settings->web_refresh);
-  WSScriptStop();
-}
 
 void WSSendPageInitConsole(void) {
   WSScriptStart();
@@ -926,50 +911,6 @@ void WSSendPageInitReload(uint32_t reload_time) {
   WSScriptStart();
   WSContentSend_P(PSTR("tsSetReload(%u);"), reload_time);
   WSScriptStop();
-}
-
-void WSContentRefreshSectionBegin(const char* id, const char* css_class = nullptr) {
-  if ((nullptr != css_class) && css_class[0]) {
-    WSContentSend_P(PSTR("<div id='%s' data-tsrf='1' class='%s'>"), id, css_class);
-  } else {
-    WSContentSend_P(PSTR("<div id='%s' data-tsrf='1'>"), id);
-  }
-}
-
-void WSContentSectionEnd(void) {
-  WSContentSend_P(PSTR("</div>"));
-}
-
-bool WSRefreshListContains(const char *list, const char *id) {
-  if (!list || !*list || !id || !*id) { return false; }
-
-  size_t id_len = strlen(id);
-  const char *p = list;
-
-  while (*p) {
-    while ((*p == ',') || (*p == ' ')) { p++; }
-    const char *start = p;
-
-    while (*p && (*p != ',')) { p++; }
-    size_t len = p - start;
-
-    while (len && (start[len - 1] == ' ')) { len--; }
-
-    if ((len == id_len) && (0 == strncmp(start, id, id_len))) {
-      return true;
-    }
-  }
-  return false;
-}
-
-void WSSendRefreshFragmentBegin(const char *id) {
-  WSContentSeparator(3);
-  WSContentSend_P(PSTR("%s%s%s"), WS_RF_BEGIN, id, WS_RF_MID);
-}
-
-void WSSendRefreshFragmentEnd(void) {
-  WSContentSend_P(PSTR("%s"), WS_RF_END);
-  WSContentSeparator(3);
 }
 
 void WSContentSendToolbarStatusInner(void) {
@@ -1029,10 +970,61 @@ void WSContentSendToolbarStatusInner(void) {
 #endif
 }
 
-void WSContentSendToolbarStatus(void) {
-  WSContentRefreshSectionBegin(WS_SECTION_TOPBAR_STATUS, "ts-topbar-right");
+
+static void WSCaptureBegin(void) {
+  Web.capture = true;
+  Web.capture_buffer = "";
+}
+
+static String WSCaptureEnd(void) {
+  String out = Web.capture_buffer;
+  Web.capture_buffer = "";
+  Web.capture = false;
+  return out;
+}
+
+static String WSTokensToHtml(const String& input) {
+  String out;
+  out.reserve(input.length() + 128);
+
+  for (uint32_t i = 0; i < input.length(); ) {
+    if (input.startsWith(F("{t}"), i)) {
+      out += F("<table style='width:100%'>");
+      i += 3;
+    } else if (input.startsWith(F("{s}"), i)) {
+      out += F("<tr><th>");
+      i += 3;
+    } else if (input.startsWith(F("{m}"), i)) {
+      out += F("</th><td style='width:20px;white-space:nowrap'>");
+      i += 3;
+    } else if (input.startsWith(F("{e}"), i)) {
+      out += F("</td></tr>");
+      i += 3;
+    } else {
+      out += input.charAt(i++);
+    }
+  }
+
+  return out;
+}
+
+static String WSBuildTopbarStatusHtml(void) {
+  WSCaptureBegin();
   WSContentSendToolbarStatusInner();
-  WSContentSectionEnd();
+  return WSCaptureEnd();
+}
+
+static String WSBuildRootLiveHtml(void) {
+  WSCaptureBegin();
+  WSContentSendRootLive();
+  return WSCaptureEnd();
+}
+
+
+void WSContentSendToolbarStatus(void) {
+  WSContentSend_P(PSTR("<div id='%s' class='ts-topbar-right'>"), WS_SECTION_TOPBAR_STATUS);
+  WSContentSendToolbarStatusInner();
+  WSContentSend_P(PSTR("</div>"));
 }
 
 void WSContentSendToolbarMenu(void) {
@@ -1298,19 +1290,26 @@ void WSContentFlush(void) {
 
 void _WSContentSendBufferChunk_P(const char* content) {
   int len = strlen_P(content);
-  if (len < CHUNKED_BUFFER_SIZE) {                 // Append chunk buffer with small content
+
+  if (Web.capture) {
+    if (len > 0) {
+      Web.capture_buffer += (const __FlashStringHelper *)content;
+    }
+    return;
+  }
+
+  if (len < CHUNKED_BUFFER_SIZE) {
     Web.chunk_buffer += (const __FlashStringHelper *)content;
     len = Web.chunk_buffer.length();
   }
-  if (len >= CHUNKED_BUFFER_SIZE) {                // Either content or chunk buffer is oversize
-    WSContentFlush();                              // Send chunk buffer before possible content oversize
+  if (len >= CHUNKED_BUFFER_SIZE) {
+    WSContentFlush();
   }
   len = strlen_P(content);
-  if (len >= CHUNKED_BUFFER_SIZE) {                // Content is oversize
-    _WSContentSend(content, len);                  // Send content
+  if (len >= CHUNKED_BUFFER_SIZE) {
+    _WSContentSend(content, len);
   }
 }
-
 /*-------------------------------------------------------------------------------------------*/
 
 void WSContentSendRaw_P(const char* content) {     // Content sent without formatting
@@ -1323,14 +1322,22 @@ void WSContentSendRaw_P(const char* content) {     // Content sent without forma
 /*-------------------------------------------------------------------------------------------*/
 
 void WSContentSend(const char* content, size_t size) {
-  // To speed up transmission use chunked buffer if possible
+  if (Web.capture) {
+    if (size) {
+      char buffer[size + 1];
+      memcpy(buffer, content, size);
+      buffer[size] = '\0';
+      Web.capture_buffer += buffer;
+    }
+    return;
+  }
+
   if (size < CHUNKED_BUFFER_SIZE) {
-    // Terminate non-terminated content
     char buffer[size +1];
-    strlcpy(buffer, content, sizeof(buffer));      // Terminate with '\0'
+    strlcpy(buffer, content, sizeof(buffer));
     _WSContentSendBufferChunk_P(buffer);
   } else {
-    WSContentFlush();                              // Flush chunk buffer
+    WSContentFlush();
     _WSContentSend(content, size);
   }
 }
@@ -1744,10 +1751,6 @@ void HandleRoot(void) {
     return;
   }
 
-  if (HandleRootStatusRefresh()) {
-    return;
-  }
-
   AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP D_MAIN_MENU));
 
   /*
@@ -1766,7 +1769,6 @@ void HandleRoot(void) {
 
   WSContentStart_P(PSTR(D_MAIN_MENU));
   WSContentSendStyle();
-  WSSendPageInitRootAutoload();
 
 // REMOVED DEVICE BUTTONS BY TASMOTA ON DASHBOARD - SHALL REUSE IN FUTURE
 /*
@@ -1828,9 +1830,10 @@ void HandleRoot(void) {
 
 */
 
-  WSContentRefreshSectionBegin(WS_SECTION_ROOT_LIVE); // Prepare for root widgets
-    WSContentSendRootLive();
-  WSContentSectionEnd();
+  WSContentSend_P(PSTR("<div x-data='tsLivePage(\"root\",%u)' x-init='start()'>"), Settings->web_refresh);
+  WSContentSend_P(PSTR("<div id='%s' x-ref='live'>"), WS_SECTION_ROOT_LIVE);
+  WSContentSendRootLive();
+  WSContentSend_P(PSTR("</div></div>"));
 
 
   XdrvXsnsCall(FUNC_WEB_ADD_MAIN_BUTTON);
@@ -1846,7 +1849,10 @@ void WSContentSendRootLive(void) {
   // Zatiaľ zámerne prázdne.
 }
 
-void WSContentSendSensorLive(void) {
+
+static String WSBuildSensorLiveHtml(void) {
+  WSCaptureBegin();
+
   char svalue[32];
 
   WSContentSend_P(PSTR("{t}"));
@@ -1893,34 +1899,14 @@ void WSContentSendSensorLive(void) {
       WSContentSend_P(PSTR("</tr></table>"));
     }
   }
+
+  String raw = WSCaptureEnd();
+  return WSTokensToHtml(raw);
 }
 
-const WSRefreshSection kWSRefreshSections[] = {
-  { WS_SECTION_TOPBAR_STATUS, WSContentSendToolbarStatusInner },
-  { WS_SECTION_ROOT_LIVE,     WSContentSendRootLive },
-  { WS_SECTION_SENSOR_LIVE,   WSContentSendSensorLive }
-};
-
-void WSSendRequestedRefreshSections(void) {
-  String rf = Webserver->arg(F("rf"));
-  const char *rf_list = rf.length() ? rf.c_str() : nullptr;
-
-  // bezpečný fallback:
-  // ak klient neposlal rf zoznam, obnov len topbar status
-  if (!rf_list) {
-    WSSendRefreshFragmentBegin(WS_SECTION_TOPBAR_STATUS);
-    WSContentSendToolbarStatusInner();
-    WSSendRefreshFragmentEnd();
-    return;
-  }
-
-  for (uint32_t i = 0; i < nitems(kWSRefreshSections); i++) {
-    if (WSRefreshListContains(rf_list, kWSRefreshSections[i].id)) {
-      WSSendRefreshFragmentBegin(kWSRefreshSections[i].id);
-      kWSRefreshSections[i].render();
-      WSSendRefreshFragmentEnd();
-    }
-  }
+void WSContentSendSensorLive(void) {
+  String html = WSBuildSensorLiveHtml();
+  WSContentSend(html.c_str(), html.length());
 }
 
 bool WebUpdateSliderTime(void) {
@@ -1935,46 +1921,47 @@ bool WebUpdateSliderTime(void) {
   return false;
 }
 
-/*-------------------------------------------------------------------------------------------*/
-
-bool HandleRootStatusRefresh(void) {
+void HandleLiveData(void) {
   if (!WebAuthenticate()) {
     Webserver->requestAuthentication();
-    return true;
+    return;
   }
 
-  if (!Webserver->hasArg("m")) {     // Status refresh requested
-    return false;
-  }
+  char page[12];
+  WebGetArg(PSTR("p"), page, sizeof(page));
 
-
-  char tmp[8];                       // WebGetArg numbers only
-  char svalue[32];                   // Command and number parameter
-  char webindex[5];                  // WebGetArg name
-
-  WebGetArg(PSTR("o"), tmp, sizeof(tmp));  // 1 - 32 Device number for button Toggle or Fanspeed
+  char tmp[8];
+  WebGetArg(PSTR("o"), tmp, sizeof(tmp));
   if (strlen(tmp)) {
     ShowWebSource(SRC_WEBGUI);
     uint32_t device = atoi(tmp);
-      ExecuteCommandPower(device, POWER_TOGGLE, SRC_IGNORE);
+    ExecuteCommandPower(device, POWER_TOGGLE, SRC_IGNORE);
   }
-
 
   XsnsXdrvCall(FUNC_WEB_GET_ARG);
 
-  WSContentBegin(200, CT_HTML);
+  String topbar = WSBuildTopbarStatusHtml();
+  String body;
 
-  WSSendRequestedRefreshSections();
-
-  if (1 == Web.slider_update_time) {
-    Web.slider_update_time = 0;
+  if (0 == strcmp(page, "sensor")) {
+    body = WSBuildSensorLiveHtml();
+  } else {
+    body = WSBuildRootLiveHtml();
   }
 
-  WSContentSend_P(PSTR("\n\n"));
-  WSContentEnd();
+  String payload = F("{\"topbar\":\"");
+  payload += EscapeJSONString(topbar.c_str());
+  payload += F("\",\"body\":\"");
+  payload += EscapeJSONString(body.c_str());
+  payload += F("\"}");
 
-  return true;
+  WSHeaderSend();
+  WSSend(200, CT_APP_JSON, payload);
 }
+
+/*-------------------------------------------------------------------------------------------*/
+
+
 
 
 /*********************************************************************************************\
@@ -2424,10 +2411,10 @@ void HandleLoggingConfiguration(void) {
 
     WSContentSend_P(PSTR("<div class='ts-field'>"
                          "<label>%s <span class='ts-field-note'>(%s)</span></label>"
-                         "<select id='l%d'>"),
+                         "<select id='l%d' name='l%d'>"),
       GetTextIndexed(stemp1, sizeof(stemp1), idx, kLoggingOptions),
       GetTextIndexed(stemp2, sizeof(stemp2), dlevel[idx], kLoggingLevels),
-      idx);
+      idx, idx);
 
     for (uint32_t i = LOG_LEVEL_NONE; i <= LOG_LEVEL_DEBUG_MORE; i++) {
       WSContentSend_P(PSTR("<option%s value='%d'>%d %s</option>"),
@@ -2498,11 +2485,11 @@ void HandleOtherConfiguration(void) {
 
     WSContentSend_P(PSTR("<div class='ts-field'>"
                          "<label>" D_FRIENDLY_NAME " %d <span class='ts-field-note'>(" FRIENDLY_NAME "%s)</span></label>"
-                         "<input id='a%d' placeholder=\"" FRIENDLY_NAME "%s\" value=\"%s\">"
+                         "<input id='a%d' name='a%d' placeholder=\"" FRIENDLY_NAME "%s\" value=\"%s\">"
                          "</div>"),
       i + 1,
       (i) ? stemp : "",
-      i,
+      i, i,
       (i) ? stemp : "",
       SettingsTextEscaped(SET_FRIENDLYNAME1 + i).c_str());
   }
@@ -2666,23 +2653,21 @@ void HandleInformation(void) {
 void HandleInformationSensors(void) {
   if (!HttpCheckPriviledgedAccess()) { return; }
 
-  if (HandleRootStatusRefresh()) {
-    return;
-  }
-
   AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP "Sensors"));
 
   WSContentStart_P(PSTR("Sensors"));
   WSContentSendStyle();
-  WSSendPageInitRootAutoload();
 
   WSContentPageHeader(PSTR("Sensors"), PSTR("Live sensor values and device status refreshed automatically."));
-  WSContentCardStart(PSTR("Sensors"), nullptr);
-  WSContentRefreshSectionBegin(WS_SECTION_SENSOR_LIVE);
-    WSContentSendSensorLive();
-  WSContentSectionEnd();
-  WSContentCardEnd();
 
+  WSContentCardStart(PSTR("Sensors"), nullptr);
+
+  WSContentSend_P(PSTR("<div x-data='tsLivePage(\"sensor\",%u)' x-init='start()'>"), Settings->web_refresh);
+  WSContentSend_P(PSTR("<div id='%s' x-ref='live'>"), WS_SECTION_SENSOR_LIVE);
+  WSContentSendSensorLive();
+  WSContentSend_P(PSTR("</div></div>"));
+
+  WSContentCardEnd();
   WSContentStop();
 }
 
