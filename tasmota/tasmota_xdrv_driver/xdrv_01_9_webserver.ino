@@ -1,7 +1,7 @@
 /*
   xdrv_01_webserver.ino - webserver for Tasmota
 
-  Copyright (C) 2021  Theo Arends and Adrian Scillato
+  Copyright (C) 2026 by  Martin Macák - HexaMaster
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -19,10 +19,13 @@
 
 #ifdef USE_WEBSERVER
 /*********************************************************************************************\
- * Web server and WiFi Manager
+ * Web server, WiFi Manager  
  *
  * Enables configuration and reconfiguration of WiFi credentials using a Captive Portal
  * Based on source by AlexT (https://github.com/tzapu)
+ * 
+ * Native Tasmota Webserver Handler 
+ * based on source by Theo Arends and Adrian Scillato - https://github.com/arendst/Tasmota
 \*********************************************************************************************/
 
 #define XDRV_01                                   1
@@ -44,7 +47,7 @@
 #endif                                                   //   If the first is true, but this is false, the device will restart but the user will see
                                                          //   a window telling that the WiFi Configuration was Ok and that the window can be closed.
 
-const uint16_t CHUNKED_BUFFER_SIZE = 1000;                // Chunk buffer size (needs to be well below stack space (8k for ESP32) but large enough to cache some small messages)
+const uint16_t CHUNKED_BUFFER_SIZE = 2048;                // Chunk buffer size (needs to be well below stack space (8k for ESP32) but large enough to cache some small messages)
 
 const uint16_t HTTP_REFRESH_TIME = 2000;                 // milliseconds
 const uint16_t HTTP_RESTART_RECONNECT_TIME = 10000;      // milliseconds - Allow time for restart and wifi reconnect
@@ -54,6 +57,8 @@ const uint16_t HTTP_OTA_RESTART_RECONNECT_TIME = 15000;  // milliseconds - Allow
 #include <DNSServer.h>
 #include "coreui.h"                                      // CORE JS Functions
 #include "alpine_js_gz.h"                                // Extented AlpineJS For new UI
+#define WS_COREUI_JS_PATH   "/static/coreui.js"
+#define WS_ALPINE_JS_PATH   "/static/alpine-3.15.8.js"
 
 const char HTTP_HEADER1[] PROGMEM =
   "<!DOCTYPE html><html lang=\"%s\" class=\"\">"
@@ -314,10 +319,6 @@ const char HTTP_MSG_SLIDER_GRADIENT[] PROGMEM =
   "</div>"
   "</td>";
 
-// https://stackoverflow.com/questions/4057236/how-to-add-onload-event-to-a-div-element
-const char HTTP_MSG_EXEC_JAVASCRIPT[] PROGMEM =
-  "<img style='display:none;' src onerror=\"";
-
 const char HTTP_MSG_RSTRT[] PROGMEM =
   "<br><div style='text-align:center;'>" D_DEVICE_WILL_RESTART "</div><br>";
 
@@ -521,7 +522,6 @@ enum WebCmndStatus { WEBCMND_DONE, WEBCMND_WRONG_PARAMETERS, WEBCMND_CONNECT_FAI
 static const char WS_SECTION_TOPBAR_STATUS[] = "ts-topbar-status";
 static const char WS_SECTION_ROOT_LIVE[]     = "ts-root-live";
 static const char WS_SECTION_SENSOR_LIVE[]   = "ts-sensor-live";
-static const char WS_SECTION_JS[]            = "@js";
 
 static const char WS_RF_BEGIN[] = "~#RF#~";
 static const char WS_RF_MID[]   = "~#RM#~";
@@ -724,8 +724,8 @@ void HandleStaticAlpineJs(void) {
 
 void WSContentSendJsImports(void) {
   WSContentSend_P(PSTR(
-    "<script src='/static/coreui.js'></script>"
-    "<script defer src='/static/alpine.js'></script>"
+    "<script src='" WS_COREUI_JS_PATH "'></script>"
+    "<script defer src='" WS_ALPINE_JS_PATH "'></script>"
   ));
 }
 
@@ -763,8 +763,8 @@ void StartWebserver(int type) {
         WebServer_on(uri, line.handler, pgm_read_byte(&line.method));
       }
 
-      Webserver->on("/static/coreui.js", HTTP_GET, HandleStaticCoreuiJs);
-      Webserver->on("/static/alpine.js", HTTP_GET, HandleStaticAlpineJs);
+      Webserver->on(WS_COREUI_JS_PATH, HTTP_GET, HandleStaticCoreuiJs);
+      Webserver->on(WS_ALPINE_JS_PATH, HTTP_GET, HandleStaticAlpineJs);
 
       Webserver->onNotFound(HandleNotFound);
 //      Webserver->on(F("/u2"), HTTP_POST, HandleUploadDone, HandleUploadLoop);  // this call requires 2 functions so we keep a direct call
@@ -1758,7 +1758,7 @@ void HandleRoot(void) {
   WSContentSendStyle();
   WSSendPageInitRootAutoload();
 
-// REMOVED DEVICE BUTTONS BY TASMOTA ON DASHBOARD
+// REMOVED DEVICE BUTTONS BY TASMOTA ON DASHBOARD - SHALL REUSE IN FUTURE
 /*
 
 
@@ -1952,32 +1952,7 @@ bool HandleRootStatusRefresh(void) {
 
   XsnsXdrvCall(FUNC_WEB_GET_ARG);
 
-
   WSContentBegin(200, CT_HTML);
-
-  bool has_js_fragment = false;
-/*
-
-
-  if (TasmotaGlobal.devices_present) {
-    // Update changed web buttons
-    uint32_t max_devices = TasmotaGlobal.devices_present;
-
-
-    WSContentSend_P(HTTP_MSG_EXEC_JAVASCRIPT);  // "<img style='display:none;' src onerror=\""
-    msg_exec_javascript = true;
-    for (uint32_t idx = 1; idx <= max_devices; idx++) {
-      bool active = bitRead(TasmotaGlobal.power, idx -1);
-
-      WSContentSend_P(PSTR("eb('o%d').style.background='var(--c_btn%s)';"),
-        idx, (active) ? PSTR("") : PSTR("off"));
-    }
-  }
-*/
-
-  if (has_js_fragment) {
-    WSSendRefreshFragmentEnd();
-  }
 
   WSSendRequestedRefreshSections();
 
