@@ -53,94 +53,6 @@ const char HTTP_COREUI_JS[] PROGMEM = R"TSCOREUI(
     w.addEventListener('load', fn);
   }
 
-  function sp(id) {
-    var e = eb(id);
-    if (!e) { return; }
-    e.type = (e.type === 'text') ? 'password' : 'text';
-  }
-
-  function tsSetDisp(id, value) {
-    var e = eb(id);
-    if (e) { e.style.display = value; }
-  }
-
-  function tsSetRot(id, on) {
-    var e = eb(id);
-    if (e) { e.className = on ? 'ts-chevron rot' : 'ts-chevron'; }
-  }
-
-  function tsCloseMenus() {
-    tsSetDisp('ts-nav', 'none');
-    tsSetDisp('ts-sub-cfg', 'none');
-    tsSetDisp('ts-sub-info', 'none');
-    tsSetDisp('ts-sub-maint', 'none');
-    tsSetRot('ts-ch-cfg', false);
-    tsSetRot('ts-ch-info', false);
-    tsSetRot('ts-ch-maint', false);
-  }
-
-  function tsToggleNav(ev) {
-    if (ev) { ev.stopPropagation(); }
-
-    var n = eb('ts-nav');
-    if (!n) { return false; }
-
-    var open = ('block' === n.style.display);
-    tsCloseMenus();
-
-    if (!open) {
-      n.style.display = 'block';
-    }
-    return false;
-  }
-
-  function tsToggleSub(id, ch, ev) {
-    if (ev) { ev.stopPropagation(); }
-
-    var e = eb(id);
-    if (!e) { return false; }
-
-    var open = ('grid' === e.style.display);
-
-    tsSetDisp('ts-sub-cfg', 'none');
-    tsSetDisp('ts-sub-info', 'none');
-    tsSetDisp('ts-sub-maint', 'none');
-    tsSetRot('ts-ch-cfg', false);
-    tsSetRot('ts-ch-info', false);
-    tsSetRot('ts-ch-maint', false);
-
-    if (!open) {
-      e.style.display = 'grid';
-      tsSetRot(ch, true);
-    }
-    return false;
-  }
-
-  function tsDocClick(ev) {
-    var nav = eb('ts-nav');
-    var btn = eb('ts-nav-btn');
-
-    if (!nav || !btn) { return; }
-    if ('block' !== nav.style.display) { return; }
-    if (nav.contains(ev.target) || btn.contains(ev.target)) { return; }
-
-    tsCloseMenus();
-  }
-
-  function tsInit() {
-    if (TS.init.shellBound) { return; }
-    TS.init.shellBound = true;
-
-    tsCloseMenus();
-
-    d.addEventListener('click', tsDocClick);
-    d.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') {
-        tsCloseMenus();
-      }
-    });
-  }
-
   function jd() {
     if (TS.init.jdDone) { return; }
     TS.init.jdDone = true;
@@ -345,32 +257,6 @@ const char HTTP_COREUI_JS[] PROGMEM = R"TSCOREUI(
     la();
   }
 
-  function c(l) {
-    var s1 = eb('s1');
-    var p1 = eb('p1');
-
-    if (s1 && l) {
-      s1.value = l.innerText || l.textContent || '';
-    }
-    if (p1) {
-      p1.focus();
-    }
-  }
-
-  function hidBtns() {
-    var butmo = eb('butmo');
-    var butmod = eb('butmod');
-    var restart = eb('wm-restart');
-    var reset = eb('wm-reset');
-    var restore = eb('wm-restore');
-
-    if (butmo) { butmo.style.display = 'none'; }
-    if (butmod) { butmod.style.display = 'none'; }
-    if (restart) { restart.style.display = 'block'; }
-    if (reset) { reset.style.display = 'block'; }
-    if (restore) { restore.style.display = 'block'; }
-  }
-
   function tsSetReload(ms, url) {
     clearTimeout(TS.reload.timer);
     TS.reload.timer = setTimeout(function () {
@@ -491,21 +377,11 @@ const char HTTP_COREUI_JS[] PROGMEM = R"TSCOREUI(
     consoleRequest();
   }
 
-  wl(tsInit);
   wl(jd);
 
   w.eb = eb;
   w.qs = qs;
   w.wl = wl;
-  w.sp = sp;
-
-  w.tsSetDisp = tsSetDisp;
-  w.tsSetRot = tsSetRot;
-  w.tsCloseMenus = tsCloseMenus;
-  w.tsToggleNav = tsToggleNav;
-  w.tsToggleSub = tsToggleSub;
-  w.tsDocClick = tsDocClick;
-  w.tsInit = tsInit;
 
   w.jd = jd;
   w.sf = sf;
@@ -524,8 +400,6 @@ const char HTTP_COREUI_JS[] PROGMEM = R"TSCOREUI(
   w.lc = lc;
   w.tsRootStart = tsRootStart;
 
-  w.c = c;
-  w.hidBtns = hidBtns;
   w.tsSetReload = tsSetReload;
 
   w.l = consoleRequest;

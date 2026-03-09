@@ -352,14 +352,14 @@ const char HTTP_FORM_BUTTON[] PROGMEM =
 const char HTTP_FORM_WIFI_PART1[] PROGMEM =
   "<div class='ts-field'>"
     "<label>" D_AP1_SSID "%s</label>"
-    "<input id='s1' placeholder=\"" D_AP1_SSID_HELP "\" value=\"%s\">"
+    "<input x-ref='s1' id='s1' placeholder=\"" D_AP1_SSID_HELP "\" value=\"%s\">"
   "</div>"
   "<div class='ts-field'>"
     "<label class='ts-inline-check'>"
       "<span>" D_AP_PASSWORD "</span>"
-      "<input type='checkbox' onclick='sp(\"p1\")'>"
+      "<input type='checkbox' @click='showP1=!showP1'>"
     "</label>"
-    "<input id='p1' type='password' placeholder=\"" D_AP_PASSWORD_HELP "\"";
+    "<input x-ref='p1' id='p1' :type='showP1 ? \"text\" : \"password\"' placeholder=\"" D_AP_PASSWORD_HELP "\"";
 
 const char HTTP_FORM_WIFI_PART2[] PROGMEM =
   " value=\"" D_ASTERISK_PWD "\">"
@@ -371,9 +371,9 @@ const char HTTP_FORM_WIFI_PART2[] PROGMEM =
   "<div class='ts-field'>"
     "<label class='ts-inline-check'>"
       "<span>" D_AP_PASSWORD "</span>"
-      "<input type='checkbox' onclick='sp(\"p2\")'>"
+      "<input type='checkbox' @click='showP2=!showP2'>"
     "</label>"
-    "<input id='p2' type='password' placeholder=\"" D_AP_PASSWORD_HELP "\" value=\"" D_ASTERISK_PWD "\">"
+    "<input id='p2' :type='showP2 ? \"text\" : \"password\"' placeholder=\"" D_AP_PASSWORD_HELP "\" value=\"" D_ASTERISK_PWD "\">"
   "</div>"
   "<div class='ts-field'>"
     "<label>" D_HOSTNAME " <span class='ts-field-note'>(%s)</span></label>"
@@ -396,12 +396,12 @@ const char HTTP_FORM_LOG[] PROGMEM =
   "</div>";
 
 const char HTTP_FORM_OTHER[] PROGMEM =
-  "<div class='ts-field'>"
+  "<div class='ts-field' x-data='{showWp:false}'>"
     "<label class='ts-inline-check'>"
       "<span>" D_WEB_ADMIN_PASSWORD "</span>"
-      "<input type='checkbox' onclick='sp(\"wp\")'>"
+      "<input type='checkbox' @click='showWp=!showWp'>"
     "</label>"
-    "<input id='wp' type='password' placeholder=\"" D_WEB_ADMIN_PASSWORD "\" value=\"" D_ASTERISK_PWD "\">"
+    "<input id='wp' :type='showWp ? \"text\" : \"password\"' placeholder=\"" D_WEB_ADMIN_PASSWORD "\" value=\"" D_ASTERISK_PWD "\">"
   "</div>"
   "<div class='ts-check-row'>"
     "<label class='ts-check-item'><input id='b3' type='checkbox'%s><span>" D_HTTP_API_ENABLE "</span></label>"
@@ -1037,19 +1037,19 @@ void WSContentSendToolbarStatus(void) {
 
 void WSContentSendToolbarMenu(void) {
   WSContentSend_P(PSTR(
-  "<nav id='ts-nav' class='ts-menu'>"
+    "<nav id='ts-nav' class='ts-menu' :style='navOpen ? \"display:block\" : \"display:none\"'>"
   ));
 
   if (WifiIsInManagerMode()) {
     WSContentSend_P(PSTR(
       "<div class='ts-menu-group'>"
-        "<a class='ts-menu-link' href='wi' onclick='tsCloseMenus();'>"
+        "<a class='ts-menu-link' href='wi'>"
           "<span class='ts-menu-copy'>"
             "<span class='ts-menu-label'>" D_CONFIGURE_WIFI "</span>"
             "<span class='ts-menu-note'>WiFi manager and onboarding</span>"
           "</span>"
         "</a>"
-        "<a class='ts-menu-link' href='.' onclick='tsCloseMenus();'>"
+        "<a class='ts-menu-link' href='.'>"
           "<span class='ts-menu-copy'>"
             "<span class='ts-menu-label'>" D_MAIN_MENU "</span>"
             "<span class='ts-menu-note'>Back to the root page</span>"
@@ -1059,21 +1059,21 @@ void WSContentSendToolbarMenu(void) {
     ));
     WSContentSend_P(PSTR(
       "<div class='ts-menu-group'>"
-        "<a class='ts-menu-link' href='rs' onclick='tsCloseMenus();'>"
+        "<a class='ts-menu-link' href='rs'>"
           "<span class='ts-menu-copy'>"
             "<span class='ts-menu-label'>" D_RESTORE_CONFIGURATION "</span>"
             "<span class='ts-menu-note'>Restore a previously saved configuration</span>"
           "</span>"
         "</a>"
       "</div>"
+      "</nav>"
     ));
-    WSContentSend_P(PSTR("</nav>"));
     return;
   }
 
   WSContentSend_P(PSTR(
     "<div class='ts-menu-group'>"
-      "<a class='ts-menu-link' href='.' onclick='tsCloseMenus();'>"
+      "<a class='ts-menu-link' href='.'>"
         "<span class='ts-menu-copy'>"
           "<span class='ts-menu-label'>" D_MAIN_MENU "</span>"
           "<span class='ts-menu-note'>Dashboard and live status</span>"
@@ -1084,43 +1084,47 @@ void WSContentSendToolbarMenu(void) {
 
   WSContentSend_P(PSTR(
     "<div class='ts-menu-group'>"
-      "<button type='button' class='ts-menu-toggle' onclick='return tsToggleSub(\"ts-sub-cfg\",\"ts-ch-cfg\",event);'>"
+      "<button type='button' class='ts-menu-toggle' "
+        "@click='navOpen=true;cfgOpen=!cfgOpen;if(cfgOpen){infoOpen=false;maintOpen=false}'>"
         "<span class='ts-menu-copy'>"
           "<span class='ts-menu-label'>" D_CONFIGURATION "</span>"
           "<span class='ts-menu-note'>Device settings and runtime options</span>"
         "</span>"
-        "<span id='ts-ch-cfg' class='ts-chevron'>&#9656;</span>"
+        "<span class='ts-chevron' :class='cfgOpen ? \"rot\" : \"\"'>&#9656;</span>"
       "</button>"
-      "<div id='ts-sub-cfg' class='ts-menu-sub'>"
-        "<a class='ts-sub-link' href='cn' onclick='tsCloseMenus();'>" D_CONFIGURATION "</a>"
-        "<a class='ts-sub-link' href='md' onclick='tsCloseMenus();'>" D_CONFIGURE_MODULE "</a>"
-        "<a class='ts-sub-link' href='wi' onclick='tsCloseMenus();'>" D_CONFIGURE_WIFI "</a>"  ));
-if (Settings->flag.mqtt_enabled) {
-  WSContentSend_P(PSTR("<a class='ts-sub-link' href='mq' onclick='tsCloseMenus();'>" D_CONFIGURE_MQTT "</a>"  ));
-}
+      "<div class='ts-menu-sub' :style='cfgOpen ? \"display:grid\" : \"display:none\"'>"
+        "<a class='ts-sub-link' href='cn'>" D_CONFIGURATION "</a>"
+        "<a class='ts-sub-link' href='md'>" D_CONFIGURE_MODULE "</a>"
+        "<a class='ts-sub-link' href='wi'>" D_CONFIGURE_WIFI "</a>"
+  ));
+
+  if (Settings->flag.mqtt_enabled) {
+    WSContentSend_P(PSTR("<a class='ts-sub-link' href='mq'>" D_CONFIGURE_MQTT "</a>"));
+  }
 
   WSContentSend_P(PSTR(
-        "<a class='ts-sub-link' href='lg' onclick='tsCloseMenus();'>" D_CONFIGURE_LOGGING "</a>"
-        "<a class='ts-sub-link' href='co' onclick='tsCloseMenus();'>" D_CONFIGURE_OTHER "</a>"
+        "<a class='ts-sub-link' href='lg'>" D_CONFIGURE_LOGGING "</a>"
+        "<a class='ts-sub-link' href='co'>" D_CONFIGURE_OTHER "</a>"
       "</div>"
     "</div>"
 
     "<div class='ts-menu-group'>"
-      "<button type='button' class='ts-menu-toggle' onclick='return tsToggleSub(\"ts-sub-info\",\"ts-ch-info\",event);'>"
+      "<button type='button' class='ts-menu-toggle' "
+        "@click='navOpen=true;infoOpen=!infoOpen;if(infoOpen){cfgOpen=false;maintOpen=false}'>"
         "<span class='ts-menu-copy'>"
           "<span class='ts-menu-label'>" D_INFORMATION "</span>"
           "<span class='ts-menu-note'>Device details and live sensor view</span>"
         "</span>"
-        "<span id='ts-ch-info' class='ts-chevron'>&#9656;</span>"
+        "<span class='ts-chevron' :class='infoOpen ? \"rot\" : \"\"'>&#9656;</span>"
       "</button>"
-      "<div id='ts-sub-info' class='ts-menu-sub'>"
-        "<a class='ts-sub-link' href='if' onclick='tsCloseMenus();'>Device Info</a>"
-        "<a class='ts-sub-link' href='is' onclick='tsCloseMenus();'>Sensors</a>"
+      "<div class='ts-menu-sub' :style='infoOpen ? \"display:grid\" : \"display:none\"'>"
+        "<a class='ts-sub-link' href='if'>Device Info</a>"
+        "<a class='ts-sub-link' href='is'>Sensors</a>"
       "</div>"
     "</div>"
 
     "<div class='ts-menu-group'>"
-      "<a class='ts-menu-link' href='up' onclick='tsCloseMenus();'>"
+      "<a class='ts-menu-link' href='up'>"
         "<span class='ts-menu-copy'>"
           "<span class='ts-menu-label'>" D_FIRMWARE_UPGRADE "</span>"
           "<span class='ts-menu-note'>OTA or local upload</span>"
@@ -1129,26 +1133,24 @@ if (Settings->flag.mqtt_enabled) {
     "</div>"
 
     "<div class='ts-menu-group'>"
-      "<button type='button' class='ts-menu-toggle' onclick='return tsToggleSub(\"ts-sub-maint\",\"ts-ch-maint\",event);'>"
+      "<button type='button' class='ts-menu-toggle' "
+        "@click='navOpen=true;maintOpen=!maintOpen;if(maintOpen){cfgOpen=false;infoOpen=false}'>"
         "<span class='ts-menu-copy'>"
           "<span class='ts-menu-label'>" D_MANAGEMENT "</span>"
           "<span class='ts-menu-note'>Console, backup and maintenance actions</span>"
         "</span>"
-        "<span id='ts-ch-maint' class='ts-chevron'>&#9656;</span>"
+        "<span class='ts-chevron' :class='maintOpen ? \"rot\" : \"\"'>&#9656;</span>"
       "</button>"
-      "<div id='ts-sub-maint' class='ts-menu-sub'>"
-        "<a class='ts-sub-link' href='cs' onclick='tsCloseMenus();'>Tasmota " D_CONSOLE "</a>"
-        "<a class='ts-sub-link' href='bc' onclick='tsCloseMenus();'> Berry Console </a>"
-        "<a class='ts-sub-link' href='ufsu' onclick='tsCloseMenus();'> Manage File System</a>"
-        "<a class='ts-sub-link' href='mn' onclick='tsCloseMenus();'>Other " D_MANAGEMENT "</a>"
-        
+      "<div class='ts-menu-sub' :style='maintOpen ? \"display:grid\" : \"display:none\"'>"
+        "<a class='ts-sub-link' href='cs'>Tasmota " D_CONSOLE "</a>"
+        "<a class='ts-sub-link' href='bc'> Berry Console </a>"
+        "<a class='ts-sub-link' href='ufsu'> Manage File System</a>"
+        "<a class='ts-sub-link' href='mn'>Other " D_MANAGEMENT "</a>"
       "</div>"
     "</div>"
-  ));
 
-  WSContentSend_P(PSTR(
     "<div class='ts-menu-group'>"
-      "<a class='ts-menu-link' href='/?rst=1' onclick='tsCloseMenus();'>"
+      "<a class='ts-menu-link' href='/?rst=1'>"
         "<span class='ts-menu-copy'>"
           "<span class='ts-menu-label'>" D_RESTART "</span>"
           "<span class='ts-menu-note'>Restart the device</span>"
@@ -1162,10 +1164,18 @@ if (Settings->flag.mqtt_enabled) {
 void WSContentSendToolbarShell(void) {
   WSContentSend_P(PSTR("<header class='ts-topbar'>"));
 
-  WSContentSend_P(PSTR("<div class='ts-topbar-left'>"));
+  WSContentSend_P(PSTR(
+    "<div class='ts-topbar-left' "
+      "x-data='{navOpen:false,cfgOpen:false,infoOpen:false,maintOpen:false}' "
+      "@keydown.escape.window='navOpen=false;cfgOpen=false;infoOpen=false;maintOpen=false' "
+      "@click.outside='navOpen=false;cfgOpen=false;infoOpen=false;maintOpen=false'>"
+  ));
 
   WSContentSend_P(PSTR(
-  "<button id='ts-nav-btn' type='button' class='ts-brand' onclick='return tsToggleNav(event);'>System</button>"
+    "<button id='ts-nav-btn' type='button' class='ts-brand' "
+      "@click.stop='navOpen=!navOpen;if(!navOpen){cfgOpen=false;infoOpen=false;maintOpen=false}'>"
+      "System"
+      "</button>"
   ));
 
   WSContentSendToolbarMenu();
@@ -2150,6 +2160,18 @@ void HandleWifiConfiguration(void) {
       PSTR("Manage station credentials, hostname and optional network settings.")
   );
 
+  WSContentSend_P(PSTR(
+    "<div x-data='{"
+      "showP1:false,"
+      "showP2:false,"
+      "showMore:%s,"
+      "pickSsid(v){"
+        "if(this.$refs.s1){this.$refs.s1.value=v;}"
+        "if(this.$refs.p1){this.$refs.p1.focus();}"
+      "}"
+    "}'>"),
+    Web.initial_config ? PSTR("false") : PSTR("true"));
+
   bool limitScannedNetworks = true;
 
   if (HTTP_MANAGER_RESET_ONLY != Web.state) {
@@ -2210,8 +2232,8 @@ void HandleWifiConfiguration(void) {
             if (!ssid_copy.length()) { ssid_copy = F("no_name"); }
 
             if (!limitScannedNetworks) {
-              WSContentSend_P(PSTR("<div><a href='#p' onclick='c(this)'>%s</a><br>"),
-                HtmlEscape(ssid_copy).c_str());
+              WSContentSend_P(PSTR("<div><a href='#p' @click.prevent='pickSsid($el.innerText || $el.textContent)'>%s</a><br>"),
+              HtmlEscape(ssid_copy).c_str());
             }
 
             skipduplicated = false;
@@ -2228,7 +2250,7 @@ void HandleWifiConfiguration(void) {
 
                   WSContentSend_P(PSTR("<div title='%d%% (%d dBm)'>"), rssi_as_quality, rssi);
                   if (limitScannedNetworks) {
-                    WSContentSend_P(PSTR("<a href='#p' onclick='c(this)'>%s</a><span class='q'><div class='si'>"), HtmlEscape(ssid_copy).c_str());
+                    WSContentSend_P(PSTR("<a href='#p' @click.prevent='pickSsid($el.innerText || $el.textContent)'>%s</a><span class='q'><div class='si'>"), HtmlEscape(ssid_copy).c_str());
                     ssid_showed++;
                     skipduplicated = true;
 #ifdef USE_HIGHLIGHT_CONNECTED_AP
@@ -2286,7 +2308,7 @@ void HandleWifiConfiguration(void) {
           int quality = WifiGetRssiAsQuality(rssi);
           String ssid_copy = WiFi.SSID(indices[i]);
           if (!ssid_copy.length()) { ssid_copy = F("no_name"); }
-          WSContentSend_P(PSTR("<div><a href='#p' onclick='c(this)'>%s</a>&nbsp;(%d)&nbsp;<span class='q'>%d%% (%d dBm)</span></div>"),
+          WSContentSend_P(PSTR("<div><a href='#p' @click.prevent='pickSsid($el.innerText || $el.textContent)'>%s</a>&nbsp;(%d)&nbsp;<span class='q'>%d%% (%d dBm)</span></div>"),
             HtmlEscape(ssid_copy).c_str(),
             WiFi.channel(indices[i]),
             quality, rssi);
@@ -2324,6 +2346,7 @@ void HandleWifiConfiguration(void) {
 
   if (WifiIsInManagerMode()) {
     WSContentCardStart(PSTR("Actions"), nullptr);
+
     if (WIFI_TESTING == Wifi.wifiTest) {
       WSContentSend_P(PSTR("<div class='ts-note ts-soft'>" D_TRYING_TO_CONNECT " %s</div>"),
         SettingsTextEscaped(SET_STASSID1).c_str());
@@ -2332,26 +2355,25 @@ void HandleWifiConfiguration(void) {
         SettingsTextEscaped(SET_STASSID1).c_str());
     }
 
-    WSContentSend_P(PSTR("<div id=butmod style=\"display:%s;\"></div><p></p><form id=butmo style=\"display:%s;\"><button type='button' onclick='hidBtns()'>" D_SHOW_MORE_OPTIONS "</button></form>"),
-      (WIFI_TEST_FINISHED_BAD == Wifi.wifiTest) ? "none" : Web.initial_config ? "block" : "none",
-      Web.initial_config ? "block" : "none"
-    );
+    if (WIFI_TEST_FINISHED_BAD != Wifi.wifiTest) {
+      WSContentSend_P(PSTR(
+        "<form :style='showMore ? \"display:none\" : \"display:block\"'>"
+          "<button type='button' @click='showMore=true'>" D_SHOW_MORE_OPTIONS "</button>"
+        "</form>"
+      ));
+    }
 
-    WSContentSend_P(PSTR("<div id='wm-restore' style='display:%s;'>"), Web.initial_config ? "none" : "block");
+    WSContentSend_P(PSTR("<div :style='showMore ? \"display:block\" : \"display:none\"'>"));
     WSContentSpaceButton(BUTTON_RESTORE, true);
-    WSContentSend_P(PSTR("</div>"));
-
-    WSContentSend_P(PSTR("<div id='wm-reset' style='display:%s;'>"), Web.initial_config ? "none" : "block");
     WSContentButton(BUTTON_RESET_CONFIGURATION, true);
-    WSContentSend_P(PSTR("</div>"));
-    WSContentSend_P(PSTR("<div id='wm-restart' style='display:%s;'>"), Web.initial_config ? "none" : "block");
     WSContentSpaceButton(BUTTON_RESTART, true);
     WSContentSend_P(PSTR("</div>"));
+
     WSContentCardEnd();
-  } 
+  }
 
   
-
+  WSContentSend_P(PSTR("</div>"));
   WSContentStop();
 }
 
