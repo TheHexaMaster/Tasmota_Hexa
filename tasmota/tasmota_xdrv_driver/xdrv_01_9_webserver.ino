@@ -52,6 +52,8 @@ const uint16_t HTTP_OTA_RESTART_RECONNECT_TIME = 15000;  // milliseconds - Allow
 
 #include <ESP8266WebServer.h>
 #include <DNSServer.h>
+#include "coreui.h"                                      // CORE JS Functions
+#include "alpine_js_gz.h"                                // Extented AlpineJS For new UI
 
 const char HTTP_HEADER1[] PROGMEM =
   "<!DOCTYPE html><html lang=\"%s\" class=\"\">"
@@ -61,302 +63,8 @@ const char HTTP_HEADER1[] PROGMEM =
   "<link rel=\"icon\" href=\"data:image/x-icon;base64,AAABAAEAEBACAAEAAQCwAAAAFgAAACgAAAAQAAAAIAAAAAEAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AP5/b+H6X2/h8k9v4eZnb+Hud2/h7ndv4e53b+FmZm/hMkxv4ZgZb+HOc2/h5+dv4fPPb+H5n2/h/D9v4f5/b+EAAO4EAADuBAAA7gQAAO4EAADuBAAA7gQAAO4EAADuBAAA7gQAAO4EAADuBAAA7gQAAO4EAADuBAAA7gQAAO4E\">"
   "<title>%s %s</title>";
 
-const char HTTP_SCRIPT_CORE[] PROGMEM =
-  "var x=null,lt,to,tp,pc='';"
-  "eb=s=>document.getElementById(s);"
-  "qs=s=>document.querySelector(s);"
-  "sp=i=>eb(i).type=(eb(i).type==='text'?'password':'text');"
-  "wl=f=>window.addEventListener('load',f);"
 
-  "function tsSetDisp(i,v){var e=eb(i);if(e)e.style.display=v;}"
-  "function tsSetRot(i,on){var e=eb(i);if(e)e.className=on?'ts-chevron rot':'ts-chevron';}"
-  "function tsCloseMenus(){"
-    "tsSetDisp('ts-nav','none');"
-    "tsSetDisp('ts-sub-cfg','none');"
-    "tsSetDisp('ts-sub-info','none');"
-    "tsSetDisp('ts-sub-maint','none');"
-    "tsSetRot('ts-ch-cfg',false);"
-    "tsSetRot('ts-ch-info',false);"
-    "tsSetRot('ts-ch-maint',false);"
-  "}"
-  "function tsToggleNav(ev){"
-    "if(ev)ev.stopPropagation();"
-    "var n=eb('ts-nav');"
-    "if(!n)return false;"
-    "var open=('block'===n.style.display);"
-    "tsCloseMenus();"
-    "if(!open){n.style.display='block';}"
-    "return false;"
-  "}"
-  "function tsToggleSub(id,ch,ev){"
-    "if(ev)ev.stopPropagation();"
-    "var e=eb(id);"
-    "if(!e)return false;"
-    "var open=('grid'===e.style.display);"
-    "tsSetDisp('ts-sub-cfg','none');"
-    "tsSetDisp('ts-sub-info','none');"
-    "tsSetDisp('ts-sub-maint','none');"
-    "tsSetRot('ts-ch-cfg',false);"
-    "tsSetRot('ts-ch-info',false);"
-    "tsSetRot('ts-ch-maint',false);"
-    "if(!open){"
-      "e.style.display='grid';"
-      "tsSetRot(ch,true);"
-    "}"
-    "return false;"
-  "}"
-  "function tsDocClick(ev){"
-    "var nav=eb('ts-nav'),btn=eb('ts-nav-btn');"
-    "if(!nav||!btn)return;"
-    "if('block'!==nav.style.display)return;"
-    "if(nav.contains(ev.target)||btn.contains(ev.target))return;"
-    "tsCloseMenus();"
-  "}"
-  "function tsInit(){"
-    "tsCloseMenus();"
-    "document.addEventListener('click',tsDocClick);"
-    "document.addEventListener('keydown',function(e){if('Escape'===e.key)tsCloseMenus();});"
-  "}"
-  "wl(tsInit);"
-
-  "function jd(){"
-    "var t=0,i=document.querySelectorAll('input,button,textarea,select');"
-    "while(i.length>=t){"
-      "if(i[t]){"
-        "i[t]['name']=(i[t].hasAttribute('id')&&(!i[t].hasAttribute('name')))?i[t]['id']:i[t]['name'];"
-      "}"
-      "t++;"
-    "}"
-  "}"
-  "function sf(s){"
-    "var t=0,i=document.querySelectorAll('.hf');"
-    "while(i.length>=t){"
-      "if(i[t]){"
-        "i[t].style.display=s?'block':'none';"
-      "}"
-      "t++;"
-    "}"
-  "}"
-  "wl(jd);";
-
-const char HTTP_SCRIPT_UPLOAD[] PROGMEM =
-  "function su(t){"
-    "eb('f3').style.display='none';"
-    "eb('f2').style.display='block';"
-    "t.form.submit();"
-  "}"
-  "function upl(t){"
-    "var sl=t.form['u2'].files[0].slice(0,1);"
-    "var rd=new FileReader();"
-    "rd.onload=()=>{"
-      "var bb=new Uint8Array(rd.result);"
-      "if(bb.length==1&&bb[0]==0xE9){"
-        "fct(t);"
-      "}else{"
-        "t.form.submit();"
-      "};"
-    "};"
-    "rd.readAsArrayBuffer(sl);"
-    "return false;"
-  "};"
-  "function fct(t){"
-    "var x=new XMLHttpRequest();"
-    "x.open('GET','/u4?u4=fct&api=',true);"
-    "x.onreadystatechange=()=>{"
-      "if(x.readyState==4&&x.status==200){"
-        "var s=x.responseText;"
-        "if(s=='false')setTimeout(()=>{fct(t);},6000);"
-        "if(s=='true')setTimeout(()=>{su(t);},1000);"
-      "}else if(x.readyState==4&&x.status==0){"
-        "setTimeout(()=>{fct(t);},2000);"
-      "};"
-    "};"
-    "x.send();"
-  "}";
-
-
-const char HTTP_SCRIPT_COUNTER[] PROGMEM =
-  "var cn=180;"
-  "function u(){"
-    "if(cn>=0){"
-      "var e=eb('t');"
-      "if(e)e.innerHTML='" D_RESTART_IN " '+cn+' " D_SECONDS "';"
-      "cn--;"
-      "setTimeout(u,1000);"
-    "}"
-  "}"
-  "wl(u);";
-
-
-const char HTTP_SCRIPT_ROOT[] PROGMEM =
-  "var tsrf={xhr:null,lt:0,ft:0};"
-  "function tsRfIds(){"
-    "var n=document.querySelectorAll('[data-tsrf=\"1\"][id]'),a=[],i;"
-    "for(i=0;i<n.length;i++){a.push(n[i].id);}"
-    "return a.join(',');"
-  "}"
-  "function tsRfFmt(s){"
-    "return s.replace(/{t}/g,\"<table style='width:100%%'>\")"
-            ".replace(/{s}/g,\"<tr><th>\")"
-            ".replace(/{m}/g,\"</th><td style='width:20px;white-space:nowrap'>\")"
-            ".replace(/{e}/g,\"</td></tr>\");"
-  "}"
-  "function tsRfApply(s){"
-    "var b='~#RF#~',m='~#RM#~',e='~#RE#~',p=0;"
-    "while(true){"
-      "var i=s.indexOf(b,p);"
-      "if(i<0)break;"
-      "var j=s.indexOf(m,i+b.length);"
-      "if(j<0)break;"
-      "var k=s.indexOf(e,j+m.length);"
-      "if(k<0)break;"
-      "var id=s.substring(i+b.length,j);"
-      "var html=s.substring(j+m.length,k);"
-      "if(id==='@js'){"
-        "try{(new Function(html))();}catch(ex){}"
-      "}else{"
-        "var el=eb(id);"
-        "if(el){el.innerHTML=tsRfFmt(html);}"
-      "}"
-      "p=k+e.length;"
-    "}"
-  "}"
-  "function la(p){"
-    "var a=p||'',ids=tsRfIds(),u='?m=1';"
-    "if(!ids&&!a){return;}"
-    "clearTimeout(tsrf.ft);"
-    "clearTimeout(tsrf.lt);"
-    "if(tsrf.xhr!=null){tsrf.xhr.abort();}"
-    "if(ids){u+='&rf='+encodeURIComponent(ids);}"
-    "u+=a;"
-    "tsrf.xhr=new XMLHttpRequest();"
-    "tsrf.xhr.onreadystatechange=()=>{"
-      "if(tsrf.xhr.readyState==4&&tsrf.xhr.status==200){"
-        "tsRfApply(tsrf.xhr.responseText);"
-        "clearTimeout(tsrf.ft);"
-        "clearTimeout(tsrf.lt);"
-        "tsrf.lt=setTimeout(la,%d);"
-      "}"
-    "};"
-    "tsrf.xhr.open('GET',u,true);"
-    "tsrf.xhr.send();"
-    "tsrf.ft=setTimeout(la,2e4);"
-  "}";
-
-
-const char HTTP_SCRIPT_ROOT_PART2[] PROGMEM =
-  "function lc(v,i,p){"
-    "if(eb('s')){"                        // Check if Saturation is in DOM otherwise javascript fails on la()
-      "if(v=='h'||v=='d'){"               // Hue or Brightness changed so change Saturation colors too
-        "var sl=eb('sl4').value;"
-        "eb('s').style.background='linear-gradient(to right,rgb('+sl+'%%,'+sl+'%%,'+sl+'%%),hsl('+eb('sl2').value+',100%%,50%%))';"
-      "}"
-    "}"
-    "la('&'+v+i+'='+p);"
-  "}";
-
-const char HTTP_SCRIPT_ROOT_AUTOLOAD[] PROGMEM =
-  "wl(la);";
-
-
-
-const char HTTP_SCRIPT_WIFI[] PROGMEM =
-  "function c(l){"
-    "eb('s1').value=l.innerText||l.textContent;"
-    "eb('p1').focus();"
-  "}";
-
-const char HTTP_SCRIPT_HIDE[] PROGMEM =
-  "function hidBtns(){"
-    "if(eb('butmo'))eb('butmo').style.display='none';"
-    "if(eb('butmod'))eb('butmod').style.display='none';"
-    "if(eb('wm-restart'))eb('wm-restart').style.display='block';"
-    "if(eb('wm-reset'))eb('wm-reset').style.display='block';"
-    "if(eb('wm-restore'))eb('wm-restore').style.display='block';"
-  "}";
-
-const char HTTP_SCRIPT_RELOAD_TIME[] PROGMEM =
-  "setTimeout(function(){location.href='.';},%d);";
-
-const char HTTP_SCRIPT_CONSOL[] PROGMEM =
-  "var sn=0,id=0,ft,ltm=%d;"                      // Scroll position, Get most of weblog initially
-  "function l(p){"                        // Console log and command service
-    "var c,o='';"
-    "clearTimeout(lt);"
-    "clearTimeout(ft);"
-    "t=eb('t1');"
-    "if(p==1){"
-      "c=eb('c1');"                       // Console command id
-      "o='&c1='+encodeURIComponent(c.value);"
-      "c.value='';"
-      "t.scrollTop=1e8;"
-      "sn=t.scrollTop;"
-    "}"
-    "if(t.scrollTop>=sn){"                // User scrolled back so no updates
-      "if(x!=null){x.abort();}"           // Abort if no response within 2 seconds (happens on restart 1)
-      "x=new XMLHttpRequest();"
-      "x.onreadystatechange=()=>{"
-        "if(x.readyState==4&&x.status==200){"
-          "var z,d;"
-          "d=x.responseText.split(/}1/);"  // Field separator
-          "id=d.shift();"
-          "if(d.shift()==0){t.value='';}"
-          "z=d.shift();"
-          "if(z.length>0){t.value+=z;}"
-          "t.scrollTop=1e8;"
-          "sn=t.scrollTop;"
-          "clearTimeout(ft);"
-          "lt=setTimeout(l,ltm);" // webrefresh timer....
-        "}"
-      "};"
-      "x.open('GET','cs?c2='+id+o,true);"  // Related to Webserver->hasArg("c2") and WebGetArg("c2", stmp, sizeof(stmp))
-      "x.send();"
-      "ft=setTimeout(l,2e4);" // fail timeout, triggered 20s after asking for XHR
-    "}else{"
-      "lt=setTimeout(l,ltm);" // webrefresh timer....
-    "}"
-    "return false;"
-  "}"
-  "wl(l);"                                // Load initial console text
-
-  // Console command history
-  "var hc=[],cn=0;"                       // hc = History commands, cn = Number of history being shown
-  "function h(){"
-//    "if(!(navigator.maxTouchPoints||'ontouchstart'in document.documentElement)){eb('c1').autocomplete='off';}"  // No touch so stop browser autocomplete
-    "eb('c1').addEventListener('keydown',e=>{"
-      "var b=eb('c1'),c=e.keyCode;"       // c1 = Console command id
-      "if(38==c||40==c){" // ArrowUp or ArrowDown
-        "b.autocomplete='off';" // ArrowUp or ArrowDown must be a keyboard so stop browser autocomplete
-        "setTimeout(b=>{" // for best compatibility (chrome) we need to schedule this function
-          "b.focus();" // for best compatibility (chrome) we need to (re)focus the input element
-          "b.setSelectionRange(1e9,1e9)" // move cursor to the end (hopefully) of the command inserted from history
-        "},0,b)"
-      "}"
-      "38==c?(++cn>hc.length&&(cn=hc.length),b.value=hc[cn-1]||''):"   // ArrowUp
-      "40==c?(0>--cn&&(cn=0),b.value=hc[cn-1]||''):"                   // ArrowDown
-      "13==c&&(hc.length>19&&hc.pop(),hc.unshift(b.value),cn=0)"       // Enter, 19 = Max number -1 of commands in history
-    "});"
-  "}"
-  "wl(h);";                               // Add console command key eventlistener after name has been synced with id (= wl(jd))
-
-
-
-
-
-const char HTTP_SCRIPT_INFO_BEGIN[] PROGMEM =
-  "function i(){"
-    "var s,o=\"";
-
-const char HTTP_SCRIPT_INFO_END[] PROGMEM =
-    "\";"
-    "s=o.replace(/}1/g,\"</td></tr><tr><th>\").replace(/}2/g,\"</th><td>\");"
-    "eb('i').innerHTML=s;"
-  "}"
-  "window.addEventListener('load',i);";
-
-// SCRIPTS
-
-const char HTTP_HEAD_STYLE_ROOT_COLOR[] PROGMEM =
+const char HTTP_HEAD_STYLE_COLOR[] PROGMEM =
   "<style>"
   ":root{"
   "--c_bg:#%06x;"
@@ -381,7 +89,7 @@ const char HTTP_HEAD_STYLE_ROOT_COLOR[] PROGMEM =
   "--c_tabtxt:#%06x;"
   "}";
 
-const char HTTP_HEAD_STYLE1[] PROGMEM =
+const char HTTP_HEAD_STYLE_BODY[] PROGMEM =
   "html{height:100%;box-sizing:border-box;overflow-x:hidden;}"
   "*,*::before,*::after{box-sizing:inherit;}"
   "body{margin:0;padding:0;min-height:100%;text-align:center;font-family:verdana,sans-serif;background:var(--c_bg);color:var(--c_txt);overflow-x:hidden;}"  // COLOR_BACKGROUND
@@ -397,9 +105,7 @@ const char HTTP_HEAD_STYLE1[] PROGMEM =
   "input[type=range]{width:99%;}"
   "select{width:100%;background:var(--c_in);color:var(--c_intxt);}"  // COLOR_INPUT, COLOR_INPUT_TEXT
   "textarea{resize:vertical;width:100%;height:318px;padding:5px;overflow:auto;background:var(--c_csl);color:var(--c_csltxt);}"  // COLOR_CONSOLE, COLOR_CONSOLE_TEXT
-  "td{padding:0px;}";
-
-const char HTTP_HEAD_STYLE2[] PROGMEM =
+  "td{padding:0px;}"
   "button{border:0;border-radius:0.3rem;background:var(--c_btn);color:var(--c_btntxt);line-height:2.4rem;font-size:1.2rem;width:100%;-webkit-transition-duration:0.4s;transition-duration:0.4s;cursor:pointer;}"  // COLOR_BUTTON, COLOR_BUTTON_TEXT
   "button:hover{background:var(--c_btnhvr);}"  // COLOR_BUTTON_HOVER
   ".bred{background:var(--c_btnrst);}"  // COLOR_BUTTON_RESET
@@ -411,9 +117,7 @@ const char HTTP_HEAD_STYLE2[] PROGMEM =
   ".q{float:right;text-align:right;}"
   ".r{border-radius:0.3em;padding:2px;margin:4px 2px;}"
   ".hf{display:none;}"
-  ".ts-brand{width:auto;}";
-
-const char HTTP_HEAD_STYLE_SHELL[] PROGMEM =
+  ".ts-brand{width:auto;}"
   ".ts-shell{min-height:100vh;width:100%;margin:0;padding:0;}"
   ".ts-topbar{"
     "position:sticky;top:0;left:0;z-index:1000;"
@@ -486,9 +190,7 @@ const char HTTP_HEAD_STYLE_SHELL[] PROGMEM =
     ".ts-status{padding:0 8px;font-size:11px;}"
     ".ts-content{width:calc(100vw - 12px);margin:12px auto 20px;}"
     ".ts-menu{top:58px;left:0;width:min(320px,calc(100vw - 16px));}"
-  "}";
-
-const char HTTP_HEAD_STYLE_SHELL2[] PROGMEM =
+  "}"
   ".ts-info-wrap table{width:100%%;border-collapse:collapse;}"
   ".ts-info-wrap th{padding-right:8px;text-align:left;color:var(--c_ttl);vertical-align:top;}"
   ".ts-info-wrap td{color:var(--c_txt);vertical-align:top;word-break:break-word;}"
@@ -540,23 +242,20 @@ const char HTTP_HEAD_STYLE_SHELL2[] PROGMEM =
 ".ts-check-item{display:inline-flex;align-items:center;gap:8px;font-weight:700;color:var(--c_ttl);}"
 ".ts-check-item input[type=checkbox]{margin:0;width:1rem;}"
 ".ts-form-actions{padding-top:4px;}"
-".ts-form-actions button{margin:0;}";
+".ts-form-actions button{margin:0;}"
+".wifi{width:18px;height:12px;position:relative}"
+".arc{padding:0;position:absolute;border:2px solid transparent;border-radius:50%;border-top-color:var(--c_txt)}"
+".a0{width:2px;height:3px;top:9px;left:8px}"
+".a1{width:6px;height:6px;top:6px;left:6px}"
+".a2{width:12px;height:12px;top:3px;left:3px}"
+".a3{width:18px;height:18px;top:0px;left:0px}"
+".o30{opacity:.3}";
 
-const char HTTP_HEAD_STYLE3[] PROGMEM =
-  "</style>"
-  "</head>"
-  "<body>"
-  "<div class='ts-shell'>";
-
-const char HTTP_HEAD_STYLE_WIFI[] PROGMEM =
-  ".wifi{width:18px;height:12px;position:relative}"
-  ".arc{padding:0;position:absolute;border:2px solid transparent;border-radius:50%;border-top-color:var(--c_txt)}"
-  ".a0{width:2px;height:3px;top:9px;left:8px}"
-  ".a1{width:6px;height:6px;top:6px;left:6px}"
-  ".a2{width:12px;height:12px;top:3px;left:3px}"
-  ".a3{width:18px;height:18px;top:0px;left:0px}"
-  ".o30{opacity:.3}"
-  ;
+const char HTTP_HEAD_STYLE_END[] PROGMEM =
+"</style>"
+"</head>"
+"<body>"
+"<div class='ts-shell'>";
 
 const char HTTP_FORM_UPG_CARD[] PROGMEM =
   "<form method='get' action='u1'>"
@@ -819,18 +518,6 @@ enum WebCmndStatus { WEBCMND_DONE, WEBCMND_WRONG_PARAMETERS, WEBCMND_CONNECT_FAI
 
 // NEW ENUMS
 
-enum WSScriptFlags : uint16_t {
-  WS_SCRIPT_NONE          = 0,
-  WS_SCRIPT_COUNTER       = 1 << 0,
-  WS_SCRIPT_ROOT          = 1 << 1,
-  WS_SCRIPT_ROOT_AUTOLOAD = 1 << 2,
-  WS_SCRIPT_WIFI          = 1 << 3,
-  WS_SCRIPT_HIDE          = 1 << 4,
-  WS_SCRIPT_CONSOLE       = 1 << 5,
-  WS_SCRIPT_RELOAD        = 1 << 6,
-  WS_SCRIPT_UPLOAD        = 1 << 7
-};
-
 static const char WS_SECTION_TOPBAR_STATUS[] = "ts-topbar-status";
 static const char WS_SECTION_ROOT_LIVE[]     = "ts-root-live";
 static const char WS_SECTION_SENSOR_LIVE[]   = "ts-sensor-live";
@@ -1003,6 +690,44 @@ void WebServer_removeRoute(const char * prefix, uint8_t method = HTTP_ANY) {
   Webserver->removeRoute(prefix, (HTTPMethod) method);
 }
 
+static void WSAssetSendServerHeader(void) {
+  char server[32];
+  snprintf_P(server, sizeof(server), PSTR("Tasmota/%s (%s)"), TasmotaGlobal.version, GetDeviceHardware().c_str());
+  Webserver->sendHeader(F("Server"), server);
+}
+
+void HandleStaticCoreuiJs(void) {
+  WSAssetSendServerHeader();
+  Webserver->sendHeader(F("Cache-Control"), F("no-cache, no-store, must-revalidate"));
+  Webserver->sendHeader(F("Pragma"), F("no-cache"));
+  Webserver->sendHeader(F("Expires"), F("-1"));
+  Webserver->send_P(
+    200,
+    PSTR("application/javascript; charset=utf-8"),
+    HTTP_COREUI_JS,
+    HTTP_COREUI_JS_LEN
+  );
+}
+
+void HandleStaticAlpineJs(void) {
+  WSAssetSendServerHeader();
+  Webserver->sendHeader(F("Cache-Control"), F("public, max-age=31536000, immutable"));
+  Webserver->sendHeader(F("Vary"), F("Accept-Encoding"));
+  Webserver->sendHeader(F("Content-Encoding"), F("gzip"));
+  Webserver->send_P(
+    200,
+    PSTR("application/javascript; charset=utf-8"),
+    (PGM_P)ws_alpine_js_gz,
+    ws_alpine_js_gz_len
+  );
+}
+
+void WSContentSendJsImports(void) {
+  WSContentSend_P(PSTR(
+    "<script src='/static/coreui.js'></script>"
+    "<script defer src='/static/alpine.js'></script>"
+  ));
+}
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
@@ -1037,6 +762,10 @@ void StartWebserver(int type) {
         // register
         WebServer_on(uri, line.handler, pgm_read_byte(&line.method));
       }
+
+      Webserver->on("/static/coreui.js", HTTP_GET, HandleStaticCoreuiJs);
+      Webserver->on("/static/alpine.js", HTTP_GET, HandleStaticAlpineJs);
+
       Webserver->onNotFound(HandleNotFound);
 //      Webserver->on(F("/u2"), HTTP_POST, HandleUploadDone, HandleUploadLoop);  // this call requires 2 functions so we keep a direct call
       Webserver->on("/u2", HTTP_POST, HandleUploadDone, HandleUploadLoop);  // this call requires 2 functions so we keep a direct call
@@ -1169,46 +898,33 @@ void WSScriptStop(void) {
   WSContentSend_P(PSTR("</script>"));
 }
 
-void WSSendPageScripts(uint16_t flags, uint32_t reload_time = 0) {
-  if (!flags) { return; }
-
-  WSScriptStart();
-
-  if ((flags & WS_SCRIPT_COUNTER) && WifiIsInManagerMode() && (!Web.initial_config)) {
+void WSSendPageInitCounterIfNeeded(void) {
+  if (WifiIsInManagerMode() && (!Web.initial_config)) {
     if (WifiConfigCounter()) {
-      WSContentSendRaw_P(HTTP_SCRIPT_COUNTER);
+      WSScriptStart();
+      WSContentSend_P(PSTR("wl(function(){tsCounterStart(180);});"));
+      WSScriptStop();
     }
   }
+}
 
-  if (flags & WS_SCRIPT_ROOT) {
-    WSContentSend_P(HTTP_SCRIPT_ROOT, Settings->web_refresh);
-    WSContentSendRaw_P(HTTP_SCRIPT_ROOT_PART2);
-  }
+void WSSendPageInitRootAutoload(void) {
+  WSScriptStart();
+  WSContentSend_P(PSTR("wl(function(){tsRootStart(%u);});"), Settings->web_refresh);
+  WSScriptStop();
+}
 
-  if (flags & WS_SCRIPT_ROOT_AUTOLOAD) {
-    WSContentSendRaw_P(HTTP_SCRIPT_ROOT_AUTOLOAD);
-  }
+void WSSendPageInitConsole(void) {
+  WSScriptStart();
+  WSContentSend_P(PSTR("wl(function(){tsConsoleStart(%u);});"), Settings->web_refresh);
+  WSScriptStop();
+}
 
-  if (flags & WS_SCRIPT_WIFI) {
-    WSContentSendRaw_P(HTTP_SCRIPT_WIFI);
-  }
+void WSSendPageInitReload(uint32_t reload_time) {
+  if (!reload_time) { return; }
 
-  if (flags & WS_SCRIPT_HIDE) {
-    WSContentSendRaw_P(HTTP_SCRIPT_HIDE);
-  }
-
-  if (flags & WS_SCRIPT_CONSOLE) {
-    WSContentSend_P(HTTP_SCRIPT_CONSOL, Settings->web_refresh);
-  }
-
-  if ((flags & WS_SCRIPT_RELOAD) && reload_time) {
-    WSContentSend_P(HTTP_SCRIPT_RELOAD_TIME, reload_time);
-  }
-
-  if (flags & WS_SCRIPT_UPLOAD) {
-    WSContentSendRaw_P(HTTP_SCRIPT_UPLOAD);
-  }
-
+  WSScriptStart();
+  WSContentSend_P(PSTR("tsSetReload(%u);"), reload_time);
   WSScriptStop();
 }
 
@@ -1674,21 +1390,14 @@ void WSContentStart_P(const char* title) {
 /*-------------------------------------------------------------------------------------------*/
 
 void WSContentSendStyle_P(const char* formatP, ...) {
-  WSScriptStart();
 
-  WSContentSendRaw_P(HTTP_SCRIPT_CORE);
+  WSContentSendJsImports();
 
-  if (WifiIsInManagerMode() && (!Web.initial_config)) {
-    if (WifiConfigCounter()) {
-      WSContentSendRaw_P(HTTP_SCRIPT_COUNTER);
-    }
-  }
+  WSSendPageInitCounterIfNeeded();
 
-
-  WSScriptStop();
 
   // Output style root colors by names
-  WSContentSend_P(HTTP_HEAD_STYLE_ROOT_COLOR,
+  WSContentSend_P(HTTP_HEAD_STYLE_COLOR,
                   WebColor(COL_BACKGROUND),           // --c_bg
                   WebColor(COL_FORM),                 // --c_frm
                   WebColor(COL_TITLE),                // --c_ttl
@@ -1711,14 +1420,8 @@ void WSContentSendStyle_P(const char* formatP, ...) {
                   WebColor(COL_TIMER_TAB_TEXT)        // --c_tabtxt
   );
 
-  WSContentSendRaw_P(HTTP_HEAD_STYLE1);
-  WSContentSendRaw_P(HTTP_HEAD_STYLE2);
-  WSContentSendRaw_P(HTTP_HEAD_STYLE_SHELL);
-  WSContentSendRaw_P(HTTP_HEAD_STYLE_SHELL2);
+  WSContentSendRaw_P(HTTP_HEAD_STYLE_BODY);
 
-#ifdef USE_WEB_STATUS_LINE_WIFI
-  WSContentSendRaw_P(HTTP_HEAD_STYLE_WIFI);
-#endif
   if (formatP != nullptr) {
     // This uses char strings. Be aware of sending %% if % is needed
     va_list arg;
@@ -1731,42 +1434,10 @@ void WSContentSendStyle_P(const char* formatP, ...) {
     WSContentSend_P(PSTR("body{background:%s 0 0 / cover no-repeat fixed;}"), SettingsText(SET_CANVAS));
   }
 
-  WSContentSend_P(HTTP_HEAD_STYLE3);
+  WSContentSend_P(HTTP_HEAD_STYLE_END);
 
   WSContentSendToolbarShell();
 
-  // SetOption53 - Show hostname and IP address in GUI main menu
-#if (RESTART_AFTER_INITIAL_WIFI_CONFIG)
-  if (Settings->flag3.gui_hostname_ip) {            // SetOption53 - (GUI) Show hostname and IP address in GUI main menu
-#else
-  if ( Settings->flag3.gui_hostname_ip || ( (WiFi.getMode() == WIFI_AP_STA) && (!Web.initial_config) )  ) {
-#endif
-    bool lip = WifiHasIP();
-    bool sip = (static_cast<uint32_t>(WiFi.softAPIP()) != 0);
-    bool eip = false;
-    if (lip || sip) {
-        WSContentSend_P(PSTR("<div class='ts-hostline'>%s%s (%s%s%s)"),    // tasmota.local (192.168.2.12, 192.168.4.1)
-        TasmotaGlobal.hostname,
-        (Mdns.begun) ? PSTR(".local") : "",
-        (lip) ? WiFi.localIP().toString().c_str() : "",
-        (lip && sip) ? ", " : "",
-        (sip) ? WiFi.softAPIP().toString().c_str() : "");
-    }
-
-#if defined(USE_ETHERNET)
-    eip = EthernetHasIP();
-    if (eip) {
-      WSContentSend_P(PSTR("%s%s%s (%s)"),          // tasmota-eth.local (192.168.2.13)
-        (lip || sip) ? PSTR("<br>") : PSTR("<div class='ts-hostline'>"),
-        EthernetHostname(),
-        (Mdns.begun) ? PSTR(".local") : "",
-        (eip) ? EthernetLocalIP().toString().c_str() : "");
-    }
-#endif
-    if (lip || sip || eip) {
-      WSContentSend_P(PSTR("</div>"));
-    }
-  }
 }
 
 /*-------------------------------------------------------------------------------------------*/
@@ -1942,19 +1613,21 @@ void WebRestart(uint32_t type) {
   WSScriptStart();
   #if ((RESTART_AFTER_INITIAL_WIFI_CONFIG) && (AFTER_INITIAL_WIFI_CONFIG_GO_TO_NEW_IP))
     if (3 == type) {
-      WSContentSend_P(PSTR("setTimeout(function(){location.href='http://%s';},%d);"),
-        IPForUrl(WiFi.localIP()).c_str(),
-        HTTP_RESTART_RECONNECT_TIME
+      WSContentSend_P(PSTR("tsSetReload(%u,'http://%s');"),
+        HTTP_RESTART_RECONNECT_TIME,
+        IPForUrl(WiFi.localIP()).c_str()
       );
     } else {
-      WSContentSend_P(HTTP_SCRIPT_RELOAD_TIME, HTTP_RESTART_RECONNECT_TIME);
+      WSContentSend_P(PSTR("tsSetReload(%u);"), HTTP_RESTART_RECONNECT_TIME);
     }
   #else
     if (!(3 == type)) {
-      WSContentSend_P(HTTP_SCRIPT_RELOAD_TIME, HTTP_RESTART_RECONNECT_TIME);
+      WSContentSend_P(PSTR("tsSetReload(%u);"), HTTP_RESTART_RECONNECT_TIME);
     }
   #endif
   WSScriptStop();
+
+
   if (type) {
     if (!(3 == type)) {
       WSContentSend_P(PSTR("<div style='text-align:center;'><b>%s</b><br><br></div>"),
@@ -2083,7 +1756,7 @@ void HandleRoot(void) {
 
   WSContentStart_P(PSTR(D_MAIN_MENU));
   WSContentSendStyle();
-  WSSendPageScripts(WS_SCRIPT_ROOT | WS_SCRIPT_ROOT_AUTOLOAD);
+  WSSendPageInitRootAutoload();
 
 // REMOVED DEVICE BUTTONS BY TASMOTA ON DASHBOARD
 /*
@@ -2491,15 +2164,9 @@ void HandleWifiConfiguration(void) {
     WSContentSendStyle();
   #endif
 
-  uint16_t wifi_scripts = WS_SCRIPT_WIFI;
-  if (WifiIsInManagerMode()) {
-    wifi_scripts |= WS_SCRIPT_HIDE;
-  }
   if (WIFI_TESTING == Wifi.wifiTest) {
-    wifi_scripts |= WS_SCRIPT_RELOAD;
+    WSSendPageInitReload(HTTP_RESTART_RECONNECT_TIME);
   }
-
-  WSSendPageScripts(wifi_scripts, HTTP_RESTART_RECONNECT_TIME);
 
   WSContentPageHeader(
     PSTR(D_CONFIGURE_WIFI),
@@ -2937,7 +2604,6 @@ void HandleRestoreConfiguration(void) {
 
   WSContentStart_P(PSTR(D_RESTORE_CONFIGURATION));
   WSContentSendStyle();
-  WSSendPageScripts(WS_SCRIPT_UPLOAD);
   WSContentPageHeader(PSTR(D_RESTORE_CONFIGURATION), PSTR("Restore settings from a previously downloaded configuration file."));
 
   WSContentCardStart(PSTR(D_RESTORE_CONFIGURATION), nullptr);
@@ -3011,7 +2677,7 @@ void HandleInformationSensors(void) {
 
   WSContentStart_P(PSTR("Sensors"));
   WSContentSendStyle();
-  WSSendPageScripts(WS_SCRIPT_ROOT | WS_SCRIPT_ROOT_AUTOLOAD);
+  WSSendPageInitRootAutoload();
 
   WSContentPageHeader(PSTR("Sensors"), PSTR("Live sensor values and device status refreshed automatically."));
   WSContentCardStart(PSTR("Sensors"), nullptr);
@@ -3430,7 +3096,6 @@ void HandleUpgradeFirmware(void) {
 
   WSContentStart_P(PSTR(D_FIRMWARE_UPGRADE));
   WSContentSendStyle();
-  WSSendPageScripts(WS_SCRIPT_UPLOAD);
   WSContentPageHeader(PSTR(D_FIRMWARE_UPGRADE), PSTR("Update firmware using OTA URL or a local file upload."));
 
   WSContentCardStart(PSTR(D_UPGRADE_BY_WEBSERVER), nullptr);
@@ -3474,7 +3139,7 @@ void HandleUpgradeFirmwareStart(void) {
 
   WSContentStart_P(PSTR(D_INFORMATION));
   WSContentSendStyle();
-  WSSendPageScripts(WS_SCRIPT_RELOAD, HTTP_OTA_RESTART_RECONNECT_TIME);
+  WSSendPageInitReload(HTTP_OTA_RESTART_RECONNECT_TIME);
   WSContentSend_P(PSTR("<div style='text-align:center;'><b>" D_UPGRADE_STARTED " ...</b></div>"));
   WSContentSend_P(HTTP_MSG_RSTRT);
   WSContentStop();
@@ -3496,8 +3161,9 @@ void HandleUploadDone(void) {
   WSContentStart_P(PSTR(D_INFORMATION));
   WSContentSendStyle();
   if (!Web.upload_error) {
-    WSSendPageScripts(WS_SCRIPT_RELOAD,
-      (UPL_TASMOTA == Web.upload_file_type) ? HTTP_OTA_RESTART_RECONNECT_TIME : HTTP_RESTART_RECONNECT_TIME);
+    WSSendPageInitReload(
+      (UPL_TASMOTA == Web.upload_file_type) ? HTTP_OTA_RESTART_RECONNECT_TIME : HTTP_RESTART_RECONNECT_TIME
+    );
   }
   WSContentSend_P(PSTR("<div style='text-align:center;'><b>" D_UPLOAD " <font color='#"));
   if (Web.upload_error) {
@@ -3953,7 +3619,7 @@ void HandleConsole(void) {
 
   WSContentStart_P(PSTR(D_CONSOLE));
   WSContentSendStyle_P(HTTP_CMND_STYLE);
-  WSSendPageScripts(WS_SCRIPT_CONSOLE);
+  WSSendPageInitConsole();
 
   WSContentSend_P(HTTP_FORM_CMND);
   WSContentStop();
