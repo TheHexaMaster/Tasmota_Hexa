@@ -661,9 +661,7 @@ constexpr uint32_t feature[] = {
   0x00000008 |  // xsns_33_qmc5882l.ino
 #endif
 //  0x00000010 |  // xnrg_29_modbus.ino - USE_MODBUS_ENERGY - DELETED
-#if defined(USE_SPI) && defined(USE_SHELLY_PRO)
-  0x00000020 |  // xdrv_88_esp32_shelly_pro.ino
-#endif
+//  0x00000020 |  // xdrv_88_esp32_shelly_pro.ino - USE_SHELLY_PRO - DELETED
 //  0x00000040 |  // xdrv_75_dali.ino - USE_DALI - DELETED
 //  0x00000080 |  // xlgt_10_bp1658cj.ino - USE_BP1658CJ - DELETED
 #ifdef USE_DINGTIAN_RELAY
