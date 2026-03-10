@@ -236,7 +236,7 @@ int FrogmoreScd40::sendCommandArgumentsFetchResult(uint16_t command, uint16_t ar
 #endif
         return (error);
     }
-    uint16 regValue;
+    uint16_t regValue;
     error = get16BitRegCheckCRC(data, &regValue);
     if (error)
     {
@@ -292,7 +292,7 @@ int FrogmoreScd40::readRegisterCnt(uint16_t registerAddress, uint16_t* pData, ui
 #endif
             return (error);
         }
-        uint16 regValue;
+        uint16_t regValue;
         error = get16BitRegCheckCRC(data, &regValue);
         if (error)
         {
@@ -381,8 +381,8 @@ int FrogmoreScd40::startPeriodicMeasurement(void)
 }
 
 int FrogmoreScd40::readMeasurement(
-    uint16 *pCO2_ppm,
-    uint16 *pCO2EAvg_ppm,
+    uint16_t *pCO2_ppm,
+    uint16_t *pCO2EAvg_ppm,
     float *pTemperature,
     float *pHumidity
 )
@@ -392,9 +392,9 @@ int FrogmoreScd40::readMeasurement(
 // but this is currently not verified
     bool isAvailable = false;
     int error = 0;
-    uint16 tempCO2;
-    uint16 tempHumidity;
-    uint16 tempTemperature;
+    uint16_t tempCO2;
+    uint16_t tempHumidity;
+    uint16_t tempTemperature;
 
     error = getDataReadyStatus(&isAvailable);
     if (error)

@@ -53,7 +53,7 @@ const uint16_t HTTP_REFRESH_TIME = 2000;                 // milliseconds
 const uint16_t HTTP_RESTART_RECONNECT_TIME = 10000;      // milliseconds - Allow time for restart and wifi reconnect
 const uint16_t HTTP_OTA_RESTART_RECONNECT_TIME = 15000;  // milliseconds - Allow time for restart and wifi reconnect
 
-#include <ESP8266WebServer.h>
+#include <WebServer.h>
 #include <DNSServer.h>
 #include "coreui.h"                                      // CORE JS Functions
 #include "alpine_js_gz.h"                                // Extented AlpineJS For new UI
@@ -528,7 +528,7 @@ void WSContentSendRootLive(void);
 void WSContentSendSensorLive(void);
 
 DNSServer *DnsServer;
-ESP8266WebServer *Webserver;
+WebServer *Webserver;
 
 struct WEB {
   String chunk_buffer = "";
@@ -734,7 +734,7 @@ void StartWebserver(int type) {
     }
 
     if (!Webserver) {
-      Webserver = new ESP8266WebServer((HTTP_MANAGER == type || HTTP_MANAGER_RESET_ONLY == type) ? 80 : WEB_PORT);
+      Webserver = new WebServer((HTTP_MANAGER == type || HTTP_MANAGER_RESET_ONLY == type) ? 80 : WEB_PORT);
 
       const char* headerkeys[] = { "Referer", "Host" };
       size_t headerkeyssize = sizeof(headerkeys) / sizeof(char*);

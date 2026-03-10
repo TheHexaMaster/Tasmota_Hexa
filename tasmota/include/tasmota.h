@@ -27,6 +27,49 @@
 
 #define XFUNC_PTR_IN_ROM                    // Enable for keeping tables in ROM (PROGMEM) which seem to have access issues on some flash types
 
+/*********************************************************************************************\
+ * ESP32 LEDC DEFS
+\*********************************************************************************************/
+
+uint32_t ledcReadFreq2(uint8_t chan);
+uint8_t ledcReadResolution(uint8_t chan);
+int32_t analogAttach(uint32_t pin, bool output_invert = false);   // returns the ledc channel, or -1 if failed. This is implicitly called by analogWrite if the channel was not already allocated
+void analogDetach(uint32_t pin);
+void analogDetachAll(void);
+void analogWriteFreqRange(int32_t freq, int32_t range, int32_t pin = -1);
+void analogWriteRange(uint32_t range, int32_t pin = -1);
+void analogWriteFreq(uint32_t freq, int32_t pin = -1);
+extern void analogWritePhase(uint8_t pin, uint32_t duty, uint32_t phase = 0);
+int32_t ledcReadDutyResolution(uint8_t pin);
+int32_t ledcRead2(uint8_t pin);
+extern int32_t analogGetChannel2(uint32_t pin);
+
+/*******************************************************************************************\
+ * Low-level Timer management
+\*******************************************************************************************/
+
+int32_t analogGetTimer(uint8_t pin);
+int32_t analogGetTimerForChannel(uint8_t chan);
+uint8_t analogGetTimerResolution(uint8_t timer);
+uint32_t analogGetTimerFrequency(uint8_t timer);
+
+/*********************************************************************************************/
+
+typedef int SerConfu8;
+
+#define REASON_DEFAULT_RST      0  // "Power on"                normal startup by power on
+#define REASON_WDT_RST          1  // "Hardware Watchdog"       hardware watch dog reset
+#define REASON_EXCEPTION_RST    2  // "Exception"               exception reset, GPIO status won’t change
+#define REASON_SOFT_WDT_RST     3  // "Software Watchdog"       software watch dog reset, GPIO status won’t change
+#define REASON_SOFT_RESTART     4  // "Software/System restart" software restart ,system_restart , GPIO status won’t change
+#define REASON_DEEP_SLEEP_AWAKE 5  // "Deep-Sleep Wake"         wake up from deep-sleep
+#define REASON_EXT_SYS_RST      6  // "External System"         external system reset
+
+#define STATION_IF 0
+
+#ifdef LCD_CAM_LCD_UPDATE_M
+#define LCD_CAM_LCD_UPDATE_REG LCD_CAM_LCD_UPDATE_M
+#endif
 
 /*********************************************************************************************\
  * Power Type

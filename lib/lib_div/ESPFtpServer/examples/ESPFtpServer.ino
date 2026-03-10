@@ -8,7 +8,7 @@
 #include <WiFi.h>
 #endif
 #ifdef ESP8266
-#include <ESP8266WiFi.h>
+#include <WiFiHelper.h>
 #endif
 #include <WiFiClient.h>
 #include <time.h>

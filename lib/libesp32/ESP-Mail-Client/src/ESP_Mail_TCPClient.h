@@ -46,7 +46,7 @@
 
 #if defined(ESP32)
 
-#include "ESP8266WiFi.h"
+#include "WiFiHelper.h"
 #if defined(ESP_MAIL_WIFI_IS_AVAILABLE)
 #define WIFI_HAS_HOST_BY_NAME
 #endif

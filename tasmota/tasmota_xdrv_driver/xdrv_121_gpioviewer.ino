@@ -78,6 +78,7 @@
  * - Execute once command GvUrl https://thelastoutpostworkshop.github.io/microcontroller_devkit/gpio_viewer_1_5/
  * - Clear browser cache to use new functionality
 \*********************************************************************************************/
+#include <WebServer.h>
 
 #define XDRV_121              121
 
@@ -134,7 +135,7 @@ enum GVPinTypes {
 };
 
 typedef struct {
-  ESP8266WebServer *WebServer;
+  WebServer *DoWebServer;
   Ticker ticker;
   String baseUrl;
   int lastPinStates[MAX_GPIO_PIN];
@@ -227,22 +228,22 @@ bool GVInit(void) {
 /*-------------------------------------------------------------------------------------------*/
 
 void GVBegin(void) {
-  if (GV->WebServer == nullptr) {
-    GV->WebServer = new ESP8266WebServer(GV->port);
+  if (GV->DoWebServer == nullptr) {
+    GV->DoWebServer = new WebServer(GV->port);
     // Set CORS headers for global responses
   //  GV->WebServer->sendHeader(F("Access-Control-Allow-Origin"), F("*"));
   //  GV->WebServer->sendHeader(F("Access-Control-Allow-Methods"), F("GET, POST, OPTIONS"));
   //  GV->WebServer->sendHeader(F("Access-Control-Allow-Headers"), F("Content-Type"));
-    GV->WebServer->on("/", GVHandleRoot);
-    GV->WebServer->on("/events", GVHandleEvents);
-    GV->WebServer->on("/release", GVHandleRelease);
-    GV->WebServer->on("/free_psram", GVHandleFreePSRam);
-    GV->WebServer->on("/sampling", GVHandleSampling);
-    GV->WebServer->on("/espinfo", GVHandleEspInfo);
-    GV->WebServer->on("/partition", GVHandlePartition);
-    GV->WebServer->on("/pinmodes", GVHandlePinModes);
-    GV->WebServer->on("/pinfunctions", GVHandlePinFunctions);
-    GV->WebServer->begin();
+    GV->DoWebServer->on("/", GVHandleRoot);
+    GV->DoWebServer->on("/events", GVHandleEvents);
+    GV->DoWebServer->on("/release", GVHandleRelease);
+    GV->DoWebServer->on("/free_psram", GVHandleFreePSRam);
+    GV->DoWebServer->on("/sampling", GVHandleSampling);
+    GV->DoWebServer->on("/espinfo", GVHandleEspInfo);
+    GV->DoWebServer->on("/partition", GVHandlePartition);
+    GV->DoWebServer->on("/pinmodes", GVHandlePinModes);
+    GV->DoWebServer->on("/pinfunctions", GVHandlePinFunctions);
+    GV->DoWebServer->begin();
   }
 }
 
@@ -252,8 +253,8 @@ void GVStop(void) {
   GV->sse_ready = false;
   GV->ticker.detach();
 
-  GV->WebServer->stop();
-  GV->WebServer = nullptr;
+  GV->DoWebServer->stop();
+  GV->DoWebServer = nullptr;
 }
 
 /*********************************************************************************************/
@@ -271,26 +272,26 @@ void GVHandleRoot(void) {
                                         GV->port,
                                         ESP_getFreeSketchSpace() / 1024);
   if (content == nullptr) { return; }      // Avoid crash
-  GV->WebServer->send_P(200, "text/html", content);
+  GV->DoWebServer->send_P(200, "text/html", content);
   free(content);
 }
 
 void GVWebserverSendJson(String &jsonResponse) {
 #ifdef GV_DEBUG
-  AddLog(LOG_LEVEL_DEBUG, PSTR("IOV: GVWebserverSendJson '%s'"), jsonResponse.c_str());
+  AddLog(LOG_LEVEL_DEBUG, PSTR("IOV: GVDoWebServerSendJson '%s'"), jsonResponse.c_str());
 #endif  // GV_DEBUG
-  GV->WebServer->send(200, "application/json", jsonResponse);
+  GV->DoWebServer->send(200, "application/json", jsonResponse);
 }
 
 /*-------------------------------------------------------------------------------------------*/
 
 void GVHandleEvents(void) {
-  GVWebClient = GV->WebServer->client();
+  GVWebClient = GV->DoWebServer->client();
   GVWebClient.setNoDelay(true);
 //  GVWebClient.setSync(true);
 
-  GV->WebServer->setContentLength(CONTENT_LENGTH_UNKNOWN);  // The payload can go on forever
-  GV->WebServer->sendContent_P(HTTP_GV_EVENT);
+  GV->DoWebServer->setContentLength(CONTENT_LENGTH_UNKNOWN);  // The payload can go on forever
+  GV->DoWebServer->sendContent_P(HTTP_GV_EVENT);
 #ifdef ESP32
   GVWebClient.setSSE(true);
 #endif
@@ -555,7 +556,7 @@ void GVEventDisconnected(void) {
 /*-------------------------------------------------------------------------------------------*/
 
 void GVCloseEvent(void) {
-  if (GV->WebServer) {
+  if (GV->DoWebServer) {
     GVEventSend("{}", "close", millis());                   // Closes web page
     GVEventDisconnected();
   }
@@ -715,7 +716,7 @@ void CmndGvViewer(void) {
   if ((XdrvMailbox.payload >= 0) && (XdrvMailbox.payload <= 2)) {
     uint32_t state = XdrvMailbox.payload;
     if (2 == state) {                      // Toggle
-      state = (GV->WebServer == nullptr) ^1;
+      state = (GV->DoWebServer == nullptr) ^1;
     }
     if (state) {                           // On
       GVBegin();
@@ -724,7 +725,7 @@ void CmndGvViewer(void) {
       GVStop();
     }
   }
-  if (GV->WebServer) {
+  if (GV->DoWebServer) {
     Response_P(PSTR("{\"%s\":\"Active on http://%s:%d/\"}"), XdrvMailbox.command, NetworkAddress().toString().c_str(), GV->port);
   } else {
     ResponseCmndChar_P(PSTR("Stopped"));
@@ -785,7 +786,7 @@ void GVSetupAndStart(void) {
   AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP D_GPIO_VIEWER));
 
   if (!GVInit()) { return; }
-  GVBegin();                               // Start WebServer
+  GVBegin();                               // Start DoWebServer
 
   char redirect[100];
   snprintf(redirect, sizeof(redirect), PSTR("http://%s:%d/"), NetworkAddress().toString().c_str(), GV->port);
@@ -818,10 +819,10 @@ bool Xdrv121(uint32_t function) {
       break;
 #endif  // USE_WEBSERVER
   }
-  if (GV && (GV->WebServer)) {
+  if (GV && (GV->DoWebServer)) {
     switch (function) {
       case FUNC_LOOP:
-        GV->WebServer->handleClient();
+        GV->DoWebServer->handleClient();
         break;
       case FUNC_EVERY_100_MSECOND:
         if (GV->sse_ready && (100 == GV->sampling)) {

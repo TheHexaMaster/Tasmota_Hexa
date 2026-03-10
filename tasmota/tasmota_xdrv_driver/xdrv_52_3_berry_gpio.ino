@@ -21,7 +21,7 @@
 #ifdef USE_BERRY
 
 #include <berry.h>
-#include "esp8266toEsp32.h"
+// #include "esp8266toEsp32.h"
 
 /*********************************************************************************************\
  * Native functions mapped to Berry functions

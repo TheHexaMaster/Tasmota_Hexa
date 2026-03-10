@@ -1309,12 +1309,12 @@ void Every250mSeconds(void)
           }
 #else // standard OTA over HTTP
           WiFiClient OTAclient;
-          ESPhttpUpdate.rebootOnUpdate(false);
-          ota_result = (HTTP_UPDATE_FAILED != ESPhttpUpdate.update(OTAclient, full_ota_url, version));
+          httpUpdate.rebootOnUpdate(false);
+          ota_result = (HTTP_UPDATE_FAILED != httpUpdate.update(OTAclient, full_ota_url, version));
 #endif
           if (!ota_result) {
 #ifndef FIRMWARE_MINIMAL
-            int ota_error = ESPhttpUpdate.getLastError();
+            int ota_error = httpUpdate.getLastError();
             DEBUG_CORE_LOG(PSTR("OTA: Error %d"), ota_error);
 #endif  // FIRMWARE_MINIMAL
             TasmotaGlobal.ota_state_flag = 2;             // Upgrade failed - retry
@@ -1328,10 +1328,10 @@ void Every250mSeconds(void)
           ResponseAppend_P(PSTR(D_JSON_SUCCESSFUL ". " D_JSON_RESTARTING));
           TasmotaGlobal.restart_flag = 5;                 // Allow time for webserver to update console
         } else {
-          ResponseAppend_P(PSTR(D_JSON_FAILED " %s"), ESPhttpUpdate.getLastErrorString().c_str());
+          ResponseAppend_P(PSTR(D_JSON_FAILED " %s"), httpUpdate.getLastErrorString().c_str());
         }
         ResponseAppend_P(PSTR("\"}"));
-        MqttPublishPrefixTopicRulesProcess_P(STAT, PSTR(D_CMND_UPGRADE));
+        MqttPublishPrefixTopicRulesProcess_P(STAT, PSTR(D_CMND_UPGRADE)); 
         AllowInterrupts(1);
       }
     }

@@ -362,7 +362,7 @@ void MI32AddKey(mi_bindKey_t keyMAC){
  * @param _slot - sensor slot in the global vector
  * @return int - error code, 0 for success
  */
-int MI32_decryptPacket(char * _buf, uint16_t _bufSize, uint8_t * _payload, uint32 _slot){
+int MI32_decryptPacket(char * _buf, uint16_t _bufSize, uint8_t * _payload, uint32_t _slot){
   // int32_t start = _getCycleCount();
   mi_beacon_t *_beacon = (mi_beacon_t *)_buf;
 

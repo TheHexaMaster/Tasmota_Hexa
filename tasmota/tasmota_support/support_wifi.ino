@@ -40,7 +40,7 @@ const uint8_t WIFI_CONFIG_SEC = 180;       // seconds before restart
 const uint8_t WIFI_CHECK_SEC = 60;         // seconds
 const uint8_t WIFI_RETRY_OFFSET_SEC = WIFI_RETRY_SECONDS;  // seconds
 
-#include <ESP8266WiFi.h>                   // Wifi, MQTT, Ota, WifiManager
+#include <WiFiHelper.h>
 #include "lwip/dns.h"
 #ifdef ESP32
   #include "esp_netif.h"

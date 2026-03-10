@@ -36,7 +36,7 @@ void (* const PingCommand[])(void) PROGMEM = {
 
 extern "C" {
 
-  extern uint32 system_relative_time(uint32 time);
+  extern uint32_t system_relative_time(uint32_t time);
   extern void ets_bzero(void *s, size_t n);
 
   const uint16_t Ping_ID = 0xAFAF;          // PING packet ID

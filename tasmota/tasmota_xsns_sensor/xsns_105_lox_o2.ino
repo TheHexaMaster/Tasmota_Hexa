@@ -48,7 +48,7 @@ struct LOX_O2
   float temperature = 0.0;
   uint32_t pressure = 0;
   float O2 = 0.0;
-  uint32 error = 0;
+  uint32_t error = 0;
 } *lox_o2 = nullptr;
 
 /********************************************************************************************/

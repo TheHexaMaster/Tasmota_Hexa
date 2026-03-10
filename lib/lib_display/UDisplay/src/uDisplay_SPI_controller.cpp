@@ -279,7 +279,7 @@ void SPIController::hw_write9(uint8_t val, uint8_t dc) {
         } else {
             bytetemp = (val >> 1) | 0x80;
         }
-        regvalue = ((8 & SPI_USR_COMMAND_BITLEN) << SPI_USR_COMMAND_BITLEN_S) | ((uint32)bytetemp);
+        regvalue = ((8 & SPI_USR_COMMAND_BITLEN) << SPI_USR_COMMAND_BITLEN_S) | ((uint32_t)bytetemp);
         if (val & 0x01) regvalue |= BIT15;
         while (READ_PERI_REG(SPI_CMD(1)) & SPI_USR);
         WRITE_PERI_REG(SPI_USER2(1), regvalue);

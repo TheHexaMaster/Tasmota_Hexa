@@ -323,7 +323,7 @@ int FrogmoreScd30::readRegister(uint16_t registerAddress, uint16_t* pData)
 #endif
     return (error);
   }
-  uint16 regValue;
+  uint16_t regValue;
   error = get16BitRegCheckCRC(data, &regValue);
   if (error)
   {
@@ -495,8 +495,8 @@ int FrogmoreScd30::isDataAvailable(bool *pIsAvailable)
 }
 
 int FrogmoreScd30::readMeasurement(
-    uint16 *pCO2_ppm,
-    uint16 *pCO2EAvg_ppm,
+    uint16_t *pCO2_ppm,
+    uint16_t *pCO2EAvg_ppm,
     float *pTemperature,
     float *pHumidity
 )

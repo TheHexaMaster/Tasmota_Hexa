@@ -24,7 +24,7 @@
 
 */
 
-#include <ESP8266WiFi.h>
+#include <WiFiHelper.h>
 #include <PubSubClient.h>
 
 // Update these with values suitable for your network.

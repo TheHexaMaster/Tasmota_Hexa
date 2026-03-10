@@ -130,7 +130,6 @@ bool RtcRebootValid(void) {
 }
 
 extern "C" {
-#include "spi_flash.h"
 #include "spi_flash_mmap.h"
 }
 

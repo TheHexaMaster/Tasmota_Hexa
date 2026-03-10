@@ -80,7 +80,7 @@ uint8_t TasmotaModbus::Send(uint8_t device_address, uint8_t function_code, uint1
   uint8_t framepointer = 0;
 
 #ifdef TASMOTAMODBUSDEBUG
-  AddLog(LOG_LEVEL_DEBUG_MORE, PSTR("MBS: Serial Send: @%02X f:%02X r:%04X c:%u &:%08X"), device_address, function_code, start_address, count, (uint32)write_data);
+  AddLog(LOG_LEVEL_DEBUG_MORE, PSTR("MBS: Serial Send: @%02X f:%02X r:%04X c:%u &:%08X"), device_address, function_code, start_address, count, (uint32_t)write_data);
   if (write_data) AddLog(LOG_LEVEL_DEBUG_MORE, PSTR("MBS: Serial Send: Write data 0x%04X"), write_data[0]);
 #endif
 

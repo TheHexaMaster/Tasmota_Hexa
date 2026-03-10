@@ -18,12 +18,16 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+// SUPER DEF
+#undef MODULE
+#define MODULE WEMOS // [Module] Select default model
+
 
 // Location specific includes
 #if __has_include("core_version.h")         // ESP32 Stage has no core_version.h file. Disable include via PlatformIO Option
 #include <core_version.h>                   // Arduino_Esp8266 version information (ARDUINO_ESP8266_RELEASE and ARDUINO_ESP8266_RELEASE_2_7_1)
 #endif  // ESP32_STAGE
-#include "include/tasmota_compat.h"
+#include <Esp.h>
 #include "include/tasmota_version.h"        // Tasmota version information
 #include "include/tasmota.h"                // Enumeration used in my_user_config.h
 #include "my_user_config.h"                 // Fixed user configurable options
@@ -85,6 +89,10 @@
 
 // Structs
 #include "include/tasmota_types.h"
+
+#include "Arduino.h"
+#include "esp_idf_version.h"
+
 
 // NULL TASMOTA CONSOLE
 
@@ -206,15 +214,16 @@ struct XDRVMAILBOX {
   char         *command;
 } XdrvMailbox;
 
-WiFiUDP PortUdp;                            // UDP Syslog and Alexa
+WiFiUDP PortUdp;                         
 
-/*
-#if CONFIG_IDF_TARGET_ESP32C3 ||            // support USB via HWCDC using JTAG interface
-    CONFIG_IDF_TARGET_ESP32C5 ||            // support USB via HWCDC using JTAG interface
-    CONFIG_IDF_TARGET_ESP32C6 ||            // support USB via HWCDC using JTAG interface
-    CONFIG_IDF_TARGET_ESP32S2 ||            // support USB via USBCDC
-    CONFIG_IDF_TARGET_ESP32S3               // support USB via HWCDC using JTAG interface or USBCDC
-*/
+
+// Tasmota Logging
+extern void AddLog(uint32_t loglevel, PGM_P formatP, ...);
+
+// ESP Stuff
+
+
+
 
 #if DISABLE_HW_SERIAL_CONSOLE
   TASCONSOLE TasConsole{NullConsole};

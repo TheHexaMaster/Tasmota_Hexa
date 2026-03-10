@@ -75,8 +75,8 @@ class FrogmoreScd30
         int beginMeasuring(uint16_t airPressure_mbar); // also sets ambient pressure offset in mbar/hPascal
         int isDataAvailable(bool *pIsAvailable);
         int readMeasurement(
-            uint16 *pCO2_ppm,
-            uint16 *pCO2EAvg_ppm,
+            uint16_t *pCO2_ppm,
+            uint16_t *pCO2EAvg_ppm,
             float *pTemperature,
             float *pHumidity
         );

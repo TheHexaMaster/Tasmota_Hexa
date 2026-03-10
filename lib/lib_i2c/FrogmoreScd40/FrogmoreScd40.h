@@ -81,8 +81,8 @@ class FrogmoreScd40
         int startPeriodicMeasurement(void);
         int getDataReadyStatus(bool *pIsAvailable);
         int readMeasurement(
-            uint16 *pCO2_ppm,
-            uint16 *pCO2EAvg_ppm,
+            uint16_t *pCO2_ppm,
+            uint16_t *pCO2EAvg_ppm,
             float *pTemperature,
             float *pHumidity
         );

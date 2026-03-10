@@ -33,6 +33,7 @@
 
 #include <stdint.h>
 #include <string.h>   // memcpy, memcmp
+#include <stdbool.h>
 
 #ifdef __riscv
 
@@ -71,23 +72,6 @@
   #define SPI_MOSI_DLEN_REG(x) SPI_MS_DLEN_REG(x)
 
 #endif // TARGET
-
-// ---- legacy type aliases (ESP8266 style) ----
-#ifdef __cplusplus
-  using uint8  = uint8_t;
-  using uint16 = uint16_t;
-  using uint32 = uint32_t;
-
-  using sint8_t  = int8_t;
-  using sint16_t = int16_t;
-#else
-  typedef uint8_t  uint8;
-  typedef uint16_t uint16;
-  typedef uint32_t uint32;
-
-  typedef int8_t   sint8_t;
-  typedef int16_t  sint16_t;
-#endif
 
 
 // ---- commonly used buffer sizes ----

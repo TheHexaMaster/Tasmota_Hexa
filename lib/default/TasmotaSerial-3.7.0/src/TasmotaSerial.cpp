@@ -19,12 +19,6 @@
 
 #include <Arduino.h>
 
-// The Arduino standard GPIO routines are not enough,
-// must use some from the Espressif SDK as well
-extern "C" {
-#include "gpio.h"
-}
-
 #include <TasmotaSerial.h>
 
 extern void AddLog(uint32_t loglevel, PGM_P formatP, ...);

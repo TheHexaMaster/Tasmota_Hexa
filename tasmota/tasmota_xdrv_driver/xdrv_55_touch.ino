@@ -251,7 +251,7 @@ void utouch_Touch_Init() {
 
 bool utouch_touched() {
   if (renderer) {
-    uint16 status = renderer->touched();
+    uint16_t status = renderer->touched();
     if (status & 1) {
       TSGlobal.gesture = status >> 8;
       return true;

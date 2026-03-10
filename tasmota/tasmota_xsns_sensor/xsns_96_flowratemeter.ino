@@ -58,10 +58,6 @@ bool flowratemeter_raw_value = false;
 void IRAM_ATTR FlowRateMeterIR(uint16_t irq)
 {
   uint32_t time = micros();
-#if defined(ESP8266)
-  uint32_t gpio_status = GPIO_REG_READ(GPIO_STATUS_ADDRESS);
-  GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, gpio_status);
-#endif
   if (irq < MAX_FLOWRATEMETER) {
     if (FlowRateMeterIsValid(time, irq)) {
       if ((time - flowratemeter_last_irq[irq]) < (1000000 / FLOWRATEMETER_MIN_FREQ)) {

@@ -169,7 +169,7 @@ class SensirionI2CSen5x {
      * data is available since the last read operation. If no new data is
      * available, the previous values will be returned again. If no data is
      * available at all (e.g. measurement not running for at least one
-     * second), all values will be at their upper limit (0xFFFF for `uint16`,
+     * second), all values will be at their upper limit (0xFFFF for `uint16_t`,
      * 0x7FFF for `int16`).
      *
      * @param massConcentrationPm1p0 Value is scaled with factor 10:
@@ -221,7 +221,7 @@ class SensirionI2CSen5x {
      * data is available since the last read operation. If no new data is
      * available, the previous values will be returned again. If no data
      * is available at all (e.g. measurement not running for at least one
-     * second), all values will be at their upper limit (0xFFFF for `uint16`,
+     * second), all values will be at their upper limit (0xFFFF for `uint16_t`,
      * 0x7FFF for `int16`).
      *
      * Supported sensors: SEN54 (no NOx), SEN55

@@ -57,10 +57,6 @@
 #include "MB_String.h"
 #include "MB_MCU.h"
 
-#if defined(ESP8266)
-#include "user_interface.h"
-#endif
-
 #if defined(__AVR__) || defined(MB_ARDUINO_TEENSY)
 #define MB_TIME_PGM_ATTR
 #else

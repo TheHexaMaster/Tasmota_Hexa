@@ -33,7 +33,6 @@
 #include <algorithm>
 
 #include "WiFiClientSecureLightBearSSL.h"	// needs to be before "ESP8266WiFi.h" to avoid conflict with Arduino headers
-#include "ESP8266WiFi.h"
 #include "WiFiHelper.h"
 #include "WiFiClient.h"
 #include "StackThunk_light.h"

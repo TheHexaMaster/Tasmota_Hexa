@@ -75,11 +75,11 @@ tEncoder Encoder[MAX_ROTARIES];
 
 /********************************************************************************************/
 
-void RotaryAPullupFlag(uint32 switch_bit) {
+void RotaryAPullupFlag(uint32_t switch_bit) {
   bitSet(Rotary.no_pullup_mask_a, switch_bit);
 }
 
-void RotaryBPullupFlag(uint32 switch_bit) {
+void RotaryBPullupFlag(uint32_t switch_bit) {
   bitSet(Rotary.no_pullup_mask_b, switch_bit);
 }
 

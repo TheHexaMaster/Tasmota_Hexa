@@ -6,7 +6,7 @@
 #include "Comms_hal.h"
 
 #include <espnow.h>
-#include <ESP8266WiFi.h>
+#include <WiFiHelper.h>
 #include "RingBuffer.h"
 // Disable debug dependency if debug level is 0
 #if DEBUG_LEVEL > 0

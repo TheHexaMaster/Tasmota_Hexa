@@ -28,7 +28,16 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "user_interface.h"
+#ifndef user_interface_h
+#define user_interface_h
+enum wps_cb_status {
+    WPS_CB_ST_SUCCESS = 0,
+    WPS_CB_ST_FAILED,
+    WPS_CB_ST_TIMEOUT,
+    WPS_CB_ST_WEP,
+    WPS_CB_ST_UNK,
+};
+#endif
 #ifdef __cplusplus
 }
 #endif

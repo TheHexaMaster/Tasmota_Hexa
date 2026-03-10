@@ -11,8 +11,8 @@
  * Basic SPI routines supporting two busses
 \*********************************************************************************************/
 
-SPIClass *SpiBegin(uint32 bus = 1);
-SPIClass *SpiBegin(uint32 bus) {
+SPIClass *SpiBegin(uint32_t bus = 1);
+SPIClass *SpiBegin(uint32_t bus) {
   SPIClass *spi;
   if (1 == bus) {                // SPI bus 1
     if (TasmotaGlobal.spi_enabled) {

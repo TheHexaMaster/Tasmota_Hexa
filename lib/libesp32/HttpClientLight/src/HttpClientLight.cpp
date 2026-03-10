@@ -38,7 +38,7 @@
 #include <base64.h>
 
 #include "HttpClientLight.h"
-#include "ESP8266WiFi.h"
+#include <WiFiHelper.h>
 
 #ifdef USE_WEBCLIENT_HTTPS
 #include "WiFiClientSecureLightBearSSL.h"

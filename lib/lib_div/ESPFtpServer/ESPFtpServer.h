@@ -38,7 +38,7 @@
 #ifdef ESP32
   #include <WiFi.h>
 #else
-  #include <ESP8266WiFi.h>
+  #include <WiFiHelper.h>
 #endif
 
 #define FTP_SERVER_VERSION "jmwislez/ESP32FtpServer 0.1.0"
