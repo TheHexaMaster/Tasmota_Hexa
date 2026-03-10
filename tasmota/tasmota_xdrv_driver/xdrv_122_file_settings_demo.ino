@@ -68,7 +68,7 @@ void CmndDrvText(void) {
       // Command DrvText<index> <text>
       uint32_t index = XdrvMailbox.index -1;
       if (XdrvMailbox.data_len > 0) {
-        snprintf_P(DrvDemoSettings.drv_text[index], sizeof(DrvDemoSettings.drv_text[index]), XdrvMailbox.data);
+        snprintf(DrvDemoSettings.drv_text[index], sizeof(DrvDemoSettings.drv_text[index]), XdrvMailbox.data);
       }
       ResponseCmndIdxChar(DrvDemoSettings.drv_text[index]);
     }
@@ -89,7 +89,7 @@ void DrvDemoSettingsLoad(bool erase) {
   memset(&DrvDemoSettings, 0x00, sizeof(DrvDemoSettings));
   DrvDemoSettings.version = DRV_DEMO_VERSION;
   // Init any other parameter in struct DrvDemoSettings
-  snprintf_P(DrvDemoSettings.drv_text[0], sizeof(DrvDemoSettings.drv_text[0]), PSTR("Azalea"));
+  snprintf(DrvDemoSettings.drv_text[0], sizeof(DrvDemoSettings.drv_text[0]), PSTR("Azalea"));
 
   // *** End Init default values ***
 
@@ -99,9 +99,9 @@ void DrvDemoSettingsLoad(bool erase) {
   // Try to load file /.drvset122
   char filename[20];
   // Use for sensors:
-//  snprintf_P(filename, sizeof(filename), PSTR(TASM_FILE_SENSOR), XSNS_122);
+//  snprintf(filename, sizeof(filename), PSTR(TASM_FILE_SENSOR), XSNS_122);
   // Use for drivers:
-  snprintf_P(filename, sizeof(filename), PSTR(TASM_FILE_DRIVER), XDRV_122);
+  snprintf(filename, sizeof(filename), PSTR(TASM_FILE_DRIVER), XDRV_122);
   if (erase) {
     TfsDeleteFile(filename);  // Use defaults
   }
@@ -143,9 +143,9 @@ void DrvDemoSettingsSave(void) {
 
     char filename[20];
     // Use for sensors:
-//    snprintf_P(filename, sizeof(filename), PSTR(TASM_FILE_SENSOR), XSNS_122);
+//    snprintf(filename, sizeof(filename), PSTR(TASM_FILE_SENSOR), XSNS_122);
     // Use for drivers:
-    snprintf_P(filename, sizeof(filename), PSTR(TASM_FILE_DRIVER), XDRV_122);
+    snprintf(filename, sizeof(filename), PSTR(TASM_FILE_DRIVER), XDRV_122);
     if (TfsSaveFile(filename, (const uint8_t*)&DrvDemoSettings, sizeof(DrvDemoSettings))) {
       AddLog(LOG_LEVEL_DEBUG, PSTR("CFG: Demo saved to file"));
     } else {

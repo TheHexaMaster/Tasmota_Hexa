@@ -26,8 +26,6 @@
   
   //typedef uint16_t prog_uint16_t;
   #define PSTR(x) (x)
-  #define printf_P printf
-  #define strlen_P strlen
   #define PROGMEM
   #define PRIPSTR "%s"
 

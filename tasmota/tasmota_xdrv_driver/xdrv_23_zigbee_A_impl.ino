@@ -2230,13 +2230,13 @@ void ZigbeeShow(void)
 
       char sdevice[33];
       if (nullptr == name) {
-        snprintf_P(sdevice, sizeof(sdevice), PSTR(D_DEVICE " 0x%04X"), shortaddr);
+        snprintf(sdevice, sizeof(sdevice), PSTR(D_DEVICE " 0x%04X"), shortaddr);
         name = sdevice;
       }
 
       char sbatt[96];
       char dhm[48];
-      snprintf_P(sbatt, sizeof(sbatt), PSTR("&nbsp;"));
+      snprintf(sbatt, sizeof(sbatt), PSTR("&nbsp;"));
       if (device.validBatteryPercent()) {
         char unit;
         uint32_t color = WebColor(COL_TEXT);    // color of text
@@ -2244,17 +2244,17 @@ void ZigbeeShow(void)
         if (device.validBattLastSeen()) {
           uint16_t val = convert_seconds_to_dhm(now - device.batt_last_seen, &unit, &color, true);
           if (val < 100) {
-            snprintf_P(dhm, sizeof(dhm), PSTR(" (%02d%c)"), val, unit);
+            snprintf(dhm, sizeof(dhm), PSTR(" (%02d%c)"), val, unit);
           }
         }
-        snprintf_P(sbatt, sizeof(sbatt),
+        snprintf(sbatt, sizeof(sbatt),
           msg[ZB_WEB_BATTERY],
           device.batt_percent, dhm,
           changeUIntScale(device.batt_percent, 0, 100, 0, 14),
           (color & 0xFF0000) >> 16, (color & 0x00FF00) >> 8, (color & 0x0000FF)
         );
       } else if (device.isGP()) {   // display GP in green for Green Power
-        snprintf_P(sbatt, sizeof(sbatt), msg[ZB_WEB_GP]);
+        snprintf(sbatt, sizeof(sbatt), msg[ZB_WEB_GP]);
       }
       uint32_t num_bars = 0;
 
@@ -2263,7 +2263,7 @@ void ZigbeeShow(void)
       slqi[1] = '\0';
       if (device.validLqi()){
         num_bars = changeUIntScale(device.lqi, 0, 254, 0, 4);
-        snprintf_P(slqi, sizeof(slqi), PSTR("%d (%d%%)"), device.lqi, changeUIntScale(device.lqi, 0, 254, 0, 100));
+        snprintf(slqi, sizeof(slqi), PSTR("%d (%d%%)"), device.lqi, changeUIntScale(device.lqi, 0, 254, 0, 100));
       }
 
       WSContentSend_PD(msg[ZB_WEB_STATUS_LINE],
@@ -2277,13 +2277,13 @@ void ZigbeeShow(void)
             WSContentSend_P(PSTR("<i class='b%d%s'></i>"), j, (j >= num_bars) ? PSTR(" o30") : PSTR(""));
           }
       }
-      snprintf_P(dhm, sizeof(dhm), PSTR("<td>&nbsp;"));
+      snprintf(dhm, sizeof(dhm), PSTR("<td>&nbsp;"));
       if (device.validLastSeen()) {
         char unit;
         uint32_t color;
         uint16_t val = convert_seconds_to_dhm(now - device.last_seen, &unit, &color);
         if (val < 100) {
-          snprintf_P(dhm, sizeof(dhm), msg[ZB_WEB_LAST_SEEN],                         
+          snprintf(dhm, sizeof(dhm), msg[ZB_WEB_LAST_SEEN],                         
                                         (color & 0xFF0000) >> 16, (color & 0x00FF00) >> 8, (color & 0x0000FF),
                                         val, unit);
         }
@@ -2399,7 +2399,7 @@ void ZigbeeShow(void)
                     zigbee.maint_rel, zigbee.revision); // show Zigbee MCU version
     if (zigbee.permit_end_time) {  // PermitJoin in progress
       char sectemp[16];
-      snprintf_P(sectemp, sizeof(sectemp), PSTR(" (%d " D_UNIT_SECOND ")"), TimePassedSince(zigbee.permit_end_time) / -1000);
+      snprintf(sectemp, sizeof(sectemp), PSTR(" (%d " D_UNIT_SECOND ")"), TimePassedSince(zigbee.permit_end_time) / -1000);
       WSContentSend_P(HTTP_BTN_ZB_BUTTONS, "class='button bgrn'", D_ZIGBEE_PERMITJOIN_ACTIVE, sectemp, "");
     } else {
       WSContentSend_P(HTTP_BTN_ZB_BUTTONS, "", D_ZIGBEE_PERMITJOIN, "", "");

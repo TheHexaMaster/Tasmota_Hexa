@@ -864,7 +864,7 @@ public:
 
   // add or change an ep name, or remove if set to empty string
   void setEPName(uint8_t ep, const char * name) {
-    if (name == nullptr || strlen_P(name) == 0) {
+    if (name == nullptr || strlen(name) == 0) {
       this->removeEPName(ep);
       return;
     }
@@ -893,7 +893,7 @@ public:
 
   // find a endpoint by name, or return 0 if not found
   uint8_t findEPName(const char * name) const {
-    if (name == nullptr || strlen_P(name) == 0) { return 0; }
+    if (name == nullptr || strlen(name) == 0) { return 0; }
     for (const auto & epn : *this) {
       if (strcasecmp(epn.name, name) == 0) { return epn.endpoint; }
     }

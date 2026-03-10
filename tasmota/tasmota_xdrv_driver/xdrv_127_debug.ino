@@ -141,8 +141,8 @@ Decoding 14 results
 0x40238fcf: wifi_station_get_connect_status at ?? line ?
 0x4021fc10: operator new[](unsigned int) at C:\Data2\Arduino\arduino-1.8.1-esp-2.3.0\portable\packages\esp8266\hardware\esp8266\2.3.0\cores\esp8266/abi.cpp line 57
 0x4021680c: ESP8266WiFiSTAClass::status() at C:\Data2\Arduino\arduino-1.8.1-esp-2.3.0\portable\packages\esp8266\hardware\esp8266\2.3.0\libraries\ESP8266WiFi\src/ESP8266WiFiSTA.cpp line 569
-0x4021ff7d: vsnprintf_P(char*, unsigned int, char const*, __va_list_tag) at C:\Data2\Arduino\arduino-1.8.1-esp-2.3.0\portable\packages\esp8266\hardware\esp8266\2.3.0\cores\esp8266/pgmspace.cpp line 146
-0x4021ffb4: snprintf_P(char*, unsigned int, char const*, ...) at C:\Data2\Arduino\arduino-1.8.1-esp-2.3.0\portable\packages\esp8266\hardware\esp8266\2.3.0\cores\esp8266/pgmspace.cpp line 146
+0x4021ff7d: vsnprintf(char*, unsigned int, char const*, __va_list_tag) at C:\Data2\Arduino\arduino-1.8.1-esp-2.3.0\portable\packages\esp8266\hardware\esp8266\2.3.0\cores\esp8266/pgmspace.cpp line 146
+0x4021ffb4: snprintf(char*, unsigned int, char const*, ...) at C:\Data2\Arduino\arduino-1.8.1-esp-2.3.0\portable\packages\esp8266\hardware\esp8266\2.3.0\cores\esp8266/pgmspace.cpp line 146
 0x40201118: atol at C:\Data2\Arduino\arduino-1.8.1-esp-2.3.0\portable\packages\esp8266\hardware\esp8266\2.3.0\cores\esp8266/core_esp8266_noniso.c line 45
 0x40201128: atoi at C:\Data2\Arduino\arduino-1.8.1-esp-2.3.0\portable\packages\esp8266\hardware\esp8266\2.3.0\cores\esp8266/core_esp8266_noniso.c line 45
 
@@ -150,7 +150,7 @@ Decoding 14 results
 */
   if (1 == type) {
     char svalue[10];
-    snprintf_P(svalue, sizeof(svalue), PSTR("%s"), 7);  // Exception 28 as number in string (7 in excvaddr)
+    snprintf(svalue, sizeof(svalue), PSTR("%s"), 7);  // Exception 28 as number in string (7 in excvaddr)
   }
 /*
 14:50:52 osWatch: FreeRam 25896, rssi 68, last_run 0
@@ -276,21 +276,21 @@ void DebugDump(uint32_t start, uint32_t size) {
   char log_data[150];  // 020:  C7 2B 2E AB  70 E8 09 AE  C8 88 3D EA  7C FF 48 2F  0E A7 D7 BF  02 0E D7 7D  C9 6F B9 3A  1D 01 3F 28 | +. p     = | H/       } o :  ?(|
   for (row = srow; row < maxrow; row++) {
     idx = row * CFG_COLS;
-    snprintf_P(log_data, sizeof(log_data), PSTR("%08X:"), start + idx);
+    snprintf(log_data, sizeof(log_data), PSTR("%08X:"), start + idx);
     for (col = 0; col < CFG_COLS; col++) {
       if (!(col%4)) {
-        snprintf_P(log_data, sizeof(log_data), PSTR("%s "), log_data);
+        snprintf(log_data, sizeof(log_data), PSTR("%s "), log_data);
       }
-      snprintf_P(log_data, sizeof(log_data), PSTR("%s %02X"), log_data, buffer[idx + col]);
+      snprintf(log_data, sizeof(log_data), PSTR("%s %02X"), log_data, buffer[idx + col]);
     }
-    snprintf_P(log_data, sizeof(log_data), PSTR("%s |"), log_data);
+    snprintf(log_data, sizeof(log_data), PSTR("%s |"), log_data);
     for (col = 0; col < CFG_COLS; col++) {
 //      if (!(col%4)) {
-//        snprintf_P(log_data, sizeof(log_data), PSTR("%s "), log_data);
+//        snprintf(log_data, sizeof(log_data), PSTR("%s "), log_data);
 //      }
-      snprintf_P(log_data, sizeof(log_data), PSTR("%s%c"), log_data, ((buffer[idx + col] > 0x20) && (buffer[idx + col] < 0x7F)) ? (char)buffer[idx + col] : ' ');
+      snprintf(log_data, sizeof(log_data), PSTR("%s%c"), log_data, ((buffer[idx + col] > 0x20) && (buffer[idx + col] < 0x7F)) ? (char)buffer[idx + col] : ' ');
     }
-    snprintf_P(log_data, sizeof(log_data), PSTR("%s|"), log_data);
+    snprintf(log_data, sizeof(log_data), PSTR("%s|"), log_data);
     AddLogData(LOG_LEVEL_INFO, log_data);
     delay(1);
   }
@@ -327,21 +327,21 @@ void DebugCfgDump(char* parms)
   char log_data[100];  // 020:  6D 75 73 31  3A 38 30 2F  61 70 69 2F  61 72 64 75 |mus1:80/api/ardu|
   for (row = srow; row < maxrow; row++) {
     idx = row * CFG_COLS;
-    snprintf_P(log_data, sizeof(log_data), PSTR("%03X:"), idx);
+    snprintf(log_data, sizeof(log_data), PSTR("%03X:"), idx);
     for (col = 0; col < CFG_COLS; col++) {
       if (!(col%4)) {
-        snprintf_P(log_data, sizeof(log_data), PSTR("%s "), log_data);
+        snprintf(log_data, sizeof(log_data), PSTR("%s "), log_data);
       }
-      snprintf_P(log_data, sizeof(log_data), PSTR("%s %02X"), log_data, buffer[idx + col]);
+      snprintf(log_data, sizeof(log_data), PSTR("%s %02X"), log_data, buffer[idx + col]);
     }
-    snprintf_P(log_data, sizeof(log_data), PSTR("%s |"), log_data);
+    snprintf(log_data, sizeof(log_data), PSTR("%s |"), log_data);
     for (col = 0; col < CFG_COLS; col++) {
 //      if (!(col%4)) {
-//        snprintf_P(log_data, sizeof(log_data), PSTR("%s "), log_data);
+//        snprintf(log_data, sizeof(log_data), PSTR("%s "), log_data);
 //      }
-      snprintf_P(log_data, sizeof(log_data), PSTR("%s%c"), log_data, ((buffer[idx + col] > 0x20) && (buffer[idx + col] < 0x7F)) ? (char)buffer[idx + col] : ' ');
+      snprintf(log_data, sizeof(log_data), PSTR("%s%c"), log_data, ((buffer[idx + col] > 0x20) && (buffer[idx + col] < 0x7F)) ? (char)buffer[idx + col] : ' ');
     }
-    snprintf_P(log_data, sizeof(log_data), PSTR("%s|"), log_data);
+    snprintf(log_data, sizeof(log_data), PSTR("%s|"), log_data);
     AddLogData(LOG_LEVEL_INFO, log_data);
     delay(1);
   }
@@ -361,15 +361,15 @@ void DebugCfgPeek(char* parms)
   uint32_t data32 = (buffer[address +3] << 24) + (buffer[address +2] << 16) + data16;
 
   char log_data[100];  // 000: 09 12 00 10 |    | 0x09 (9), 0x1209 (4617), 0x10001209 (268440073)
-  snprintf_P(log_data, sizeof(log_data), PSTR("%03X:"), address);
+  snprintf(log_data, sizeof(log_data), PSTR("%03X:"), address);
   for (uint32_t i = 0; i < 4; i++) {
-    snprintf_P(log_data, sizeof(log_data), PSTR("%s %02X"), log_data, buffer[address +i]);
+    snprintf(log_data, sizeof(log_data), PSTR("%s %02X"), log_data, buffer[address +i]);
   }
-  snprintf_P(log_data, sizeof(log_data), PSTR("%s |"), log_data);
+  snprintf(log_data, sizeof(log_data), PSTR("%s |"), log_data);
   for (uint32_t i = 0; i < 4; i++) {
-    snprintf_P(log_data, sizeof(log_data), PSTR("%s%c"), log_data, ((buffer[address +i] > 0x20) && (buffer[address +i] < 0x7F)) ? (char)buffer[address +i] : ' ');
+    snprintf(log_data, sizeof(log_data), PSTR("%s%c"), log_data, ((buffer[address +i] > 0x20) && (buffer[address +i] < 0x7F)) ? (char)buffer[address +i] : ' ');
   }
-  snprintf_P(log_data, sizeof(log_data), PSTR("%s| 0x%02X (%d), 0x%04X (%d), 0x%0LX (%lu)"), log_data, data8, data8, data16, data16, data32, data32);
+  snprintf(log_data, sizeof(log_data), PSTR("%s| 0x%02X (%d), 0x%04X (%d), 0x%0LX (%lu)"), log_data, data8, data8, data16, data16, data32, data32);
   AddLogData(LOG_LEVEL_INFO, log_data);
 }
 
@@ -455,7 +455,7 @@ void CmndCfgXor(void)
     config_xor_on_set = XdrvMailbox.payload;
   }
   char temp[10];
-  snprintf_P(temp, sizeof(temp), PSTR("0x%02X"), config_xor_on_set);
+  snprintf(temp, sizeof(temp), PSTR("0x%02X"), config_xor_on_set);
   ResponseCmndChar(temp);
 }
 #endif  // USE_WEBSERVER

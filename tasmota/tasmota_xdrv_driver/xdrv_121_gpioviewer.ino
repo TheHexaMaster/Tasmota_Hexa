@@ -567,8 +567,8 @@ void GVCloseEvent(void) {
 void GVEventSend(const char *message, const char *event, uint32_t id) {
   if (GVWebClient.connected()) {
     // generateEventMessage() in AsyncEventSource.cpp
-//    GVWebClient.printf_P(PSTR("retry:1000\nid:%u\nevent:%s\ndata:%s\n\n"), id, event, message);
-    GVWebClient.printf_P(PSTR("id:%u\nevent:%s\ndata:%s\n\n"), id, event, message);
+//    GVWebClient.printf(PSTR("retry:1000\nid:%u\nevent:%s\ndata:%s\n\n"), id, event, message);
+    GVWebClient.printf(PSTR("id:%u\nevent:%s\ndata:%s\n\n"), id, event, message);
   } else {
     GVEventDisconnected();
   }
@@ -659,7 +659,7 @@ void GVMonitorTask(void) {
     // Send freeHeap
     GV->freeHeap = heap;
     char temp[20];
-    snprintf_P(temp, sizeof(temp), PSTR("%d KB"), heap / 1024);
+    snprintf(temp, sizeof(temp), PSTR("%d KB"), heap / 1024);
     GVEventSend(temp, "free_heap", millis());
     hasChanges = true;
   }
@@ -671,7 +671,7 @@ void GVMonitorTask(void) {
     if (psram != GV->freePSRAM) {
       GV->freePSRAM = psram;
       char temp[20];
-      snprintf_P(temp, sizeof(temp), PSTR("%d KB"), psram / 1024);
+      snprintf(temp, sizeof(temp), PSTR("%d KB"), psram / 1024);
       GVEventSend(temp, "free_psram", millis());
       hasChanges = true;
     }
@@ -684,7 +684,7 @@ void GVMonitorTask(void) {
     if (last_sent > GV_KEEP_ALIVE) {
       // No activity, resending for pulse
       char temp[20];
-      snprintf_P(temp, sizeof(temp), PSTR("%d KB"), heap / 1024);
+      snprintf(temp, sizeof(temp), PSTR("%d KB"), heap / 1024);
       GVEventSend(temp, "free_heap", millis());
       GV->lastSentWithNoActivity = millis();
     }
@@ -788,7 +788,7 @@ void GVSetupAndStart(void) {
   GVBegin();                               // Start WebServer
 
   char redirect[100];
-  snprintf_P(redirect, sizeof(redirect), PSTR("http://%s:%d/"), NetworkAddress().toString().c_str(), GV->port);
+  snprintf(redirect, sizeof(redirect), PSTR("http://%s:%d/"), NetworkAddress().toString().c_str(), GV->port);
   Webserver->sendHeader(F("Location"), redirect);
   Webserver->send(303);
 }

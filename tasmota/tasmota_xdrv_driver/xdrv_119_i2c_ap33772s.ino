@@ -863,17 +863,17 @@ void AP33772S_WebGetArg(void) {
 
   WebGetArg("i1191", tmp, sizeof(tmp));
   if (strlen(tmp)) {
-    snprintf_P(svalue, sizeof(svalue), PSTR("PDVoltage %s"), tmp);
+    snprintf(svalue, sizeof(svalue), PSTR("PDVoltage %s"), tmp);
     ExecuteWebCommand(svalue);
   }
   WebGetArg("i1192", tmp, sizeof(tmp));
   if (strlen(tmp)) {
-    snprintf_P(svalue, sizeof(svalue), PSTR("PDCurrent %s"), tmp);
+    snprintf(svalue, sizeof(svalue), PSTR("PDCurrent %s"), tmp);
     ExecuteWebCommand(svalue);
   }
   WebGetArg(PSTR("k119"), tmp, sizeof(tmp));
   if (strlen(tmp)) {
-    snprintf_P(svalue, sizeof(svalue), PSTR("PDOutput 2"));
+    snprintf(svalue, sizeof(svalue), PSTR("PDOutput 2"));
     ExecuteWebCommand(svalue);
   }
 }

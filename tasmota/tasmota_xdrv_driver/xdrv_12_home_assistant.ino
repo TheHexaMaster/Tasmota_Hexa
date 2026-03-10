@@ -244,7 +244,7 @@ void HassDiscoverMessage(void) {
   uint32_t maxfn = (TasmotaGlobal.devices_present > MAX_FRIENDLYNAMES) ? MAX_FRIENDLYNAMES : (!TasmotaGlobal.devices_present) ? 1 : TasmotaGlobal.devices_present;
   for (uint32_t i = 0; i < MAX_FRIENDLYNAMES; i++) {
     char fname[TOPSZ];
-    snprintf_P(fname, sizeof(fname), PSTR("\"%s\""), EscapeJSONString(SettingsText(SET_FRIENDLYNAME1 +i)).c_str());
+    snprintf(fname, sizeof(fname), PSTR("\"%s\""), EscapeJSONString(SettingsText(SET_FRIENDLYNAME1 +i)).c_str());
     ResponseAppend_P(PSTR("%s%s"), (i > 0 ? "," : ""), (i < maxfn) ? fname : PSTR("null"));
   }
 
@@ -316,7 +316,7 @@ void HassDiscoverMessage(void) {
   // Enable Discovery for Switches only if SetOption114 is enabled
   for (uint32_t i = 0; i < MAX_SWITCHES_SET; i++) {
     char sname[TOPSZ];
-    snprintf_P(sname, sizeof(sname), PSTR("\"%s\""), GetSwitchText(i).c_str());
+    snprintf(sname, sizeof(sname), PSTR("\"%s\""), GetSwitchText(i).c_str());
     ResponseAppend_P(PSTR("%s%s"), (i > 0 ? "," : ""), (SwitchUsed(i) && Settings->flag5.mqtt_switches) ? sname : PSTR("null"));
   }
 
@@ -383,7 +383,7 @@ void NewHAssDiscovery(void) {
     HassDiscoverMessage();                                      // Build discovery message
   }
   char stopic[TOPSZ];
-  snprintf_P(stopic, sizeof(stopic), PSTR("tasmota/discovery/%s/config"), NetworkUniqueId().c_str());
+  snprintf(stopic, sizeof(stopic), PSTR("tasmota/discovery/%s/config"), NetworkUniqueId().c_str());
   MqttPublish(stopic, true);
 
   if (!Settings->flag.hass_discovery) {                         // SetOption19 - Clear retained message
@@ -391,7 +391,7 @@ void NewHAssDiscovery(void) {
     MqttShowSensor(true);
     ResponseAppend_P(PSTR(",\"ver\":1}"));
   }
-  snprintf_P(stopic, sizeof(stopic), PSTR("tasmota/discovery/%s/sensors"), NetworkUniqueId().c_str());
+  snprintf(stopic, sizeof(stopic), PSTR("tasmota/discovery/%s/sensors"), NetworkUniqueId().c_str());
   MqttPublish(stopic, true);
 
   TasmotaGlobal.masterlog_level = LOG_LEVEL_NONE;              // Restore WebLog state
@@ -458,13 +458,13 @@ void HAssAnnounceRelayLight(void)
     ResponseClear();  // Clear retained message
 
     // Clear "other" topic first in case the device has been reconfigured from light to switch or vice versa
-    snprintf_P(unique_id, sizeof(unique_id), PSTR("%06X_%s_%d"), ESP_getChipId(), (is_topic_light) ? "RL" : "LI", i);
-    snprintf_P(stopic, sizeof(stopic), PSTR(HOME_ASSISTANT_DISCOVERY_PREFIX "/%s/%s/config"),
+    snprintf(unique_id, sizeof(unique_id), PSTR("%06X_%s_%d"), ESP_getChipId(), (is_topic_light) ? "RL" : "LI", i);
+    snprintf(stopic, sizeof(stopic), PSTR(HOME_ASSISTANT_DISCOVERY_PREFIX "/%s/%s/config"),
                (is_topic_light) ? "switch" : "light", unique_id);
     MqttPublish(stopic, true);
     // Clear or Set topic
-    snprintf_P(unique_id, sizeof(unique_id), PSTR("%06X_%s_%d"), ESP_getChipId(), (is_topic_light) ? "LI" : "RL", i);
-    snprintf_P(stopic, sizeof(stopic), PSTR(HOME_ASSISTANT_DISCOVERY_PREFIX "/%s/%s/config"),
+    snprintf(unique_id, sizeof(unique_id), PSTR("%06X_%s_%d"), ESP_getChipId(), (is_topic_light) ? "LI" : "RL", i);
+    snprintf(stopic, sizeof(stopic), PSTR(HOME_ASSISTANT_DISCOVERY_PREFIX "/%s/%s/config"),
                (is_topic_light) ? "light" : "switch", unique_id);
 
     if (bitRead(shutter_mask, i-1)) {
@@ -484,9 +484,9 @@ void HAssAnnounceRelayLight(void)
           ShowTopic = 0;
 
           if (i > MAX_FRIENDLYNAMES) {
-            snprintf_P(name, sizeof(name), PSTR("%s %d"), SettingsText(SET_FRIENDLYNAME1), i-1);
+            snprintf(name, sizeof(name), PSTR("%s %d"), SettingsText(SET_FRIENDLYNAME1), i-1);
           } else {
-            snprintf_P(name, sizeof(name), PSTR ("%s"), SettingsText(SET_FRIENDLYNAME1 + i-1));
+            snprintf(name, sizeof(name), PSTR ("%s"), SettingsText(SET_FRIENDLYNAME1 + i-1));
           }
 
           GetPowerDevice(value_template, i, sizeof(value_template), Settings->flag.device_index_enable); // SetOption26 - Switch between POWER or POWER1
@@ -525,8 +525,8 @@ void HAssAnnouncerTriggers(uint8_t device, uint8_t present, uint8_t key, uint8_t
 
   for (uint8_t i = trg_start; i <= trg_end; i++) {
     GetTextIndexed(trigger2, sizeof(trigger2), i, kHAssTriggerStringButtons);
-    snprintf_P(unique_id, sizeof(unique_id), PSTR("%06X_%s_%d_%s"), ESP_getChipId(), key ? "SW" : "BTN", device + 1, key ? GetStateText(i) : trigger2);
-    snprintf_P(stopic, sizeof(stopic), PSTR(HOME_ASSISTANT_DISCOVERY_PREFIX "/device_automation/%s/config"), unique_id);
+    snprintf(unique_id, sizeof(unique_id), PSTR("%06X_%s_%d_%s"), ESP_getChipId(), key ? "SW" : "BTN", device + 1, key ? GetStateText(i) : trigger2);
+    snprintf(stopic, sizeof(stopic), PSTR(HOME_ASSISTANT_DISCOVERY_PREFIX "/device_automation/%s/config"), unique_id);
 
     TasmotaGlobal.masterlog_level = ShowTopic = 4; // Hide topic on clean and remove use weblog 4 to see it
 
@@ -540,7 +540,7 @@ void HAssAnnouncerTriggers(uint8_t device, uint8_t present, uint8_t key, uint8_t
       ShowTopic = 0; // Show the new generated topic
 
       GetPowerDevice(value_template, device + 1, sizeof(value_template), key + Settings->flag.device_index_enable);     // Force index for Switch 1, Index on Button1 is controlled by SetOption26 - Switch between POWER or POWER1
-      snprintf_P(jsoname, sizeof(jsoname), PSTR("%s%d"), key ? "SWITCH" : "BUTTON", device + 1);
+      snprintf(jsoname, sizeof(jsoname), PSTR("%s%d"), key ? "SWITCH" : "BUTTON", device + 1);
       GetTopic_P(state_topic, STAT, TasmotaGlobal.mqtt_topic, jsoname);
       GetTopic_P(availability_topic, TELE, TasmotaGlobal.mqtt_topic, S_LWT);
 
@@ -551,13 +551,13 @@ void HAssAnnouncerTriggers(uint8_t device, uint8_t present, uint8_t key, uint8_t
         if ((i == 2 && toggle != 0) || (i == 3 && hold != 0)) {
           if (i == 3) { pload = hold; }
           GetTextIndexed(param, sizeof(param), pload, kHAssTriggerType);
-          snprintf_P(subtype, sizeof(subtype), PSTR("switch_%d"), device + 1);
+          snprintf(subtype, sizeof(subtype), PSTR("switch_%d"), device + 1);
           Response_P(HASS_TRIGGER_TYPE, state_topic, GetStateText(i), param, subtype, ESP_getChipId());
         } else { ResponseClear(); }  // Need to be cleaned again to avoid duplicate
       } else {
         char trigger1[24];
         GetTextIndexed(trigger1, sizeof(trigger1), i, kHAssTriggerTypeButtons);
-        snprintf_P(subtype, sizeof(subtype), PSTR("button_%d"), device + 1);
+        snprintf(subtype, sizeof(subtype), PSTR("button_%d"), device + 1);
         if (i > 1 && single) {
           ResponseClear();  // Need to be cleaned again to avoid duplicate
         } else {
@@ -582,8 +582,8 @@ void HAssAnnouncerBinSensors(uint8_t device, uint8_t present, uint8_t dual, uint
   TasmotaGlobal.masterlog_level = 4; // Hide topic on clean and remove use weblog 4 to see it
 
 
-  snprintf_P(unique_id, sizeof(unique_id), PSTR("%06X_SW_%d"), ESP_getChipId(), device + 1);
-  snprintf_P(stopic, sizeof(stopic), PSTR(HOME_ASSISTANT_DISCOVERY_PREFIX "/binary_sensor/%s/config"), unique_id);
+  snprintf(unique_id, sizeof(unique_id), PSTR("%06X_SW_%d"), ESP_getChipId(), device + 1);
+  snprintf(stopic, sizeof(stopic), PSTR(HOME_ASSISTANT_DISCOVERY_PREFIX "/binary_sensor/%s/config"), unique_id);
 
   TasmotaGlobal.masterlog_level = ShowTopic = 4; // Hide topic on clean and remove use weblog 4 to see it
 
@@ -599,11 +599,11 @@ void HAssAnnouncerBinSensors(uint8_t device, uint8_t present, uint8_t dual, uint
       ShowTopic = 0;
 
       GetPowerDevice(value_template, device + 1, sizeof(value_template), 1 + Settings->flag.device_index_enable); // Force index for Switch 1, Index on Button1 is controlled by SetOption26 - Switch between POWER or POWER1
-      snprintf_P(jsoname, sizeof(jsoname), PSTR("SWITCH%d"), device + 1);
+      snprintf(jsoname, sizeof(jsoname), PSTR("SWITCH%d"), device + 1);
       GetTopic_P(state_topic, STAT, TasmotaGlobal.mqtt_topic, jsoname);
       GetTopic_P(availability_topic, TELE, TasmotaGlobal.mqtt_topic, S_LWT);
 
-      snprintf_P(name, sizeof(name), PSTR("%s Switch%d"), SettingsText(SET_DEVICENAME), device + 1);
+      snprintf(name, sizeof(name), PSTR("%s Switch%d"), SettingsText(SET_DEVICENAME), device + 1);
       Response_P(HASS_DISCOVER_BASE, name, state_topic, availability_topic);
       if (!pir) {
         TryResponseAppend_P(HASS_DISCOVER_BIN_SWITCH, PSTR(D_RSLT_STATE), SettingsText(SET_STATE_TXT2), SettingsText(SET_STATE_TXT1));
@@ -753,8 +753,8 @@ void HAssAnnounceSensor(const char *sensorname, const char *subsensortype, const
 
   // Clear or Set topic
   NoAlNumToUnderscore(subname, MultiSubName); //Replace all non alphaumeric characters to '_' to avoid topic name issues
-  snprintf_P(unique_id, sizeof(unique_id), PSTR("%06X_%s_%s"), ESP_getChipId(), sensorname, subname);
-  snprintf_P(stopic, sizeof(stopic), PSTR(HOME_ASSISTANT_DISCOVERY_PREFIX "/sensor/%s/config"), unique_id);
+  snprintf(unique_id, sizeof(unique_id), PSTR("%06X_%s_%s"), ESP_getChipId(), sensorname, subname);
+  snprintf(stopic, sizeof(stopic), PSTR(HOME_ASSISTANT_DISCOVERY_PREFIX "/sensor/%s/config"), unique_id);
   if (Settings->flag.hass_discovery)
   {                     // SetOption19 - Control Home Assistantautomatic discovery (See SetOption59)
     char name[TOPSZ]; // friendlyname(33) + " " + sensorname(20?) + " " + sensortype(20?)
@@ -764,7 +764,7 @@ void HAssAnnounceSensor(const char *sensorname, const char *subsensortype, const
      TasmotaGlobal.masterlog_level = 0; // Show the new generated topic
 
     GetTopic_P(state_topic, TELE, TasmotaGlobal.mqtt_topic, PSTR(D_RSLT_SENSOR));
-    snprintf_P(name, sizeof(name), PSTR("%s %s %s"), SettingsText(SET_DEVICENAME), sensorname, MultiSubName);
+    snprintf(name, sizeof(name), PSTR("%s %s %s"), SettingsText(SET_DEVICENAME), sensorname, MultiSubName);
     GetTopic_P(availability_topic, TELE, TasmotaGlobal.mqtt_topic, S_LWT);
 
     Response_P(HASS_DISCOVER_BASE, name, state_topic);
@@ -788,11 +788,11 @@ void HAssAnnounceSensor(const char *sensorname, const char *subsensortype, const
       switch (sensor_index) {
         case 0:   // Temperature and DewPoint
         case 1:
-          snprintf_P(param1, sizeof(param1), PSTR("°%c"),TempUnit()); // C or F
+          snprintf(param1, sizeof(param1), PSTR("°%c"),TempUnit()); // C or F
           break;
         case 2:   // Pressure and Sea Level Pressure
         case 3:
-          snprintf_P(param1, sizeof(param1), PSTR("%s"), PressureUnit().c_str());
+          snprintf(param1, sizeof(param1), PSTR("%s"), PressureUnit().c_str());
           break;
        }
       char param2[50];
@@ -828,7 +828,7 @@ void HAssAnnounceSensors(void)
 
     // ******************* JSON TEST *******************
     // char sensordata[512];
-    // snprintf_P(sensordata, sizeof(sensordata), PSTR("{\"ENERGY\":{\"TotalStartTime\":\"2018-11-23T15:33:47\",\"ExportTariff\":[0.000,0.017],\"Speed\":{\"Act\":\"NE\"}}}"));
+    // snprintf(sensordata, sizeof(sensordata), PSTR("{\"ENERGY\":{\"TotalStartTime\":\"2018-11-23T15:33:47\",\"ExportTariff\":[0.000,0.017],\"Speed\":{\"Act\":\"NE\"}}}"));
     // size_t sensordata_len = strlen(sensordata);
     // ******************* JSON TEST *******************
 
@@ -868,7 +868,7 @@ void HAssAnnounceSensors(void)
             JsonParserObject subsensors = subsensor.getObject();
             char NewSensorName[20];
             for (auto subsensor2_key : subsensors) {
-              snprintf_P(NewSensorName, sizeof(NewSensorName), PSTR("%s %s"), subsensor_key, subsensor2_key.getStr());
+              snprintf(NewSensorName, sizeof(NewSensorName), PSTR("%s %s"), subsensor_key, subsensor2_key.getStr());
               HAssAnnounceSensor(sensorname, subsensor_key, NewSensorName, 0, 1, subsensor2_key.getStr());
             }
           } else if (subsensor.isArray()) {
@@ -877,7 +877,7 @@ void HAssAnnounceSensors(void)
             uint8_t subqty = subsensors.size();
             char MultiSubName[20];
             for (int i = 1; i <= subqty; i++) {
-              snprintf_P(MultiSubName, sizeof(MultiSubName), PSTR("%s %d"), subsensor_key, i);
+              snprintf(MultiSubName, sizeof(MultiSubName), PSTR("%s %d"), subsensor_key, i);
               HAssAnnounceSensor(sensorname, subsensor_key, MultiSubName, i, 0, subsensor_key);
             }
           } else {
@@ -906,8 +906,8 @@ void HAssAnnounceDeviceInfoAndStatusSensor(void)
   ResponseClear();  // Clear retained message
   TasmotaGlobal.masterlog_level = ShowTopic = 4; // Hide topic on clean and remove use weblog 4 to see it
   // Clear or Set topic
-  snprintf_P(unique_id, sizeof(unique_id), PSTR("%06X_status"), ESP_getChipId());
-  snprintf_P(stopic, sizeof(stopic), PSTR(HOME_ASSISTANT_DISCOVERY_PREFIX "/sensor/%s/config"), unique_id);
+  snprintf(unique_id, sizeof(unique_id), PSTR("%06X_status"), ESP_getChipId());
+  snprintf(stopic, sizeof(stopic), PSTR(HOME_ASSISTANT_DISCOVERY_PREFIX "/sensor/%s/config"), unique_id);
 
   if (Settings->flag.hass_discovery)
   {                    // SetOption19 - Control Home Assistantautomatic discovery (See SetOption59)
@@ -916,7 +916,7 @@ void HAssAnnounceDeviceInfoAndStatusSensor(void)
     char *state_topic = stemp1;
     char *availability_topic = stemp2;
     ShowTopic = 0; // Show the new generated topic
-    snprintf_P(name, sizeof(name), PSTR("%s status"), SettingsText(SET_DEVICENAME));
+    snprintf(name, sizeof(name), PSTR("%s status"), SettingsText(SET_DEVICENAME));
     GetTopic_P(state_topic, TELE, TasmotaGlobal.mqtt_topic, PSTR(D_RSLT_HASS_STATE));
     GetTopic_P(availability_topic, TELE, TasmotaGlobal.mqtt_topic, S_LWT);
 
@@ -1014,13 +1014,13 @@ void HAssAnyKey(void)
   Format(key_topic, tmpbtn, sizeof(key_topic));
 
   if (state >= 2) { evkey = 1;}
-  snprintf_P(scommand, sizeof(scommand), PSTR("%s%d%s"), (key) ? "SWITCH" : "BUTTON", device, (evkey) ? "T" : "");
+  snprintf(scommand, sizeof(scommand), PSTR("%s%d%s"), (key) ? "SWITCH" : "BUTTON", device, (evkey) ? "T" : "");
 
   char stopic[TOPSZ];
 
   if (!key) {
     if (state == 3) {
-      snprintf_P(trg_state, sizeof(trg_state), GetStateText(3));
+      snprintf(trg_state, sizeof(trg_state), GetStateText(3));
     } else {
       if (state == 2) { state = 10; }
       GetTextIndexed(trg_state, sizeof(trg_state), state -9, kHAssTriggerStringButtons);
@@ -1046,7 +1046,7 @@ bool HAssMqttLWT(void)
 void HassLwtSubscribe(bool hasslwt)
 {
   char htopic[TOPSZ];
-  snprintf_P(htopic, sizeof(htopic), PSTR(HOME_ASSISTANT_LWT_TOPIC));
+  snprintf(htopic, sizeof(htopic), PSTR(HOME_ASSISTANT_LWT_TOPIC));
   if (hasslwt && (Settings->flag.hass_discovery)) {
     MqttSubscribe(htopic);
   } else { MqttUnsubscribe(htopic); }

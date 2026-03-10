@@ -28,8 +28,6 @@
 	#define IF_SERIAL_DEBUG(x)
   #endif
 
-  #define printf_P printf
-  #define strlen_P strlen
   #define PRIPSTR "%s"
 
 

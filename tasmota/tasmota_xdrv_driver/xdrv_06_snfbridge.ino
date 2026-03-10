@@ -234,18 +234,18 @@ void SonoffBridgeReceived(void)
           if (Settings->rf_code[i][0]) {
             uint32_t send_id = Settings->rf_code[i][6] << 16 | Settings->rf_code[i][7] << 8 | Settings->rf_code[i][8];
             if (send_id == received_id) {
-              snprintf_P(rfkey, sizeof(rfkey), PSTR("%d"), i);
+              snprintf(rfkey, sizeof(rfkey), PSTR("%d"), i);
               break;
             }
           }
         }
         if (Settings->flag.rf_receive_decimal) {  // SetOption28 - RF receive data format
-          snprintf_P(stemp, sizeof(stemp), PSTR("%u"), received_id);
+          snprintf(stemp, sizeof(stemp), PSTR("%u"), received_id);
         } else {
 #ifdef FIX_JSON_HEXADECIMAL
-          snprintf_P(stemp, sizeof(stemp), PSTR("\"0x%06X\""), received_id);
+          snprintf(stemp, sizeof(stemp), PSTR("\"0x%06X\""), received_id);
 #else
-          snprintf_P(stemp, sizeof(stemp), PSTR("\"%06X\""), received_id);
+          snprintf(stemp, sizeof(stemp), PSTR("\"%06X\""), received_id);
 #endif  // FIX_JSON_HEXADECIMAL
         }
         ResponseTime_P(PSTR(",\"" D_JSON_RFRECEIVED "\":{\"" D_JSON_SYNC "\":%d,\"" D_JSON_LOW "\":%d,\"" D_JSON_HIGH "\":%d,\"" D_JSON_DATA "\":%s,\"" D_CMND_PREFIX_RF D_CMND_RFKEY "\":%s}}"),
@@ -410,9 +410,9 @@ void CmndRfBridge(void)  // RfSync, RfLow, RfHigh, RfHost and RfCode
     code = Settings->rf_code[0][set_index] << 8 | Settings->rf_code[0][set_index +1];
   }
   if (10 == radix) {
-    snprintf_P(stemp, sizeof(stemp), PSTR("%d"), code);
+    snprintf(stemp, sizeof(stemp), PSTR("%d"), code);
   } else {
-    snprintf_P(stemp, sizeof(stemp), PSTR("\"#%06X\""), code);
+    snprintf(stemp, sizeof(stemp), PSTR("\"#%06X\""), code);
   }
   Response_P(S_JSON_COMMAND_XVALUE, XdrvMailbox.command, stemp);
 }
@@ -532,7 +532,7 @@ void SonoffBridgeWebGetArg(void) {
   WebGetArg(PSTR("k"), tmp, sizeof(tmp));  // 1 - 16 Pre defined RF keys
   if (strlen(tmp)) {
     char command[20];
-    snprintf_P(command, sizeof(command), PSTR(D_CMND_PREFIX_RF D_CMND_RFKEY "%s"), tmp);
+    snprintf(command, sizeof(command), PSTR(D_CMND_PREFIX_RF D_CMND_RFKEY "%s"), tmp);
     ExecuteWebCommand(command);
   }
 }

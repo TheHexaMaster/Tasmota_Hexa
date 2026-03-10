@@ -27,7 +27,7 @@
 String GetStatistics(void)
 {
   char data[40];
-  snprintf_P(data, sizeof(data), PSTR(",\"CR\":\"%d/%d\""), GetSettingsTextLen(), settings_text_size);  // Char Usage Ratio
+  snprintf(data, sizeof(data), PSTR(",\"CR\":\"%d/%d\""), GetSettingsTextLen(), settings_text_size);  // Char Usage Ratio
   return String(data);
 }
 

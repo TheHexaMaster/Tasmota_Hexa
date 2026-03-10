@@ -105,7 +105,7 @@ uint16_t opt_med5(uint16_t * p)
 int FrogmoreScd30::clearI2CBus(void)
 {
 #ifdef SCD30_DEBUG
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "clearI2CBus");
+    snprintf(scd30log_data, sizeof(scd30log_data), "clearI2CBus");
     AddLog(LOG_LEVEL_DEBUG_MORE);
 #endif
 #ifdef ESP8266
@@ -152,7 +152,7 @@ int FrogmoreScd30::sendBytes(void *pInput, uint8_t len)
     int result;
     uint8_t errorBytes = 0; // number of bytes that had an error in transmission
 #ifdef SCD30_DEBUG
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30SendBytes: data: 0x %02X %02X %02X | 0x %02X %02X %02X | 0x %02X %02X %02X", pBytes[0], pBytes[1], pBytes[2], pBytes[3], pBytes[4], pBytes[5], pBytes[6], pBytes[7], pBytes[8]);
+    snprintf(scd30log_data, sizeof(scd30log_data), "Scd30SendBytes: data: 0x %02X %02X %02X | 0x %02X %02X %02X | 0x %02X %02X %02X", pBytes[0], pBytes[1], pBytes[2], pBytes[3], pBytes[4], pBytes[5], pBytes[6], pBytes[7], pBytes[8]);
     AddLog(LOG_LEVEL_DEBUG_MORE);
 #endif
     pWire->beginTransmission(this->i2cAddress);
@@ -161,7 +161,7 @@ int FrogmoreScd30::sendBytes(void *pInput, uint8_t len)
     if (errorBytes || result)
     {
 #ifdef SCD30_DEBUG
-        snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30SendBytes: errorBytes: %d | Wire.end: %d", errorBytes, result);
+        snprintf(scd30log_data, sizeof(scd30log_data), "Scd30SendBytes: errorBytes: %d | Wire.end: %d", errorBytes, result);
         AddLog(LOG_LEVEL_INFO);
 #endif
     }
@@ -181,7 +181,7 @@ int FrogmoreScd30::getBytes(void *pOutput, uint8_t len)
   if (len != result)
   {
 #ifdef SCD30_DEBUG
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30GetBytes: wire request expected %d got: %d", len, result);
+    snprintf(scd30log_data, sizeof(scd30log_data), "Scd30GetBytes: wire request expected %d got: %d", len, result);
     AddLog(LOG_LEVEL_INFO);
 #endif
     return (ERROR_SCD30_NOT_ENOUGH_BYTES_ERROR);
@@ -194,7 +194,7 @@ int FrogmoreScd30::getBytes(void *pOutput, uint8_t len)
       pBytes[x] = pWire->read();
     }
 #ifdef SCD30_DEBUG
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30GetBytes: data: 0x %02X %02X %02X | 0x %02X %02X %02X | 0x %02X %02X %02X", pBytes[0], pBytes[1], pBytes[2], pBytes[3], pBytes[4], pBytes[5], pBytes[6], pBytes[7], pBytes[8]);
+    snprintf(scd30log_data, sizeof(scd30log_data), "Scd30GetBytes: data: 0x %02X %02X %02X | 0x %02X %02X %02X | 0x %02X %02X %02X", pBytes[0], pBytes[1], pBytes[2], pBytes[3], pBytes[4], pBytes[5], pBytes[6], pBytes[7], pBytes[8]);
     AddLog(LOG_LEVEL_DEBUG_MORE);
 #endif
     return (ERROR_SCD30_NO_ERROR);
@@ -213,7 +213,7 @@ int FrogmoreScd30::sendCommand(uint16_t command)
   if (error)
   {
 #ifdef SCD30_DEBUG
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30SendCommand: Scd30SendBytes failed: 0x%lX", error);
+    snprintf(scd30log_data, sizeof(scd30log_data), "Scd30SendCommand: Scd30SendBytes failed: 0x%lX", error);
     AddLog(LOG_LEVEL_INFO);
 #endif
   }
@@ -233,7 +233,7 @@ int FrogmoreScd30::sendCommandArguments(uint16_t command, uint16_t arguments)
   if (error)
   {
 #ifdef SCD30_DEBUG
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30SendCommandArguments: Scd30SendBytes failed: 0x%lX", error);
+    snprintf(scd30log_data, sizeof(scd30log_data), "Scd30SendCommandArguments: Scd30SendBytes failed: 0x%lX", error);
     AddLog(LOG_LEVEL_INFO);
 #endif
   }
@@ -247,9 +247,9 @@ int FrogmoreScd30::get16BitRegCheckCRC(void* pInput, uint16_t *pData)
   if (expectedCRC != pBytes[SCD30_DATA_REGISTER_BYTES])
   {
 #ifdef SCD30_DEBUG
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30get16BitRegCheckCRC: expected: 0x%02X, but got: 0x%02X", expectedCRC, pBytes[SCD30_DATA_REGISTER_BYTES]);
+    snprintf(scd30log_data, sizeof(scd30log_data), "Scd30get16BitRegCheckCRC: expected: 0x%02X, but got: 0x%02X", expectedCRC, pBytes[SCD30_DATA_REGISTER_BYTES]);
     AddLog(LOG_LEVEL_INFO);
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30get16BitRegCheckCRC: data: 0x%02X, 0x%02X, 0x%02X", pBytes[0], pBytes[1], pBytes[2]);
+    snprintf(scd30log_data, sizeof(scd30log_data), "Scd30get16BitRegCheckCRC: data: 0x%02X, 0x%02X, 0x%02X", pBytes[0], pBytes[1], pBytes[2]);
     AddLog(LOG_LEVEL_INFO);
 #endif
     return (ERROR_SCD30_CRC_ERROR);
@@ -284,14 +284,14 @@ int FrogmoreScd30::get32BitRegCheckCRC(void *pInput, float *pData)
 
     *pData =  * (float *) &rawInt;
 #ifdef SCD30_DEBUG
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "get32BitRegCheckCRC: got: tempUs 0x%lX, %lX", tempU16High, tempU16Low);
+    snprintf(scd30log_data, sizeof(scd30log_data), "get32BitRegCheckCRC: got: tempUs 0x%lX, %lX", tempU16High, tempU16Low);
     AddLog(LOG_LEVEL_DEBUG);
 #endif
 
     if (isnan(*pData) || isinf(*pData))
     {
 #ifdef SCD30_DEBUG
-        snprintf_P(scd30log_data, sizeof(scd30log_data), "get32BitRegCheckCRC: not a floating point number: rawInt 0x%lX", rawInt);
+        snprintf(scd30log_data, sizeof(scd30log_data), "get32BitRegCheckCRC: not a floating point number: rawInt 0x%lX", rawInt);
         AddLog(LOG_LEVEL_INFO);
 #endif
         return (ERROR_SCD30_NOT_A_NUMBER_ERROR);
@@ -307,7 +307,7 @@ int FrogmoreScd30::readRegister(uint16_t registerAddress, uint16_t* pData)
   if (error)
   {
 #ifdef SCD30_DEBUG
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30ReadRegister: SendCommand error: 0x%lX", error);
+    snprintf(scd30log_data, sizeof(scd30log_data), "Scd30ReadRegister: SendCommand error: 0x%lX", error);
     AddLog(LOG_LEVEL_INFO);
 #endif
     return (error);
@@ -318,7 +318,7 @@ int FrogmoreScd30::readRegister(uint16_t registerAddress, uint16_t* pData)
   if (error)
   {
 #ifdef SCD30_DEBUG
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30ReadRegister: Scd30GetBytes error: 0x%lX", error);
+    snprintf(scd30log_data, sizeof(scd30log_data), "Scd30ReadRegister: Scd30GetBytes error: 0x%lX", error);
     AddLog(LOG_LEVEL_INFO);
 #endif
     return (error);
@@ -328,7 +328,7 @@ int FrogmoreScd30::readRegister(uint16_t registerAddress, uint16_t* pData)
   if (error)
   {
 #ifdef SCD30_DEBUG
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30ReadRegister: Scd30get16BitRegCheckCRC error: 0x%lX", error);
+    snprintf(scd30log_data, sizeof(scd30log_data), "Scd30ReadRegister: Scd30get16BitRegCheckCRC error: 0x%lX", error);
     AddLog(LOG_LEVEL_INFO);
 #endif
     return (error);
@@ -519,7 +519,7 @@ int FrogmoreScd30::readMeasurement(
     }
 
 #ifdef SCD30_DEBUG
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement: have data");
+    snprintf(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement: have data");
     AddLog(LOG_LEVEL_DEBUG_MORE);
 #endif
 
@@ -527,7 +527,7 @@ int FrogmoreScd30::readMeasurement(
     if (error)
     {
 #ifdef SCD30_DEBUG
-        snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement: send command failed: 0x%lX", error);
+        snprintf(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement: send command failed: 0x%lX", error);
         AddLog(LOG_LEVEL_INFO);
 #endif
         return (error);
@@ -541,16 +541,16 @@ int FrogmoreScd30::readMeasurement(
     if (error)
     {
 #ifdef SCD30_DEBUG
-        snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement: Scd30GetBytes command failed: 0x%lX", error);
+        snprintf(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement: Scd30GetBytes command failed: 0x%lX", error);
         AddLog(LOG_LEVEL_INFO);
 #endif
         return (error);
     }
 
 #ifdef SCD30_DEBUG
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement: Scd30GetBytes data: 0x %02X %02X %02X | 0x %02X %02X %02X | 0x %02X %02X %02X", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8]);
+    snprintf(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement: Scd30GetBytes data: 0x %02X %02X %02X | 0x %02X %02X %02X | 0x %02X %02X %02X", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8]);
     AddLog(LOG_LEVEL_DEBUG_MORE);
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement: Scd30GetBytes data: 0x %02X %02X %02X | 0x %02X %02X %02X | 0x %02X %02X %02X", bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15], bytes[16], bytes[17]);
+    snprintf(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement: Scd30GetBytes data: 0x %02X %02X %02X | 0x %02X %02X %02X | 0x %02X %02X %02X", bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15], bytes[16], bytes[17]);
     AddLog(LOG_LEVEL_DEBUG_MORE);
 #endif
 
@@ -558,7 +558,7 @@ int FrogmoreScd30::readMeasurement(
     if (error)
     {
 #ifdef SCD30_DEBUG
-        snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement: Scd30Get32BitsCheckCRC 1st command failed: 0x%lX", error);
+        snprintf(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement: Scd30Get32BitsCheckCRC 1st command failed: 0x%lX", error);
         AddLog(LOG_LEVEL_INFO);
 #endif
         return (error);
@@ -568,7 +568,7 @@ int FrogmoreScd30::readMeasurement(
     if (error)
     {
 #ifdef SCD30_DEBUG
-        snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement: Scd30Get32BitsCheckCRC 2nd command failed: 0x%lX", error);
+        snprintf(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement: Scd30Get32BitsCheckCRC 2nd command failed: 0x%lX", error);
         AddLog(LOG_LEVEL_INFO);
 #endif
         return (error);
@@ -578,7 +578,7 @@ int FrogmoreScd30::readMeasurement(
     if (error)
     {
 #ifdef SCD30_DEBUG
-        snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement: Scd30Get32BitsCheckCRC 3rd command failed: 0x%lX", error);
+        snprintf(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement: Scd30Get32BitsCheckCRC 3rd command failed: 0x%lX", error);
         AddLog(LOG_LEVEL_INFO);
 #endif
         return (error);
@@ -608,7 +608,7 @@ int FrogmoreScd30::readMeasurement(
     }
 
 #ifdef SCD30_DEBUG
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement:  co2History: %ld, %ld, %ld, %ld, %ld", co2History[0], co2History[1], co2History[2], co2History[3], co2History[4]);
+    snprintf(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement:  co2History: %ld, %ld, %ld, %ld, %ld", co2History[0], co2History[1], co2History[2], co2History[3], co2History[4]);
     AddLog(LOG_LEVEL_DEBUG_MORE);
 #endif
     // copy array since the median filter function will re-arrange it
@@ -618,13 +618,13 @@ int FrogmoreScd30::readMeasurement(
         temp[x] = co2History[x];
     }
 #ifdef SCD30_DEBUG
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement:  temp: %ld, %ld, %ld, %ld, %ld", temp[0], temp[1], temp[2], temp[3], temp[4]);
+    snprintf(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement:  temp: %ld, %ld, %ld, %ld, %ld", temp[0], temp[1], temp[2], temp[3], temp[4]);
     AddLog(LOG_LEVEL_DEBUG_MORE);
 #endif
 
     *pCO2_ppm = opt_med5(temp);
 #ifdef SCD30_DEBUG
-    snprintf_P(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement:  CO2_ppm: %ld", *pCO2_ppm);
+    snprintf(scd30log_data, sizeof(scd30log_data), "Scd30ReadMeasurement:  CO2_ppm: %ld", *pCO2_ppm);
     AddLog(LOG_LEVEL_DEBUG_MORE);
 #endif
     if (pCO2EAvg_ppm)

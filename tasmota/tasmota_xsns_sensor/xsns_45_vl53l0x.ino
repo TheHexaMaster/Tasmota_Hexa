@@ -200,7 +200,7 @@ void Vl53l0Show(boolean json) {
   for (uint32_t i = 0; i < VL53LXX_MAX_SENSORS; i++) {
     char types[12] = "VL53L0X";
     if (VL53L0X_xshut) {
-      snprintf_P(types, sizeof(types), PSTR("VL53L0X%c%d"), IndexSeparator(), i +1);
+      snprintf(types, sizeof(types), PSTR("VL53L0X%c%d"), IndexSeparator(), i +1);
     }
     if (PinUsed(GPIO_VL53LXX_XSHUT1, i) || (!VL53L0X_xshut)) {
       float distance = (Vl53l0x_data[i].distance == 9999) ? NAN : (float)Vl53l0x_data[i].distance / 10;  // cm

@@ -181,7 +181,7 @@ struct EZOManager {
     for (int32_t i = 0; i < count; i++) {
       if (sensor[i]->isValid()) {
         char name[7];
-        snprintf_P(name, sizeof(name), PSTR("%s%c%X"), D_EZO_NAME, IndexSeparator(), i + 1);
+        snprintf(name, sizeof(name), PSTR("%s%c%X"), D_EZO_NAME, IndexSeparator(), i + 1);
 
         if (count == 1) {
           name[sizeof(D_EZO_NAME) - 1] = 0;

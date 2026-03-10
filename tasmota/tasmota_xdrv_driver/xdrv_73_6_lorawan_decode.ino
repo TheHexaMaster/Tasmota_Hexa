@@ -19,7 +19,7 @@ void LoraWanPublishHeader(uint32_t node, bool decoded) {
   if (!Settings->flag4.remove_zbreceived &&           // SetOption100 - (Zigbee) Remove LwReceived form JSON message (1)
       !Settings->flag5.zb_received_as_subtopic) {     // SetOption118 - (Zigbee) Move LwReceived from JSON message and into the subtopic replacing "SENSOR" default
     char prefix[16];
-    snprintf_P(prefix, sizeof(prefix), PSTR("%s"), (decoded) ? PSTR("LwDecoded") : PSTR("LwReceived"));
+    snprintf(prefix, sizeof(prefix), PSTR("%s"), (decoded) ? PSTR("LwDecoded") : PSTR("LwReceived"));
     if (Settings->flag5.zigbee_include_time &&        // SetOption144 - (Zigbee) Include time in `LwReceived` messages like other sensors
        (Rtc.utc_time >= START_VALID_TIME)) {
       // Add time if needed (and if time is valid)
@@ -76,9 +76,9 @@ void LoraWanPublishFooter(uint32_t node, bool decoded) {
       strlcpy(stemp, Lora->settings.end_node[node]->name.c_str(), sizeof(stemp));
       MakeValidMqtt(0, stemp);
       if (Settings->flag5.zigbee_hide_bridge_topic) { // SetOption125 - (Zigbee) Hide bridge topic from zigbee topic (use with SetOption89) (1)
-        snprintf_P(subtopic, sizeof(subtopic), PSTR("%s"), stemp);
+        snprintf(subtopic, sizeof(subtopic), PSTR("%s"), stemp);
       } else {
-        snprintf_P(subtopic, sizeof(subtopic), PSTR("%s/%s"), TasmotaGlobal.mqtt_topic, stemp);
+        snprintf(subtopic, sizeof(subtopic), PSTR("%s/%s"), TasmotaGlobal.mqtt_topic, stemp);
       }
       char stopic[TOPSZ];
       if (Settings->flag5.zb_received_as_subtopic)    // SetOption118 - (Zigbee) Move LwReceived from JSON message and into the subtopic replacing "SENSOR" default

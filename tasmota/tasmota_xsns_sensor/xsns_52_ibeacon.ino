@@ -469,7 +469,7 @@ uint32_t ibeacon_add(struct IBEACON *ib) {
   if (!strncmp(ib->MAC,"FFFF",4) || strncmp(ib->FACID,"00000000",8)) {
     for (uint32_t cnt=0;cnt<MAX_IBEACONS;cnt++) {
       if (ibeacons[cnt].FLAGS) {
-        if (!strncmp_P(ib->UID,PSTR("00000000000000000000000000000000"),32)) {
+        if (!strncmp(ib->UID,PSTR("00000000000000000000000000000000"),32)) {
           if (!strncmp(ibeacons[cnt].MAC,ib->MAC,12)) {
             // exists
             memcpy(ibeacons[cnt].RSSI,ib->RSSI,4);
@@ -789,7 +789,7 @@ char name[18];
       memcpy(name,ibeacons[cnt].NAME,16);
       name[16]=0;
 #endif
-      if (!strncmp_P(uid,PSTR("00000000000000000000000000000000"),32)) {
+      if (!strncmp(uid,PSTR("00000000000000000000000000000000"),32)) {
 #ifdef USE_IBEACON_ESP32
         if (name[0]) {
           WSContentSend_PD(HTTP_IBEACON_name,name,mac,rssi);
@@ -944,7 +944,7 @@ void ibeacon_mqtt(const char *mac,const char *rssi,const char *uid,const char *m
   }
 #endif
   // if uid == all zeros, take mac
-  if (!strncmp_P(s_uid,PSTR("00000000000000000000000000000000"),32)) {
+  if (!strncmp(s_uid,PSTR("00000000000000000000000000000000"),32)) {
 #ifdef USE_IBEACON_ESP32
     if (name[0]) {
       memcpy(s_name,name,16);

@@ -303,7 +303,7 @@ void ESP_Mail_Client::sendCallback(T sessionPtr, PGM_P info, bool prependCRLF, b
 
   if (prependCRLF)
     appendNewline(sessionPtr->_cbData._info);
-  if (strlen_P(info) > 0)
+  if (strlen(info) > 0)
   {
     sessionPtr->_cbData._info += esp_mail_str_33; /* "#### " */
     sessionPtr->_cbData._info += info;
@@ -739,10 +739,10 @@ char *ESP_Mail_Client::subStr(const char *buf, PGM_P beginToken, PGM_P endToken,
     int p1 = strposP(buf, beginToken, beginPos, caseSensitive);
     if (p1 != -1)
     {
-      while (buf[p1 + strlen_P(beginToken)] == ' ' || buf[p1 + strlen_P(beginToken)] == '\r' || buf[p1 + strlen_P(beginToken)] == '\n')
+      while (buf[p1 + strlen(beginToken)] == ' ' || buf[p1 + strlen(beginToken)] == '\r' || buf[p1 + strlen(beginToken)] == '\n')
       {
         p1++;
-        if (strlen(buf) <= p1 + strlen_P(beginToken))
+        if (strlen(buf) <= p1 + strlen(beginToken))
         {
           p1--;
           break;
@@ -751,15 +751,15 @@ char *ESP_Mail_Client::subStr(const char *buf, PGM_P beginToken, PGM_P endToken,
 
       int p2 = -1;
       if (endPos == 0)
-        p2 = strposP(buf, endToken, p1 + strlen_P(beginToken), caseSensitive);
+        p2 = strposP(buf, endToken, p1 + strlen(beginToken), caseSensitive);
 
       if (p2 == -1)
         p2 = strlen(buf);
 
-      int len = p2 - p1 - strlen_P(beginToken);
-      int ofs = endToken ? strlen_P(endToken) : 1;
+      int len = p2 - p1 - strlen(beginToken);
+      int ofs = endToken ? strlen(endToken) : 1;
       tmp = allocMem<char *>(len + ofs);
-      memcpy(tmp, &buf[p1 + strlen_P(beginToken)], len);
+      memcpy(tmp, &buf[p1 + strlen(beginToken)], len);
     }
   }
   else
@@ -1187,7 +1187,7 @@ void ESP_Mail_Client::sendCB(T sessionPtr, PGM_P info, bool prependCRLF, bool su
 
     if (prependCRLF)
       appendNewline(sessionPtr->_cbData._info);
-    if (strlen_P(info) > 0)
+    if (strlen(info) > 0)
     {
       sessionPtr->_cbData._info += esp_mail_str_33; /* "#### " */
       sessionPtr->_cbData._info += info;
@@ -1714,9 +1714,9 @@ bool ESP_Mail_Client::strcmpP(const char *buf, int ofs, PGM_P beginToken, bool c
     ofs = p;
   }
 
-  char *tmp2 = allocMem<char *>(strlen_P(beginToken) + 1);
-  memcpy(tmp2, &buf[ofs], strlen_P(beginToken));
-  tmp2[strlen_P(beginToken)] = 0;
+  char *tmp2 = allocMem<char *>(strlen(beginToken) + 1);
+  memcpy(tmp2, &buf[ofs], strlen(beginToken));
+  tmp2[strlen(beginToken)] = 0;
   MB_String s = beginToken;
   bool ret = (strcasecmp(s.c_str(), tmp2) == 0);
   // release memory
@@ -1732,7 +1732,7 @@ int ESP_Mail_Client::strposP(const char *buf, PGM_P beginToken, int ofs, bool ca
 
 char *ESP_Mail_Client::strP(PGM_P pgm)
 {
-  size_t len = strlen_P(pgm) + 1;
+  size_t len = strlen(pgm) + 1;
   char *buf = allocMem<char *>(len);
   strcpy_P(buf, pgm);
   buf[len - 1] = 0;
@@ -1741,7 +1741,7 @@ char *ESP_Mail_Client::strP(PGM_P pgm)
 
 char *ESP_Mail_Client::strP2Lower(PGM_P pgm)
 {
-  size_t len = strlen_P(pgm) + 1;
+  size_t len = strlen(pgm) + 1;
   char *buf = allocMem<char *>(len);
   strcpy_P(buf, pgm);
 

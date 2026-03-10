@@ -118,13 +118,11 @@
   #else
     #define IF_SERIAL_DEBUG(x)
     #if defined(RF24_TINY)
-      #define printf_P(...)
 
     #endif // defined(RF24_TINY)
   #endif // SERIAL_DEBUG
   
   #if defined (__ARDUINO_X86__)
-    #define printf_P printf
     #define _BV(bit) (1<<(bit))
 
   #endif // defined (__ARDUINO_X86__)
@@ -153,8 +151,6 @@
 
     typedef uint16_t prog_uint16_t;
     #define PSTR(x) (x)
-    #define printf_P printf
-    #define strlen_P strlen
     #define PROGMEM
     #define pgm_read_word(p) (*(p))
     #define pgm_read_ptr(p) (*(p))

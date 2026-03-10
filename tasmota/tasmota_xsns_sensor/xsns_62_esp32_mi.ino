@@ -969,9 +969,9 @@ extern "C" {
     static char _name[12];
     if( MIBLEsensors[slot].type == UNKNOWN_MI){
       if(MIBLEsensors[slot].PID == 0){
-        snprintf_P(_name,8,PSTR("BLE_%02u"),slot);
+        snprintf(_name,8,PSTR("BLE_%02u"),slot);
       } else {
-        snprintf_P(_name,8,PSTR("MI_%04X"),MIBLEsensors[slot].PID);
+        snprintf(_name,8,PSTR("MI_%04X"),MIBLEsensors[slot].PID);
       }
     }
     else{
@@ -1117,15 +1117,15 @@ void MI32saveConfig(){
     }
     char _name_feat[64];
     if(_sensor.name != nullptr){
-      snprintf_P(_name_feat,64,PSTR(",\"name\":\"%s\",\"feat\":%u"),_sensor.name,_sensor.feature.raw);
+      snprintf(_name_feat,64,PSTR(",\"name\":\"%s\",\"feat\":%u"),_sensor.name,_sensor.feature.raw);
     }
     else if(_sensor.type == BTHOME && _sensor.name == nullptr){
-      snprintf_P(_name_feat,64,PSTR(",\"feat\":%u"),_sensor.feature.raw);
+      snprintf(_name_feat,64,PSTR(",\"feat\":%u"),_sensor.feature.raw);
     }
     else{
       _name_feat[0] = 0;
     }
-    uint32_t _inc = snprintf_P(_filebuf+_pos,200,PSTR("{\"MAC\":\"%s\",\"PID\":\"%04x\",\"key\":\"%s\"%s},"),_MAC,_sensor.PID,_key,_name_feat);
+    uint32_t _inc = snprintf(_filebuf+_pos,200,PSTR("{\"MAC\":\"%s\",\"PID\":\"%04x\",\"key\":\"%s\"%s},"),_MAC,_sensor.PID,_key,_name_feat);
     _pos += _inc;
   }
   _filebuf[_pos-1] = ']';
@@ -2499,7 +2499,7 @@ void MI32createGraph(char *buffer, uint8_t *history, uint8_t r, uint8_t g, uint8
   uint16_t h = 20;
   // Start compact DSL for a single-series histogram: "{h,width,height,(r,g,b):"
   if (pos < bufferSize - 20) {
-    pos += snprintf_P(buffer + pos, bufferSize - pos,
+    pos += snprintf(buffer + pos, bufferSize - pos,
                       PSTR("{h,%u,%u,(%u,%u,%u):"),
                       w, h, r, g, b);
   }
@@ -2511,13 +2511,13 @@ void MI32createGraph(char *buffer, uint8_t *history, uint8_t r, uint8_t g, uint8
       buffer[pos++] = ',';      // add comma
       buffer[pos]   = '\0';
     }
-    pos += snprintf_P(buffer + pos, bufferSize - pos,
+    pos += snprintf(buffer + pos, bufferSize - pos,
                       PSTR("%u"),
                       value);
   }
   // Close the DSL block "}"
   if (pos < bufferSize - 2) {
-    pos += snprintf_P(buffer + pos, bufferSize - pos,
+    pos += snprintf(buffer + pos, bufferSize - pos,
                       PSTR("}"));
   }
 }
@@ -2560,16 +2560,16 @@ void MI32sendWidget(uint32_t slot){
     ToHex_P(_sensor.key,16,_key,33);
   }
   else if(_sensor.feature.needsKey == 1){
-    snprintf_P(_key,32,PSTR("!! needs key !!"));
+    snprintf(_key,32,PSTR("!! needs key !!"));
     _opacity=0;
   }
   if (_sensor.status.hasWrongKey == 1){
-    snprintf_P(_key,32,PSTR("!! wrong key !!"));
+    snprintf(_key,32,PSTR("!! wrong key !!"));
     _opacity=0;
   }
   if (_sensor.status.isUnbounded == 1){
     if(_sensor.type != CGD1){ //only exception atm
-      snprintf_P(_key,32,PSTR("!! not paired !!"));
+      snprintf(_key,32,PSTR("!! not paired !!"));
       _opacity=0;
     }
   }
@@ -2578,7 +2578,7 @@ void MI32sendWidget(uint32_t slot){
   }
 
   char _bat[24];
-  snprintf_P(_bat,24,PSTR("&#128267;%u%%"), _sensor.bat);
+  snprintf(_bat,24,PSTR("&#128267;%u%%"), _sensor.bat);
   if(!_sensor.feature.bat) _bat[0] = 0;
   if (_sensor.bat == 0) _bat[9] = 0;
   WSContentSend_P(HTTP_MI32_WIDGET,slot+1,_opacity,_MAC,_sensor.RSSI,_bat,_key,MI32getDeviceName(slot));

@@ -102,7 +102,7 @@ uint8_t Z_getTypeByName(const char *type) {
   int32_t ret = GetCommandCode(type_found, sizeof(type_found), type, Z_DATATYPES);
   if (ret < 0) {
     // try to decode hex
-    size_t type_len = strlen_P(type);
+    size_t type_len = strlen(type);
     if (type_len > 0 && type_len <= 2) {
       char *type_end;
       ret = strtoul(type, &type_end, 16);

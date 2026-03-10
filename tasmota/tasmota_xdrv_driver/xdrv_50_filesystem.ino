@@ -502,7 +502,7 @@ void FileLoggingAsync(bool refresh) {
   File file;
   uint32_t log_file_idx = Settings->mbflag2.log_file_idx;       // 0..15
   for (uint32_t retry = 0; retry <= 1; retry++) {
-    snprintf_P(fname, sizeof(fname), PSTR(FILE_LOG_NAME), log_file_idx +1);  // /log01
+    snprintf(fname, sizeof(fname), PSTR(FILE_LOG_NAME), log_file_idx +1);  // /log01
     file = ffsp->open(fname, "a");       // Append to existing log file
     if (!file) { 
       file = ffsp->open(fname, "w");     // Make new log file
@@ -536,7 +536,7 @@ void FileLoggingAsync(bool refresh) {
     }
 
     if (log_file_idx >= FILE_LOG_COUNT) { log_file_idx = 0; }  // Rotate max 16 log files
-    snprintf_P(fname, sizeof(fname), PSTR(FILE_LOG_NAME), log_file_idx +1);
+    snprintf(fname, sizeof(fname), PSTR(FILE_LOG_NAME), log_file_idx +1);
     AddLog(LOG_LEVEL_DEBUG_MORE, PSTR("FLG: Rotate file %s"), fname +1);  // Skip leading slash
     Settings->mbflag2.log_file_idx = log_file_idx;  // Save for restart or power on
 
@@ -544,7 +544,7 @@ void FileLoggingAsync(bool refresh) {
       // Remove log file(s) taking into account non-sequential file names and different file sizes
       uint32_t idx = log_file_idx;       // Next log file index
       do {                               // Need free space around FILE_LOG_SIZE so find oldest log file(s) and remove it
-        snprintf_P(fname, sizeof(fname), PSTR(FILE_LOG_NAME), idx +1);
+        snprintf(fname, sizeof(fname), PSTR(FILE_LOG_NAME), idx +1);
         if (ffsp->remove(fname)) {       // Remove oldest (non-)sequential log file(s)
           AddLog(LOG_LEVEL_DEBUG_MORE, PSTR("FLG: Delete file %s"), fname +1);  // Skip leading slash
         }
@@ -563,7 +563,7 @@ void FileLoggingAsync(bool refresh) {
     // This will timeout on ESP32-webcam
     // But now solved with WcInterrupt(0) in support_esp.ino
     file.write((uint8_t*)line, len -1);  // Write up to LOG_BUFFER_SIZE log data
-    snprintf_P(fname, sizeof(fname), PSTR("\r\n"));
+    snprintf(fname, sizeof(fname), PSTR("\r\n"));
     file.write((uint8_t*)fname, 2);
   }
 #ifdef USE_WEBCAM
@@ -578,7 +578,7 @@ void FileLoggingDelete(void) {
 
   char fname[14];
   for (uint32_t idx = 0; idx < FILE_LOG_COUNT; idx++) {
-    snprintf_P(fname, sizeof(fname), PSTR(FILE_LOG_NAME), idx +1);
+    snprintf(fname, sizeof(fname), PSTR(FILE_LOG_NAME), idx +1);
     ffsp->remove(fname);                 // Remove all log file(s)
   }
   Settings->mbflag2.log_file_idx = 0;
@@ -665,7 +665,7 @@ bool _UfsJsonSettingsUpdate(const char* data) {
   // Append: Input {"UserSet2":{"Param1":123,"Param2":"Text2"}}
 
   char filename[14];
-  snprintf_P(filename, sizeof(filename), PSTR(TASM_FILE_DRIVER), 0);  // /.drvset000
+  snprintf(filename, sizeof(filename), PSTR(TASM_FILE_DRIVER), 0);  // /.drvset000
   if (!TfsFileExists(filename)) { return false; }  // Error - File not found
 
   char bfname[14];
@@ -795,7 +795,7 @@ bool UfsJsonSettingsWrite(const char* data) {
   if (!root) { return false; }         // Error - invalid JSON
 
   char filename[14];
-  snprintf_P(filename, sizeof(filename), PSTR(TASM_FILE_DRIVER), 0);  // /.drvset000
+  snprintf(filename, sizeof(filename), PSTR(TASM_FILE_DRIVER), 0);  // /.drvset000
   if (!TfsFileExists(filename)) {
     return TfsSaveFile(filename, (uint8_t*)data, strlen(data));
   }
@@ -807,7 +807,7 @@ String UfsJsonSettingsRead(const char* key) {
   //       Output "" = Error, {"Param1":123,"Param2":"Text2","Param3":[{"Param3a":1},{"Param3b":1}]} = Data
   String data = "";
   char filename[14];
-  snprintf_P(filename, sizeof(filename), PSTR(TASM_FILE_DRIVER), 0);      // /.drvset000
+  snprintf(filename, sizeof(filename), PSTR(TASM_FILE_DRIVER), 0);      // /.drvset000
   if (!TfsFileExists(filename)) { return data; }  // Error - File not found
   File file = ffsp->open(filename, "r");
   if (!file) { return data; }          // Error - unable to open settings file
@@ -885,7 +885,7 @@ String UfsJsonSettingsRead(const char* key) {
 
 char* UfsFilename(char* fname, char* fname_in) {
   fname_in = Trim(fname_in);  // Remove possible leading spaces
-  snprintf_P(fname, UFS_FILENAME_SIZE, PSTR("%s%s"), ('/' == fname_in[0]) ? "" : "/", fname_in);
+  snprintf(fname, UFS_FILENAME_SIZE, PSTR("%s%s"), ('/' == fname_in[0]) ? "" : "/", fname_in);
   return fname;
 }
 
@@ -1322,7 +1322,7 @@ void HandleUploadUFSDone(void) {
     if (Web.upload_error < 10) {
       GetTextIndexed(error, sizeof(error), Web.upload_error -1, kUploadErrors);
     } else {
-      snprintf_P(error, sizeof(error), PSTR(D_UPLOAD_ERROR_CODE " %d"), Web.upload_error);
+      snprintf(error, sizeof(error), PSTR(D_UPLOAD_ERROR_CODE " %d"), Web.upload_error);
     }
     WSContentSend_P(error);
     Web.upload_error = 0;
@@ -1441,7 +1441,7 @@ void UfsListDir(char *path, uint8_t depth) {
   if (dir) {
     dir.rewindDirectory();
     if (strlen(path)>1) {
-      ext_snprintf_P(npath, sizeof(npath), PSTR("ufsd?download=%s"), path);
+      ext_snprintf(npath, sizeof(npath), PSTR("ufsd?download=%s"), path);
       for (uint32_t cnt = strlen(npath) - 1; cnt > 0; cnt--) {
         if (npath[cnt] == '/') {
           if (npath[cnt - 1] == '=') {
@@ -1497,12 +1497,12 @@ void UfsListDir(char *path, uint8_t depth) {
         sprintf(cp, format, ep);
 #ifdef GUI_TRASH_FILE
         char delpath[128+UFS_FILENAME_SIZE];
-        ext_snprintf_P(delpath, sizeof(delpath), UFS_FORM_SDC_HREFdel, ppe, epe, ppe[0]?ppe:"/");
+        ext_snprintf(delpath, sizeof(delpath), UFS_FORM_SDC_HREFdel, ppe, epe, ppe[0]?ppe:"/");
 #else
         char delpath[2] = " ";
 #endif // GUI_TRASH_FILE
         if (entry.isDirectory()) {
-          ext_snprintf_P(npath, sizeof(npath), UFS_FORM_SDC_HREF, ppe, epe);
+          ext_snprintf(npath, sizeof(npath), UFS_FORM_SDC_HREF, ppe, epe);
 
           WSContentSend_P(UFS_FORM_SDC_DIRb, hiddable ? UFS_FORM_SDC_DIR_HIDDABLE : UFS_FORM_SDC_DIR_NORMAL, npath, epe,
                           HtmlEscape(name).c_str(), "", 0, delpath, " ");
@@ -1519,12 +1519,12 @@ void UfsListDir(char *path, uint8_t depth) {
         } else {
   #ifdef GUI_EDIT_FILE
           char editpath[128];
-          ext_snprintf_P(editpath, sizeof(editpath), UFS_FORM_SDC_HREFedit, ppe, epe);
+          ext_snprintf(editpath, sizeof(editpath), UFS_FORM_SDC_HREFedit, ppe, epe);
   #else
           char editpath[2];
           editpath[0]=0;
   #endif // GUI_TRASH_FILE
-          ext_snprintf_P(npath, sizeof(npath), UFS_FORM_SDC_HREF, ppe, epe);
+          ext_snprintf(npath, sizeof(npath), UFS_FORM_SDC_HREF, ppe, epe);
           WSContentSend_P(UFS_FORM_SDC_DIRb, hiddable ? UFS_FORM_SDC_DIR_HIDDABLE : UFS_FORM_SDC_DIR_NORMAL, npath, epe,
                           HtmlEscape(name).c_str(), tstr.c_str(), entry.size(), delpath, editpath);
         }
@@ -1574,7 +1574,7 @@ uint8_t UfsDownloadFile(char *file) {
 
   char attachment[100];
   char *cp = fileOnly(file);
-  snprintf_P(attachment, sizeof(attachment), PSTR("attachment; filename=%s"), cp);
+  snprintf(attachment, sizeof(attachment), PSTR("attachment; filename=%s"), cp);
   Webserver->sendHeader(F("Content-Disposition"), attachment);
   WSSend(200, CT_APP_STREAM, "");
 
@@ -1648,9 +1648,9 @@ void download_task(void *path) {
 
   char attachment[100];
   char *cp = fileOnly(file);
-  //snprintf_P(attachment, sizeof(attachment), PSTR("download file '%s' as '%s'"), file, cp);
+  //snprintf(attachment, sizeof(attachment), PSTR("download file '%s' as '%s'"), file, cp);
   //Webserver->sendHeader(F("X-Tasmota-Debug"), attachment);
-  snprintf_P(attachment, sizeof(attachment), PSTR("attachment; filename=%s"), cp);
+  snprintf(attachment, sizeof(attachment), PSTR("attachment; filename=%s"), cp);
   Webserver->sendHeader(F("Content-Disposition"), attachment);
   WSSend(200, CT_APP_STREAM, "");
 
@@ -1676,7 +1676,7 @@ void download_task(void *path) {
 
 bool UfsUploadFileOpen(const char* upload_filename) {
   char npath[UFS_FILENAME_SIZE];
-  snprintf_P(npath, sizeof(npath), PSTR("%s/%s"), ufs_path, upload_filename);
+  snprintf(npath, sizeof(npath), PSTR("%s/%s"), ufs_path, upload_filename);
   dfsp->remove(npath);
   ufs_upload_file = dfsp->open(npath, UFS_FILE_WRITE);
   return (ufs_upload_file);
@@ -1710,7 +1710,7 @@ void UfsEditor(void) {
   if (Webserver->hasArg(F("file"))) {
     WebGetArg(PSTR("file"), fname_input, sizeof(fname_input));
   } else {
-    snprintf_P(fname_input, sizeof(fname_input), PSTR(D_NEW_FILE));
+    snprintf(fname_input, sizeof(fname_input), PSTR(D_NEW_FILE));
   }
   char fname[UFS_FILENAME_SIZE];
   UfsFilename(fname, fname_input);                  // Trim spaces and add slash

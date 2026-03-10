@@ -146,15 +146,15 @@ extern "C" int matter_publish_command(bvm *vm) {
         strlcpy(stemp, friendly_name, sizeof(stemp));
         MakeValidMqtt(0, stemp);
         if (Settings->flag5.zigbee_hide_bridge_topic) {
-          snprintf_P(subtopic, sizeof(subtopic), PSTR("%s"), stemp);
+          snprintf(subtopic, sizeof(subtopic), PSTR("%s"), stemp);
         } else {
-          snprintf_P(subtopic, sizeof(subtopic), PSTR("%s/%s"), TasmotaGlobal.mqtt_topic, stemp);
+          snprintf(subtopic, sizeof(subtopic), PSTR("%s/%s"), TasmotaGlobal.mqtt_topic, stemp);
         }
       } else {
         if (Settings->flag5.zigbee_hide_bridge_topic) {
-          snprintf_P(subtopic, sizeof(subtopic), PSTR("%i"), ep);
+          snprintf(subtopic, sizeof(subtopic), PSTR("%i"), ep);
         } else {
-          snprintf_P(subtopic, sizeof(subtopic), PSTR("%s/%i"), TasmotaGlobal.mqtt_topic, ep);
+          snprintf(subtopic, sizeof(subtopic), PSTR("%s/%i"), TasmotaGlobal.mqtt_topic, ep);
         }
       }
       char stopic[TOPSZ];

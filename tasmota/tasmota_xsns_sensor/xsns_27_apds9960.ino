@@ -1746,27 +1746,27 @@ void handleGesture(void) {
     switch (readGesture()) {
       case DIR_UP:
         AddLog(LOG_LEVEL_DEBUG, GESTURE_UP);
-        snprintf_P(currentGesture, sizeof(currentGesture), GESTURE_UP);
+        snprintf(currentGesture, sizeof(currentGesture), GESTURE_UP);
         break;
       case DIR_DOWN:
         AddLog(LOG_LEVEL_DEBUG, GESTURE_DOWN);
-        snprintf_P(currentGesture, sizeof(currentGesture), GESTURE_DOWN);
+        snprintf(currentGesture, sizeof(currentGesture), GESTURE_DOWN);
         break;
       case DIR_LEFT:
         AddLog(LOG_LEVEL_DEBUG, GESTURE_LEFT);
-        snprintf_P(currentGesture, sizeof(currentGesture), GESTURE_LEFT);
+        snprintf(currentGesture, sizeof(currentGesture), GESTURE_LEFT);
         break;
       case DIR_RIGHT:
         AddLog(LOG_LEVEL_DEBUG, GESTURE_RIGHT);
-        snprintf_P(currentGesture, sizeof(currentGesture), GESTURE_RIGHT);
+        snprintf(currentGesture, sizeof(currentGesture), GESTURE_RIGHT);
         break;
       default:
         if (APDS9960_overload) {
           AddLog(LOG_LEVEL_DEBUG, GESTURE_LONG);
-          snprintf_P(currentGesture, sizeof(currentGesture), GESTURE_LONG);
+          snprintf(currentGesture, sizeof(currentGesture), GESTURE_LONG);
         } else {
           AddLog(LOG_LEVEL_DEBUG, GESTURE_NONE);
-          snprintf_P(currentGesture, sizeof(currentGesture), GESTURE_NONE);
+          snprintf(currentGesture, sizeof(currentGesture), GESTURE_NONE);
         }
         break;
     }

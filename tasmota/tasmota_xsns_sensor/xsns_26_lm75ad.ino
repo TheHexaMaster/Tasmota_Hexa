@@ -81,7 +81,7 @@ float LM75ADGetTemp(uint32_t sensor) {
     t = t >> 5;        // Shift value into place (5 LSB not used, expect 11-bit resolution)
     return ConvertTemp(sign * t * 0.125f);
   }
-  return NAN;          // Will be changed to "null" by ext_vsprintf_P()
+  return NAN;          // Will be changed to "null" by ext_vsprintf()
 }
 
 void LM75ADShow(bool json) {
@@ -96,10 +96,10 @@ void LM75ADShow(bool json) {
     char name[16];
     strlcpy(name, "LM75AD", sizeof(name));                                                             // LM75AD
     if (Lm75.count > 1) {
-      snprintf_P(name, sizeof(name), PSTR("%s%c%02X"), name, IndexSeparator(), Lm75.address[sensor]);  // LM75AD-49
+      snprintf(name, sizeof(name), PSTR("%s%c%02X"), name, IndexSeparator(), Lm75.address[sensor]);  // LM75AD-49
 #ifdef USE_I2C_BUS2
       if (TasmotaGlobal.i2c_enabled[1] && dual_bus_use) {  // Different busses
-        snprintf_P(name, sizeof(name), PSTR("%s%c%d"), name, IndexSeparator(), Lm75.bus[sensor] +1);   // LM75AD-49-1
+        snprintf(name, sizeof(name), PSTR("%s%c%d"), name, IndexSeparator(), Lm75.bus[sensor] +1);   // LM75AD-49-1
       }
 #endif  // USE_I2C_BUS2
     }

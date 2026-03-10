@@ -229,7 +229,7 @@ void Mpr121Init(struct mpr121 *pS, bool initial)
 			// Log sensor found
       mpr21_found = true;
 			char device_name[16];
-			snprintf_P(device_name, sizeof(device_name), PSTR("MPR121(%c)"), pS->id[i]);
+			snprintf(device_name, sizeof(device_name), PSTR("MPR121(%c)"), pS->id[i]);
       I2cSetActiveFound(pS->i2c_addr[i], device_name);
 
 			// Set thresholds for registers 0x41 - 0x5A (ExTTH and ExRTH)

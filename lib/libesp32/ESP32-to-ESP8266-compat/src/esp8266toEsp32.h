@@ -175,9 +175,7 @@ typedef int SerConfu8;
 #define REASON_EXT_SYS_RST      6  // "External System"         external system reset
 
 // memmove ...
-#define snprintf_P snprintf
-#define sprintf_P sprintf
-#define strncmp_P strncmp
+#define strlen strlen
 
 // LWIP STuff
 

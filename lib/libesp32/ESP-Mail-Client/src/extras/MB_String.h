@@ -514,7 +514,7 @@ public:
     MB_String(const char *cstr)
     {
         if (cstr)
-            copy(cstr, strlen_P(cstr));
+            copy(cstr, strlen(cstr));
     }
 
     MB_String(const MB_String &value)
@@ -754,7 +754,7 @@ public:
 
     MB_String &operator+=(const char *cstr)
     {
-        size_t len = strlen_P(cstr);
+        size_t len = strlen(cstr);
         size_t slen = length();
 
         if (_reserve(slen + len, false))
@@ -825,7 +825,7 @@ public:
         if (clear)
             this->clear();
 
-        int len = strlen_P((PGM_P)pstr);
+        int len = strlen((PGM_P)pstr);
         if (len > 0)
         {
             unsigned int newlen = length() + len;
@@ -969,7 +969,7 @@ public:
     MB_String &operator=(const char *cstr)
     {
         if (cstr)
-            copy(cstr, strlen_P(cstr));
+            copy(cstr, strlen(cstr));
         else
             clear();
 
@@ -1543,7 +1543,7 @@ private:
 
     char *pgmStr(PGM_P p)
     {
-        char *t = (char *)newP(strlen_P(p));
+        char *t = (char *)newP(strlen(p));
         strcpy_P(t, p);
         return t;
     }

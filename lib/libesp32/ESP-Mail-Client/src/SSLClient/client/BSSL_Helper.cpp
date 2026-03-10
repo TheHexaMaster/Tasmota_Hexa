@@ -806,7 +806,7 @@ namespace bssl
 
   bool PublicKey::parse(const char *pemKey)
   {
-    return parse((const uint8_t *)pemKey, strlen_P(pemKey));
+    return parse((const uint8_t *)pemKey, strlen(pemKey));
   }
 
   bool PublicKey::parse(const uint8_t *derKey, size_t derLen)
@@ -896,7 +896,7 @@ namespace bssl
 
   bool PrivateKey::parse(const char *pemKey)
   {
-    return parse((const uint8_t *)pemKey, strlen_P(pemKey));
+    return parse((const uint8_t *)pemKey, strlen(pemKey));
   }
 
   bool PrivateKey::parse(const uint8_t *derKey, size_t derLen)
@@ -996,7 +996,7 @@ namespace bssl
 
   bool X509List::append(const char *pemCert)
   {
-    return append((const uint8_t *)pemCert, strlen_P(pemCert));
+    return append((const uint8_t *)pemCert, strlen(pemCert));
   }
 
   bool X509List::append(const uint8_t *derCert, size_t derLen)

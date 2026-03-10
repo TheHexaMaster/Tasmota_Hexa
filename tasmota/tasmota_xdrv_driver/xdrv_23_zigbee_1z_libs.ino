@@ -364,9 +364,9 @@ void Z_attribute::setKeyName(const char * _key, const char * _key2) {
   key_is_str = true;
   key_is_pmem = false;
   if (_key) {
-    size_t key_len = strlen_P(_key);
+    size_t key_len = strlen(_key);
     if (_key2) {
-      key_len += strlen_P(_key2);
+      key_len += strlen(_key2);
     }
     key = new char[key_len+1];
     strcpy_P(key, _key);
@@ -439,12 +439,12 @@ void Z_attribute::setBuf(const SBuffer &buf, size_t index, size_t len) {
 
 void Z_attribute::setHex32(uint32_t _val) {
   char hex[8];
-  snprintf_P(hex, sizeof(hex), PSTR("0x%04X"), _val);
+  snprintf(hex, sizeof(hex), PSTR("0x%04X"), _val);
   setStr(hex);
 }
 void Z_attribute::setHex64(uint64_t _val) {
   char hex[22];
-  ext_snprintf_P(hex, sizeof(hex), PSTR("0x%_X"), &_val);
+  ext_snprintf(hex, sizeof(hex), PSTR("0x%_X"), &_val);
   setStr(hex);
 }
 
@@ -458,7 +458,7 @@ void Z_attribute::setStr(const char * _val) {
   val_str_raw = false;
   // val.sval is always nullptr after freeVal()
   if (_val) {
-    size_t len = strlen_P(_val);
+    size_t len = strlen(_val);
     if (len) {
       val.sval = new char[len+1];
       strcpy_P(val.sval, _val);
@@ -636,13 +636,13 @@ String Z_attribute::toString(bool prefix_comma) const {
   } else {
     char attr_name[12];
     if (!key_is_cmd) {  // regular attribute
-      snprintf_P(attr_name, sizeof(attr_name), PSTR("%04X/%04X"), this->cluster, this->attr_id);
+      snprintf(attr_name, sizeof(attr_name), PSTR("%04X/%04X"), this->cluster, this->attr_id);
     } else {            // cmd
       bool direction = (this->attr_id & 0x100);
       bool cmd_general = (this->attr_id & 0x200);
       uint8_t cmd_id = this->attr_id & 0xFF;
       char cmd_char = cmd_general ? (direction ? '^' : '_') : (direction ? '?' : '!');
-      snprintf_P(attr_name, sizeof(attr_name), PSTR("%04X%c%02X"), this->cluster, cmd_char, cmd_id);
+      snprintf(attr_name, sizeof(attr_name), PSTR("%04X%c%02X"), this->cluster, cmd_char, cmd_id);
     }
     res += attr_name;
     if (key_suffix > 1) {
@@ -738,7 +738,7 @@ void Z_attribute::copyVal(const Z_attribute & rhs) {
     }
   } else if (rhs.type == Za_type::Za_str) {
     if (rhs.val.sval) {
-      size_t s_len = strlen_P(rhs.val.sval);
+      size_t s_len = strlen(rhs.val.sval);
       val.sval = new char[s_len+1];
       strcpy_P(val.sval, rhs.val.sval);
     }
@@ -776,7 +776,7 @@ void Z_attribute::deepCopy(const Z_attribute & rhs) {
     } else {
       key = nullptr;
       if (rhs.key) {
-        size_t key_len = strlen_P(rhs.key);
+        size_t key_len = strlen(rhs.key);
         if (key_len) {
           key = new char[key_len+1];
           strcpy_P(key, rhs.key);

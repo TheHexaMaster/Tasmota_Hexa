@@ -218,7 +218,7 @@ void CmndRgxState(void)
 void CmndRgxAddresses(void)
 {
   char network_address[22];
-  ext_snprintf_P(network_address, sizeof(network_address), PSTR(" (%_I)"), (uint32_t)NetworkAddress());
+  ext_snprintf(network_address, sizeof(network_address), PSTR(" (%_I)"), (uint32_t)NetworkAddress());
   uint32_t ipv4_address;
   if (ParseIPv4(&ipv4_address, XdrvMailbox.data))
   {

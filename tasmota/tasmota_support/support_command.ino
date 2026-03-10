@@ -427,9 +427,9 @@ void CommandHandler(char* topicBuf, char* dataBuf, uint32_t data_len) {
   Response_P(PSTR("_1"));  // Signal error message for either Command Error or Command Unknown
   char stemp1[16];
 //  char command_line[64];
-//  snprintf_P(command_line, sizeof(command_line), PSTR("%s%s%s%s"), 
+//  snprintf(command_line, sizeof(command_line), PSTR("%s%s%s%s"), 
   char *command_line = (char*)malloc(64);  // Use heap in favour of stack
-  snprintf_P(command_line, 64, PSTR("%s%s%s%s"), 
+  snprintf(command_line, 64, PSTR("%s%s%s%s"), 
     type,
     (index != 1) ? itoa(index, stemp1, 10) : "",
     (data_len) ? " " : "",
@@ -482,7 +482,7 @@ void CommandHandler(char* topicBuf, char* dataBuf, uint32_t data_len) {
     if (!strlen(type)) {
       TasmotaGlobal.blinks = 201;
       ResponseAppend_P(PSTR("\"" D_JSON_UNKNOWN "\""));
-      snprintf_P(stemp1, sizeof(stemp1), PSTR(D_JSON_COMMAND));
+      snprintf(stemp1, sizeof(stemp1), PSTR(D_JSON_COMMAND));
       type = (char*)stemp1;
     } else {
       ResponseAppend_P(PSTR("\"" D_JSON_ERROR "\""));
@@ -680,7 +680,7 @@ void CmndJsonPP(void) {
     char cmnds[strlen(XdrvMailbox.data) + 32];
     if (0 == last_json_pretty_print) {          // No need if JsonPP is already set
       bool backlog = (0 == strncasecmp_P(XdrvMailbox.data, PSTR(D_CMND_BACKLOG), strlen(D_CMND_BACKLOG)));
-      snprintf_P(cmnds, sizeof(cmnds), PSTR("%s%s;_Delay %d;_JsonPP %d"),
+      snprintf(cmnds, sizeof(cmnds), PSTR("%s%s;_Delay %d;_JsonPP %d"),
         (!backlog) ? "Backlog " : "",           // We need backlog to provide delay and restore JsonPP state
         XdrvMailbox.data,
         Settings->web_refresh / 98,             // To serve log buffer messages we need to delay a little over WebRefresh time
@@ -731,7 +731,7 @@ void CmndPowerLock(void) {
       }
     }
     char stemp1[33];
-    ext_snprintf_P(stemp1, sizeof(stemp1), PSTR("%*_b"), TasmotaGlobal.devices_present, Settings->power_lock);
+    ext_snprintf(stemp1, sizeof(stemp1), PSTR("%*_b"), TasmotaGlobal.devices_present, Settings->power_lock);
     ResponseCmndChar(stemp1);
   }
 }
@@ -831,7 +831,7 @@ void CmndTimedPower(void) {
       }
       const uint8_t end_state[] = { POWER_ON, POWER_OFF, POWER_TOGGLE, POWER_BLINK_STOP };
       char cmnd[CMDSZ];
-      snprintf_P(cmnd, sizeof(cmnd), PSTR(D_CMND_POWER "%d %d"), XdrvMailbox.index, end_state[start_state]);
+      snprintf(cmnd, sizeof(cmnd), PSTR(D_CMND_POWER "%d %d"), XdrvMailbox.index, end_state[start_state]);
       if (SetTimedCmnd(time, cmnd)) {           // Skip if no more room for timers
         XdrvMailbox.payload = start_state;
         CmndPower();
@@ -843,7 +843,7 @@ void CmndTimedPower(void) {
         return;
       } else {
         char cmnd[CMDSZ];
-        snprintf_P(cmnd, sizeof(cmnd), PSTR(D_CMND_POWER "%d"), XdrvMailbox.index);
+        snprintf(cmnd, sizeof(cmnd), PSTR(D_CMND_POWER "%d"), XdrvMailbox.index);
         ResetTimedCmnd(cmnd);                   // Remove POWER<index> timed command 
       }
       ResponseCmndDone();
@@ -860,7 +860,7 @@ void CmndStatusResponse(uint32_t index) {
     if (99 == index) {
       all_status.replace("}{", ",");
       char cmnd_status[10];  // STATUS11
-      snprintf_P(cmnd_status, sizeof(cmnd_status), PSTR(D_CMND_STATUS "0"));
+      snprintf(cmnd_status, sizeof(cmnd_status), PSTR(D_CMND_STATUS "0"));
       MqttPublishPayloadPrefixTopicRulesProcess_P(STAT, cmnd_status, all_status.c_str(), Settings->flag5.mqtt_status_retain);
       all_status = (const char*) nullptr;
     } else {
@@ -871,7 +871,7 @@ void CmndStatusResponse(uint32_t index) {
   else if (index < 99) {
     char cmnd_status[10];  // STATUS11
     char number[4] = { 0 };
-    snprintf_P(cmnd_status, sizeof(cmnd_status), PSTR(D_CMND_STATUS "%s"), (index) ? itoa(index, number, 10) : "");
+    snprintf(cmnd_status, sizeof(cmnd_status), PSTR(D_CMND_STATUS "%s"), (index) ? itoa(index, number, 10) : "");
     MqttPublishPrefixTopicRulesProcess_P(STAT, cmnd_status, Settings->flag5.mqtt_status_retain);
   }
 }
@@ -900,11 +900,11 @@ void CmndStatus(void)
     uint32_t maxfn = (TasmotaGlobal.devices_present > MAX_FRIENDLYNAMES) ? MAX_FRIENDLYNAMES : (!TasmotaGlobal.devices_present) ? 1 : TasmotaGlobal.devices_present;
     stemp[0] = '\0';
     for (uint32_t i = 0; i < maxfn; i++) {
-      snprintf_P(stemp, sizeof(stemp), PSTR("%s%s\"%s\"" ), stemp, (i > 0 ? "," : ""), EscapeJSONString(SettingsText(SET_FRIENDLYNAME1 +i)).c_str());
+      snprintf(stemp, sizeof(stemp), PSTR("%s%s\"%s\"" ), stemp, (i > 0 ? "," : ""), EscapeJSONString(SettingsText(SET_FRIENDLYNAME1 +i)).c_str());
     }
     stemp2[0] = '\0';
     for (uint32_t i = 0; i < MAX_SWITCHES_SET; i++) {
-      snprintf_P(stemp2, sizeof(stemp2), PSTR("%s%s%d" ), stemp2, (i > 0 ? "," : ""), Settings->switchmode[i]);
+      snprintf(stemp2, sizeof(stemp2), PSTR("%s%s%d" ), stemp2, (i > 0 ? "," : ""), Settings->switchmode[i]);
     }
     Response_P(PSTR("{\"" D_CMND_STATUS "\":{\"" D_CMND_MODULE "\":%d,\"" D_CMND_DEVICENAME "\":\"%s\",\"" D_CMND_FRIENDLYNAME "\":[%s],\""
                           D_CMND_TOPIC "\":\"%s\",\"" D_CMND_BUTTONTOPIC "\":\"%s\",\""
@@ -1086,9 +1086,9 @@ void CmndStatus(void)
   // Status 7 - StatusTIM
   if ((0 == payload) || (7 == payload)) {
     if (99 == Settings->timezone) {
-      snprintf_P(stemp, sizeof(stemp), PSTR("%d" ), Settings->timezone);
+      snprintf(stemp, sizeof(stemp), PSTR("%d" ), Settings->timezone);
     } else {
-      snprintf_P(stemp, sizeof(stemp), PSTR("\"%s\"" ), GetTimeZone().c_str());
+      snprintf(stemp, sizeof(stemp), PSTR("\"%s\"" ), GetTimeZone().c_str());
     }
 
     Response_P(PSTR("{\"" D_CMND_STATUS D_STATUS7_TIME "\":{\"" D_JSON_UTC_TIME "\":\"%s\",\"" D_JSON_LOCAL_TIME "\":\"%s\",\"" D_JSON_STARTDST "\":\"%s\",\""
@@ -1461,13 +1461,13 @@ void CmndSavedata(void)
   SettingsSaveAll();
   char stemp1[TOPSZ];
   if (Settings->save_data > 1) {
-    snprintf_P(stemp1, sizeof(stemp1), PSTR(D_JSON_EVERY " %d " D_UNIT_SECOND), Settings->save_data);
+    snprintf(stemp1, sizeof(stemp1), PSTR(D_JSON_EVERY " %d " D_UNIT_SECOND), Settings->save_data);
   }
   ResponseCmndChar((Settings->save_data > 1) ? stemp1 : GetStateText(Settings->save_data));
 }
 
 void CmndSetoption(void) {
-  snprintf_P(XdrvMailbox.command, CMDSZ, PSTR(D_CMND_SETOPTION));  // Rename result shortcut command SO to SetOption
+  snprintf(XdrvMailbox.command, CMDSZ, PSTR(D_CMND_SETOPTION));  // Rename result shortcut command SO to SetOption
   CmndSetoptionBase(1);
 }
 
@@ -1823,7 +1823,7 @@ void CmndGpio(void) {
       for (uint32_t j = 0; j < nitems(kGpioNiceList); j++) {
         uint32_t nls_idx = pgm_read_word(&kGpioNiceList[j]);
         if (((nls_idx & 0xFFE0) == nice_list_search) && ((nls_idx & 0x001F) > 0)) {
-          snprintf_P(sindex, sizeof(sindex), PSTR("%d"), (sensor_type & 0x001F) +1);
+          snprintf(sindex, sizeof(sindex), PSTR("%d"), (sensor_type & 0x001F) +1);
           break;
         }
       }
@@ -1883,7 +1883,7 @@ void CmndGpio(void) {
     for (uint32_t j = 0; j < nitems(kGpioNiceList); j++) {
       uint32_t nls_idx = pgm_read_word(&kGpioNiceList[j]);
       if (((nls_idx & 0xFFE0) == nice_list_search) && ((nls_idx & 0x001F) > 0)) {
-        snprintf_P(sindex, sizeof(sindex), PSTR("%d"), (sensor_type & 0x001F) +1);
+        snprintf(sindex, sizeof(sindex), PSTR("%d"), (sensor_type & 0x001F) +1);
         break;
       }
     }
@@ -2180,7 +2180,7 @@ void CmndIpAddress(void)
 {
   if ((XdrvMailbox.index > 0) && (XdrvMailbox.index <= 5)) {
     char network_address[22];
-    ext_snprintf_P(network_address, sizeof(network_address), PSTR(" (%_I)"), (uint32_t)WiFi.localIP());
+    ext_snprintf(network_address, sizeof(network_address), PSTR(" (%_I)"), (uint32_t)WiFi.localIP());
     if (!XdrvMailbox.usridx) {
       ResponseClear();
       for (uint32_t i = 0; i < 5; i++) {
@@ -2312,7 +2312,7 @@ void CmndDevicename(void)
 
 void CmndFriendlyname(void)
 {
-  snprintf_P(XdrvMailbox.command, CMDSZ, PSTR(D_CMND_FRIENDLYNAME));  // Rename result shortcut command FN to FriendlyName
+  snprintf(XdrvMailbox.command, CMDSZ, PSTR(D_CMND_FRIENDLYNAME));  // Rename result shortcut command FN to FriendlyName
   if ((XdrvMailbox.index > 0) && (XdrvMailbox.index <= MAX_FRIENDLYNAMES)) {
     if (!XdrvMailbox.usridx && !XdrvMailbox.data_len) {
       ResponseCmndAll(SET_FRIENDLYNAME1, MAX_FRIENDLYNAMES);
@@ -2320,9 +2320,9 @@ void CmndFriendlyname(void)
       if (XdrvMailbox.data_len > 0) {
         char stemp1[TOPSZ];
         if (1 == XdrvMailbox.index) {
-          snprintf_P(stemp1, sizeof(stemp1), PSTR(FRIENDLY_NAME));
+          snprintf(stemp1, sizeof(stemp1), PSTR(FRIENDLY_NAME));
         } else {
-          snprintf_P(stemp1, sizeof(stemp1), PSTR(FRIENDLY_NAME "%d"), XdrvMailbox.index);
+          snprintf(stemp1, sizeof(stemp1), PSTR(FRIENDLY_NAME "%d"), XdrvMailbox.index);
         }
         SettingsUpdateText(SET_FRIENDLYNAME1 + XdrvMailbox.index -1, ('"' == XdrvMailbox.data[0]) ? "" : (SC_DEFAULT == Shortcut()) ? stemp1 : XdrvMailbox.data);
       }
@@ -2523,7 +2523,7 @@ void CmndTimezone(void)
     ResponseCmndNumber(Settings->timezone);
   } else {
     char stemp1[TOPSZ];
-    snprintf_P(stemp1, sizeof(stemp1), PSTR("%+03d:%02d"), Settings->timezone, Settings->timezone_minutes);
+    snprintf(stemp1, sizeof(stemp1), PSTR("%+03d:%02d"), Settings->timezone, Settings->timezone_minutes);
     ResponseCmndChar(stemp1);
   }
 }
@@ -2640,7 +2640,7 @@ void CmndLedMask(void) {
     Settings->ledmask = XdrvMailbox.payload;
   }
   char stemp1[TOPSZ];
-  snprintf_P(stemp1, sizeof(stemp1), PSTR("%d (0x%04X)"), Settings->ledmask, Settings->ledmask);
+  snprintf(stemp1, sizeof(stemp1), PSTR("%d (0x%04X)"), Settings->ledmask, Settings->ledmask);
   ResponseCmndChar(stemp1);
 }
 

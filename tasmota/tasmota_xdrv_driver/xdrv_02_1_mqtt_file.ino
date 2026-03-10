@@ -59,7 +59,7 @@ void MqttFileValidate(uint32_t error) {
       ResponseCmndChar(PSTR(D_JSON_ABORTED));
     } else {
       char error_txt[20];
-      snprintf_P(error_txt, sizeof(error_txt), PSTR(D_JSON_ERROR " %d"), error);
+      snprintf(error_txt, sizeof(error_txt), PSTR(D_JSON_ERROR " %d"), error);
       ResponseCmndChar(error_txt);
     }
   }
@@ -354,7 +354,7 @@ uint32_t MqttFileDownloadValidate(void) {
     FMqtt.md5.begin();
 
     char payload[50];
-    snprintf_P(payload, sizeof(payload), S_JSON_COMMAND_SVALUE, XdrvMailbox.command, PSTR(D_JSON_STARTED));
+    snprintf(payload, sizeof(payload), S_JSON_COMMAND_SVALUE, XdrvMailbox.command, PSTR(D_JSON_STARTED));
     MqttPublishPayloadPrefixTopic_P(STAT, XdrvMailbox.command, payload);     // Enforce stat/wemos10/FILEUPLOAD
 
     MqttDisableLogging(true);

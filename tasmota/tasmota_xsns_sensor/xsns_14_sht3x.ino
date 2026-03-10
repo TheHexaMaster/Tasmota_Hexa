@@ -190,10 +190,10 @@ void Sht3xShow(bool json) {
     if (sht3x_sensors[idx].valid) {
       strlcpy(types, sht3x_sensors[idx].types, sizeof(types));
       if (sht3x_count > 1) {
-        snprintf_P(types, sizeof(types), PSTR("%s%c%02X"), types, IndexSeparator(), sht3x_sensors[idx].address);  // "SHT3X-XX"  
+        snprintf(types, sizeof(types), PSTR("%s%c%02X"), types, IndexSeparator(), sht3x_sensors[idx].address);  // "SHT3X-XX"  
 #ifdef USE_I2C_BUS2
         if (TasmotaGlobal.i2c_enabled[1] && dual_bus_use) {  // Different busses
-          snprintf_P(types, sizeof(types), PSTR("%s%c%d"), types, IndexSeparator(), sht3x_sensors[idx].bus + 1);  // "SHT3X-XX-X"  
+          snprintf(types, sizeof(types), PSTR("%s%c%d"), types, IndexSeparator(), sht3x_sensors[idx].bus + 1);  // "SHT3X-XX-X"  
         }
 #endif  // USE_I2C_BUS2
       }

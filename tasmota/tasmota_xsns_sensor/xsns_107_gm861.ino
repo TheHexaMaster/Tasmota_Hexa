@@ -235,7 +235,7 @@ void Gm861SerialInput(void) {
     }
 
     // Prepare GUI result
-    snprintf_P(Gm861->barcode, sizeof(Gm861->barcode) -3, PSTR("%s"), buffer + offset);
+    snprintf(Gm861->barcode, sizeof(Gm861->barcode) -3, PSTR("%s"), buffer + offset);
     if (strlen(buffer) > sizeof(Gm861->barcode) -3) {
       strcat(Gm861->barcode, "...");
     }

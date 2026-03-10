@@ -3489,7 +3489,7 @@ void MI32ShowTriggeredSensors(){
         if (alias && *alias){
           id = alias;
         } else {
-          snprintf_P(idstr, sizeof(idstr), PSTR("%s%02x%02x%02x"),
+          snprintf(idstr, sizeof(idstr), PSTR("%s%02x%02x%02x"),
                 kMI32DeviceType[p->type-1],
                 p->MAC[3], p->MAC[4], p->MAC[5]);
         }
@@ -3532,7 +3532,7 @@ void MI32Show(bool json)
     }
     char stemp[5] ={0};
     if (numsensors-(_page*MI32.perPage)>1 && MI32.perPage!=1) {
-      sprintf_P(stemp,"-%u",j);
+      sprintf(stemp,"-%u",j);
     }
     if (numsensors == 0) i=-1; // only for the GUI
 

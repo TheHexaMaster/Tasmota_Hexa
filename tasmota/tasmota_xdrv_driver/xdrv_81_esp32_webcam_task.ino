@@ -2496,10 +2496,10 @@ void CmndWebcamGetFrame(void) {
   res = WcGetPicstorePtr(bnum-1, &p);
   char resp[100] = "0";
   if (p) {
-    snprintf_P(resp, sizeof(resp), PSTR("{\"buff\":%d,\"addr\":%d,\"len\":%d,\"w\":%d,\"h\":%d,\"format\":%d}"), 
+    snprintf(resp, sizeof(resp), PSTR("{\"buff\":%d,\"addr\":%d,\"len\":%d,\"w\":%d,\"h\":%d,\"format\":%d}"), 
       bnum, p->buff, p->len, p->width, p->height, p->format+1);
   } else {
-    snprintf_P(resp, sizeof(resp), PSTR("{\"maxstore\":%d}"), 
+    snprintf(resp, sizeof(resp), PSTR("{\"maxstore\":%d}"), 
       res);
   }
   Response_P(S_JSON_COMMAND_XVALUE, XdrvMailbox.command, resp);
@@ -2536,10 +2536,10 @@ void CmndWebcamGetPicStore(void) {
 #endif
   char resp[100] = "0";
   if (p) {
-    snprintf_P(resp, sizeof(resp), PSTR("{\"buff\":%d,\"addr\":%d,\"len\":%d,\"w\":%d,\"h\":%d,\"format\":%d}"), 
+    snprintf(resp, sizeof(resp), PSTR("{\"buff\":%d,\"addr\":%d,\"len\":%d,\"w\":%d,\"h\":%d,\"format\":%d}"), 
       bnum, p->buff, p->len, p->width, p->height, p->format+1);
   } else {
-    snprintf_P(resp, sizeof(resp), PSTR("{\"maxstore\":%d}"), 
+    snprintf(resp, sizeof(resp), PSTR("{\"maxstore\":%d}"), 
       res);
   }
   Response_P(S_JSON_COMMAND_XVALUE, XdrvMailbox.command, resp);

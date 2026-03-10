@@ -175,7 +175,7 @@ bool InfluxDbInit(void) {
 #endif
   IFDBhttpClient->setReuse(IFDB._connectionReuse);
   char server[32];
-  snprintf_P(server, sizeof(server), PSTR("Tasmota/%s (%s)"), TasmotaGlobal.version, GetDeviceHardware().c_str());
+  snprintf(server, sizeof(server), PSTR("Tasmota/%s (%s)"), TasmotaGlobal.version, GetDeviceHardware().c_str());
   IFDBhttpClient->setUserAgent(server);
   return true;
 }
@@ -335,13 +335,13 @@ void InfluxDbProcessJsonValue(JsonParserKey key, JsonParserToken value, const ch
         i++;
         // power1,device=shelly25,sensor=energy value=0.00
         // power2,device=shelly25,sensor=energy value=4.12
-        snprintf_P(linebuf, sizeof(linebuf), PSTR("%s%d,device=%s,sensor=%s%s value=%s\n"),
+        snprintf(linebuf, sizeof(linebuf), PSTR("%s%d,device=%s,sensor=%s%s value=%s\n"),
           type, i, TasmotaGlobal.mqtt_topic, sensor, IFDB.sensor_id.c_str(), val.getStr());
         *data += linebuf;
       }
     } else {
       // temperature,device=demo,sensor=ds18b20,id=01144A0CB2AA value=22.63
-      snprintf_P(linebuf, sizeof(linebuf), PSTR("%s,device=%s,sensor=%s%s value=%s\n"),
+      snprintf(linebuf, sizeof(linebuf), PSTR("%s,device=%s,sensor=%s%s value=%s\n"),
         type, TasmotaGlobal.mqtt_topic, sensor, IFDB.sensor_id.c_str(), my_value);
       *data += linebuf;
     }

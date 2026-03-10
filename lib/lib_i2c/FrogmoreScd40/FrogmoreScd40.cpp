@@ -134,7 +134,7 @@ int FrogmoreScd40::sendBytes(void *pInput, uint8_t len)
     int result;
     uint8_t errorBytes = 0; // number of bytes that had an error in transmission
 #ifdef SCD40_DEBUG
-    snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40SendBytes: len: %d data: 0x %02X %02X %02X | 0x %02X %02X %02X | 0x %02X %02X %02X", len, pBytes[0], pBytes[1], pBytes[2], pBytes[3], pBytes[4], pBytes[5], pBytes[6], pBytes[7], pBytes[8]);
+    snprintf(scd40log_data, sizeof(scd40log_data), "Scd40SendBytes: len: %d data: 0x %02X %02X %02X | 0x %02X %02X %02X | 0x %02X %02X %02X", len, pBytes[0], pBytes[1], pBytes[2], pBytes[3], pBytes[4], pBytes[5], pBytes[6], pBytes[7], pBytes[8]);
     AddLog(LOG_LEVEL_DEBUG_MORE);
 #endif
     pWire->beginTransmission(this->i2cAddress);
@@ -143,7 +143,7 @@ int FrogmoreScd40::sendBytes(void *pInput, uint8_t len)
     if (errorBytes || result)
     {
 #ifdef SCD40_DEBUG
-        snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40SendBytes: errorBytes: %d | Wire.end: %d", errorBytes, result);
+        snprintf(scd40log_data, sizeof(scd40log_data), "Scd40SendBytes: errorBytes: %d | Wire.end: %d", errorBytes, result);
         AddLog(LOG_LEVEL_INFO);
 #endif
     }
@@ -162,7 +162,7 @@ int FrogmoreScd40::getBytes(void *pOutput, uint8_t len)
     if (len != result)
     {
 #ifdef SCD40_DEBUG
-        snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40GetBytes: wire request expected %d got: %d", len, result);
+        snprintf(scd40log_data, sizeof(scd40log_data), "Scd40GetBytes: wire request expected %d got: %d", len, result);
         AddLog(LOG_LEVEL_INFO);
 #endif
         return (ERROR_SCD40_NOT_ENOUGH_BYTES_ERROR);
@@ -175,7 +175,7 @@ int FrogmoreScd40::getBytes(void *pOutput, uint8_t len)
             pBytes[x] = pWire->read();
         }
 #ifdef SCD40_DEBUG
-        snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40GetBytes: len: %d data: 0x %02X %02X %02X | 0x %02X %02X %02X | 0x %02X %02X %02X", len, pBytes[0], pBytes[1], pBytes[2], pBytes[3], pBytes[4], pBytes[5], pBytes[6], pBytes[7], pBytes[8]);
+        snprintf(scd40log_data, sizeof(scd40log_data), "Scd40GetBytes: len: %d data: 0x %02X %02X %02X | 0x %02X %02X %02X | 0x %02X %02X %02X", len, pBytes[0], pBytes[1], pBytes[2], pBytes[3], pBytes[4], pBytes[5], pBytes[6], pBytes[7], pBytes[8]);
         AddLog(LOG_LEVEL_DEBUG_MORE);
 #endif
         return (ERROR_SCD40_NO_ERROR);
@@ -193,7 +193,7 @@ int FrogmoreScd40::sendCommand(uint16_t command)
     if (error)
     {
 #ifdef SCD40_DEBUG
-        snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40SendCommand: sendBytes failed, error: 0x%lX", error);
+        snprintf(scd40log_data, sizeof(scd40log_data), "Scd40SendCommand: sendBytes failed, error: 0x%lX", error);
         AddLog(LOG_LEVEL_INFO);
 #endif
     }
@@ -213,7 +213,7 @@ int FrogmoreScd40::sendCommandArguments(uint16_t command, uint16_t arguments)
     if (error)
     {
 #ifdef SCD40_DEBUG
-        snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40SendCommandArguments: sendBytes failed, error: 0x%lX", error);
+        snprintf(scd40log_data, sizeof(scd40log_data), "Scd40SendCommandArguments: sendBytes failed, error: 0x%lX", error);
         AddLog(LOG_LEVEL_INFO);
 #endif
     }
@@ -231,7 +231,7 @@ int FrogmoreScd40::sendCommandArgumentsFetchResult(uint16_t command, uint16_t ar
     if (error)
     {
 #ifdef SCD40_DEBUG
-        snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40ReadRegister: Scd40GetBytes error: 0x%lX", error);
+        snprintf(scd40log_data, sizeof(scd40log_data), "Scd40ReadRegister: Scd40GetBytes error: 0x%lX", error);
         AddLog(LOG_LEVEL_INFO);
 #endif
         return (error);
@@ -241,7 +241,7 @@ int FrogmoreScd40::sendCommandArgumentsFetchResult(uint16_t command, uint16_t ar
     if (error)
     {
 #ifdef SCD40_DEBUG
-        snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40ReadRegister: Scd40get16BitRegCheckCRC error: 0x%lX", error);
+        snprintf(scd40log_data, sizeof(scd40log_data), "Scd40ReadRegister: Scd40get16BitRegCheckCRC error: 0x%lX", error);
         AddLog(LOG_LEVEL_INFO);
 #endif
         return (error);
@@ -257,9 +257,9 @@ int FrogmoreScd40::get16BitRegCheckCRC(void* pInput, uint16_t *pData)
     if (expectedCRC != pBytes[SCD40_DATA_REGISTER_BYTES])
     {
 #ifdef SCD40_DEBUG
-        snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40get16BitRegCheckCRC: expected: 0x%02X, but got: 0x%02X", expectedCRC, pBytes[SCD40_DATA_REGISTER_BYTES]);
+        snprintf(scd40log_data, sizeof(scd40log_data), "Scd40get16BitRegCheckCRC: expected: 0x%02X, but got: 0x%02X", expectedCRC, pBytes[SCD40_DATA_REGISTER_BYTES]);
         AddLog(LOG_LEVEL_INFO);
-        snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40get16BitRegCheckCRC: data: 0x%02X, 0x%02X, 0x%02X", pBytes[0], pBytes[1], pBytes[2]);
+        snprintf(scd40log_data, sizeof(scd40log_data), "Scd40get16BitRegCheckCRC: data: 0x%02X, 0x%02X, 0x%02X", pBytes[0], pBytes[1], pBytes[2]);
         AddLog(LOG_LEVEL_INFO);
 #endif
         return (ERROR_SCD40_CRC_ERROR);
@@ -275,7 +275,7 @@ int FrogmoreScd40::readRegisterCnt(uint16_t registerAddress, uint16_t* pData, ui
     if (error)
     {
 #ifdef SCD40_DEBUG
-        snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40ReadRegister: SendCommand error: 0x%lX", error);
+        snprintf(scd40log_data, sizeof(scd40log_data), "Scd40ReadRegister: SendCommand error: 0x%lX", error);
         AddLog(LOG_LEVEL_INFO);
 #endif
         return (error);
@@ -287,7 +287,7 @@ int FrogmoreScd40::readRegisterCnt(uint16_t registerAddress, uint16_t* pData, ui
         if (error)
         {
 #ifdef SCD40_DEBUG
-            snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40ReadRegister: Scd40GetBytes error: 0x%lX", error);
+            snprintf(scd40log_data, sizeof(scd40log_data), "Scd40ReadRegister: Scd40GetBytes error: 0x%lX", error);
             AddLog(LOG_LEVEL_INFO);
 #endif
             return (error);
@@ -297,7 +297,7 @@ int FrogmoreScd40::readRegisterCnt(uint16_t registerAddress, uint16_t* pData, ui
         if (error)
         {
 #ifdef SCD40_DEBUG
-            snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40ReadRegister: Scd40get16BitRegCheckCRC error: 0x%lX", error);
+            snprintf(scd40log_data, sizeof(scd40log_data), "Scd40ReadRegister: Scd40get16BitRegCheckCRC error: 0x%lX", error);
             AddLog(LOG_LEVEL_INFO);
 #endif
             return (error);
@@ -354,7 +354,7 @@ void FrogmoreScd40::begin(void)
 int FrogmoreScd40::clearI2CBus(void)
 {
 #ifdef SCD40_DEBUG
-    snprintf_P(scd40log_data, sizeof(scd40log_data), "clearI2CBus");
+    snprintf(scd40log_data, sizeof(scd40log_data), "clearI2CBus");
     AddLog(LOG_LEVEL_DEBUG_MORE);
 #endif
 #ifdef ESP8266
@@ -370,7 +370,7 @@ int FrogmoreScd40::clearI2CBus(void)
 int FrogmoreScd40::startPeriodicMeasurement(void)
 {
 #ifdef SCD40_DEBUG
-    snprintf_P(scd40log_data, sizeof(scd40log_data), "Start periodic measurement");
+    snprintf(scd40log_data, sizeof(scd40log_data), "Start periodic measurement");
     AddLog(LOG_LEVEL_DEBUG_MORE);
 #endif
     if (duringMeasurement) {
@@ -406,14 +406,14 @@ int FrogmoreScd40::readMeasurement(
         return (ERROR_SCD40_NO_DATA);
     }
 #ifdef SCD40_DEBUG
-    snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement: have data");
+    snprintf(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement: have data");
     AddLog(LOG_LEVEL_DEBUG_MORE);
 #endif
     error = sendCommand(COMMAND_SCD40_READ_MEASUREMENT);
     if (error)
     {
 #ifdef SCD40_DEBUG
-        snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement: send command failed: 0x%lX", error);
+        snprintf(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement: send command failed: 0x%lX", error);
         AddLog(LOG_LEVEL_INFO);
 #endif
         return (error);
@@ -426,20 +426,20 @@ int FrogmoreScd40::readMeasurement(
     if (error)
     {
 #ifdef SCD40_DEBUG
-        snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement: Scd40GetBytes command failed: 0x%lX", error);
+        snprintf(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement: Scd40GetBytes command failed: 0x%lX", error);
         AddLog(LOG_LEVEL_INFO);
 #endif
         return (error);
     }
 #ifdef SCD40_DEBUG
-    snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement: Scd40GetBytes data: 0x %02X %02X %02X | 0x %02X %02X %02X | 0x %02X %02X %02X", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8]);
+    snprintf(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement: Scd40GetBytes data: 0x %02X %02X %02X | 0x %02X %02X %02X | 0x %02X %02X %02X", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8]);
     AddLog(LOG_LEVEL_DEBUG_MORE);
 #endif
     error = get16BitRegCheckCRC(&bytes[0], &tempCO2);
     if (error)
     {
 #ifdef SCD40_DEBUG
-        snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement: Scd40Get16BitsCheckCRC 1st command failed: 0x%lX", error);
+        snprintf(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement: Scd40Get16BitsCheckCRC 1st command failed: 0x%lX", error);
         AddLog(LOG_LEVEL_INFO);
 #endif
         return (error);
@@ -448,7 +448,7 @@ int FrogmoreScd40::readMeasurement(
     if (error)
     {
 #ifdef SCD40_DEBUG
-        snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement: Scd40Get16BitsCheckCRC 2nd command failed: 0x%lX", error);
+        snprintf(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement: Scd40Get16BitsCheckCRC 2nd command failed: 0x%lX", error);
         AddLog(LOG_LEVEL_INFO);
 #endif
         return (error);
@@ -457,7 +457,7 @@ int FrogmoreScd40::readMeasurement(
     if (error)
     {
 #ifdef SCD40_DEBUG
-        snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement: Scd40Get16BitsCheckCRC 3rd command failed: 0x%lX", error);
+        snprintf(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement: Scd40Get16BitsCheckCRC 3rd command failed: 0x%lX", error);
         AddLog(LOG_LEVEL_INFO);
 #endif
         return (error);
@@ -485,7 +485,7 @@ int FrogmoreScd40::readMeasurement(
             }
         }
 #ifdef SCD40_DEBUG
-        snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement:  co2History: %ld, %ld, %ld, %ld, %ld", co2History[0], co2History[1], co2History[2], co2History[3], co2History[4]);
+        snprintf(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement:  co2History: %ld, %ld, %ld, %ld, %ld", co2History[0], co2History[1], co2History[2], co2History[3], co2History[4]);
         AddLog(LOG_LEVEL_DEBUG_MORE);
 #endif
     }
@@ -497,7 +497,7 @@ int FrogmoreScd40::readMeasurement(
             temp[x] = co2History[x];
         }
 #ifdef SCD40_DEBUG
-        snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement:  temp: %ld, %ld, %ld, %ld, %ld", temp[0], temp[1], temp[2], temp[3], temp[4]);
+        snprintf(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement:  temp: %ld, %ld, %ld, %ld, %ld", temp[0], temp[1], temp[2], temp[3], temp[4]);
         AddLog(LOG_LEVEL_DEBUG_MORE);
 #endif
         *pCO2_ppm = medianfilter(temp);
@@ -505,7 +505,7 @@ int FrogmoreScd40::readMeasurement(
         *pCO2_ppm = 0; // never seen real CO2 measurement, but need to return something: return 0
     }
 #ifdef SCD40_DEBUG
-    snprintf_P(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement:  CO2_ppm: %ld", *pCO2_ppm);
+    snprintf(scd40log_data, sizeof(scd40log_data), "Scd40ReadMeasurement:  CO2_ppm: %ld", *pCO2_ppm);
     AddLog(LOG_LEVEL_DEBUG_MORE);
 #endif
     if ((pCO2EAvg_ppm) && (tempCO2 > 0))

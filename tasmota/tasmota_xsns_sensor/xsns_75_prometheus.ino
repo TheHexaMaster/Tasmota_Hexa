@@ -87,7 +87,7 @@ void WritePromMetric(const char *name, uint8_t flags, const char *value, va_list
     }
 
     // A few label values are stored in PROGMEM. The _P functions, e.g.
-    // snprintf_P, support both program and heap/stack memory with the "%s"
+    // snprintf, support both program and heap/stack memory with the "%s"
     // format on ESP8266/ESP32. Casting the pointer to __FlashStringHelper has
     // the same effect with String::operator=.
     if (!(lval = va_arg(labels, const __FlashStringHelper *))) {
@@ -109,7 +109,7 @@ void WritePromMetric(const char *name, uint8_t flags, const char *value, va_list
 void WritePromMetricInt32(const char *name, uint8_t flags, const int32_t value, ...) {
   char str[16];
 
-  snprintf_P(str, sizeof(str), PSTR("%d"), value);
+  snprintf(str, sizeof(str), PSTR("%d"), value);
 
   va_list labels;
   va_start(labels, value);
@@ -173,7 +173,7 @@ void PromProcessJsonValue(JsonParserKey key, JsonParserToken value, const char* 
     char stemp[CMDSZ];
     int unit = GetCommandCode(stemp, sizeof(stemp), type.c_str(), kPromType);
     char namebuf[64];
-    snprintf_P(namebuf, sizeof(namebuf), PSTR("sensors_%s%s%s"),
+    snprintf(namebuf, sizeof(namebuf), PSTR("sensors_%s%s%s"),
       type.c_str(),
       (unit >= 0) ? "_" : "",
       (unit >= 0) ? GetTextIndexed(stemp, sizeof(stemp), unit, kPromUnit) : "");
@@ -278,7 +278,7 @@ void HandleMetrics(void) {
 
   for (uint32_t device = 0; device < TasmotaGlobal.devices_present; device++) {
     power_t mask = 1 << device;
-    snprintf_P(namebuf, sizeof(namebuf), PSTR("relay%d_state"), device + 1);
+    snprintf(namebuf, sizeof(namebuf), PSTR("relay%d_state"), device + 1);
     WritePromMetricInt32(namebuf, kPromMetricGauge,
       (TasmotaGlobal.power & mask), nullptr);
   }

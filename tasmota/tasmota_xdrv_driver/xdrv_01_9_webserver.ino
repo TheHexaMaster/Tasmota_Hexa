@@ -568,26 +568,26 @@ String AddWebCommand(const char* command, const char* arg, const char* dflt) {
   WebGetArg(arg, param, sizeof(param));
   uint32_t len = strlen(param);
   char cmnd[232];
-  snprintf_P(cmnd, sizeof(cmnd), PSTR(";%s %s"), command, (0 == len) ? dflt : (StrCaseStr_P(command, PSTR("Password")) && (len < 5)) ? "" : param);
+  snprintf(cmnd, sizeof(cmnd), PSTR(";%s %s"), command, (0 == len) ? dflt : (StrCaseStr_P(command, PSTR("Password")) && (len < 5)) ? "" : param);
   return String(cmnd);
 */
 /*
   // Any argument size (within stack space) +48 bytes
   String param = Webserver->arg((const __FlashStringHelper *)arg);
   uint32_t len = param.length();
-//  char cmnd[len + strlen_P(command) + strlen_P(dflt) + 4];
+//  char cmnd[len + strlen(command) + strlen(dflt) + 4];
   char cmnd[64 + len];
-  snprintf_P(cmnd, sizeof(cmnd), PSTR(";%s %s"), command, (0 == len) ? dflt : (StrCaseStr_P(command, PSTR("Password")) && (len < 5)) ? "" : param.c_str());
+  snprintf(cmnd, sizeof(cmnd), PSTR(";%s %s"), command, (0 == len) ? dflt : (StrCaseStr_P(command, PSTR("Password")) && (len < 5)) ? "" : param.c_str());
   return String(cmnd);
 */
   // Any argument size (within heap space) +24 bytes
   // Exception (3) if not first moved from flash to stack
   // Exception (3) if not using __FlashStringHelper
   // Exception (3) if not FPSTR()
-//  char rcommand[strlen_P(command) +1];
-//  snprintf_P(rcommand, sizeof(rcommand), command);
-//  char rdflt[strlen_P(dflt) +1];
-//  snprintf_P(rdflt, sizeof(rdflt), dflt);
+//  char rcommand[strlen(command) +1];
+//  snprintf(rcommand, sizeof(rcommand), command);
+//  char rdflt[strlen(dflt) +1];
+//  snprintf(rdflt, sizeof(rdflt), dflt);
   String result = F(";");
 //  result += rcommand;
 //  result += (const __FlashStringHelper *)command;
@@ -682,7 +682,7 @@ void WebServer_removeRoute(const char * prefix, uint8_t method = HTTP_ANY) {
 
 static void WSAssetSendServerHeader(void) {
   char server[32];
-  snprintf_P(server, sizeof(server), PSTR("Tasmota/%s (%s)"), TasmotaGlobal.version, GetDeviceHardware().c_str());
+  snprintf(server, sizeof(server), PSTR("Tasmota/%s (%s)"), TasmotaGlobal.version, GetDeviceHardware().c_str());
   Webserver->sendHeader(F("Server"), server);
 }
 
@@ -1233,7 +1233,7 @@ void WSContentFormEnd(void) {
 
 void WSHeaderSend(void) {
   char server[32];
-  snprintf_P(server, sizeof(server), PSTR("Tasmota/%s (%s)"), TasmotaGlobal.version, GetDeviceHardware().c_str());
+  snprintf(server, sizeof(server), PSTR("Tasmota/%s (%s)"), TasmotaGlobal.version, GetDeviceHardware().c_str());
   Webserver->sendHeader(F("Server"), server);
   Webserver->sendHeader(F("Cache-Control"), F("no-cache, no-store, must-revalidate"));
   Webserver->sendHeader(F("Pragma"), F("no-cache"));
@@ -1289,7 +1289,7 @@ void WSContentFlush(void) {
 /*-------------------------------------------------------------------------------------------*/
 
 void _WSContentSendBufferChunk_P(const char* content) {
-  int len = strlen_P(content);
+  int len = strlen(content);
 
   if (Web.capture) {
     if (len > 0) {
@@ -1305,7 +1305,7 @@ void _WSContentSendBufferChunk_P(const char* content) {
   if (len >= CHUNKED_BUFFER_SIZE) {
     WSContentFlush();
   }
-  len = strlen_P(content);
+  len = strlen(content);
   if (len >= CHUNKED_BUFFER_SIZE) {
     _WSContentSend(content, len);
   }
@@ -1313,7 +1313,7 @@ void _WSContentSendBufferChunk_P(const char* content) {
 /*-------------------------------------------------------------------------------------------*/
 
 void WSContentSendRaw_P(const char* content) {     // Content sent without formatting
-  if (nullptr == content || !strlen_P(content)) { return; }
+  if (nullptr == content || !strlen(content)) { return; }
 
   WSContentSeparator(2);                           // Print separator on next WSContentSeparator(1)
   _WSContentSendBufferChunk_P(content);
@@ -1363,7 +1363,7 @@ void _WSContentSendBuffer(bool decimal, const char * formatP, va_list arg) {
 
 /*-------------------------------------------------------------------------------------------*/
 
-void WSContentSend_P(const char* formatP, ...) {   // Content send snprintf_P char data
+void WSContentSend_P(const char* formatP, ...) {   // Content send snprintf char data
   // This uses char strings. Be aware of sending %% if % is needed
   va_list arg;
   va_start(arg, formatP);
@@ -1373,7 +1373,7 @@ void WSContentSend_P(const char* formatP, ...) {   // Content send snprintf_P ch
 
 /*-------------------------------------------------------------------------------------------*/
 
-void WSContentSend_PD(const char* formatP, ...) {  // Content send snprintf_P char data checked for decimal separator
+void WSContentSend_PD(const char* formatP, ...) {  // Content send snprintf char data checked for decimal separator
   // This uses char strings. Be aware of sending %% if % is needed
   va_list arg;
   va_start(arg, formatP);
@@ -1793,7 +1793,7 @@ void HandleRoot(void) {
         for (uint32_t button_idx = 1; button_idx <= TasmotaGlobal.devices_present; button_idx++) {
           if (bitRead(Web.light_shutter_button_mask, button_idx -1)) { continue; }  // Skip non-sequential light and/or shutter button
           bool set_button = ((button_idx <= MAX_BUTTON_TEXT) && strlen(GetWebButton(button_idx -1)));
-          snprintf_P(stemp, sizeof(stemp), PSTR(" %d"), button_idx);
+          snprintf(stemp, sizeof(stemp), PSTR(" %d"), button_idx);
           WSContentSend_P(HTTP_DEVICE_CONTROL, 100 / cols, button_idx, button_idx,
             (set_button) ? HtmlEscape(GetWebButton(button_idx -1)).c_str() : (cols < 5) ? PSTR(D_BUTTON_TOGGLE) : "",
             (set_button) ? "" : (TasmotaGlobal.devices_present > 1) ? stemp : "");
@@ -1884,7 +1884,7 @@ static String WSBuildSensorLiveHtml(void) {
         if (bitRead(Web.light_shutter_button_mask, button_idx -1)) { continue; }
 
         bool power_state = bitRead(TasmotaGlobal.power, button_idx -1);
-        snprintf_P(svalue, sizeof(svalue), PSTR("%d"), power_state);
+        snprintf(svalue, sizeof(svalue), PSTR("%d"), power_state);
 
         WSContentSend_P(HTTP_DEVICE_STATE,
           100 / cols,
@@ -2017,7 +2017,7 @@ static String WebGetGpioLabel(uint32_t sensor_type) {
   for (uint32_t j = 0; j < nitems(kGpioNiceList); j++) {
     uint32_t nls_idx = pgm_read_word(&kGpioNiceList[j]);
     if (((nls_idx & 0xFFE0) == nice_list_search) && ((nls_idx & 0x001F) > 0)) {
-      snprintf_P(sindex, sizeof(sindex), PSTR("%d"), (sensor_type & 0x001F) + 1);
+      snprintf(sindex, sizeof(sindex), PSTR("%d"), (sensor_type & 0x001F) + 1);
       break;
     }
   }
@@ -2481,7 +2481,7 @@ void HandleOtherConfiguration(void) {
                    TasmotaGlobal.devices_present;
 
   for (uint32_t i = 0; i < maxfn; i++) {
-    snprintf_P(stemp, sizeof(stemp), PSTR("%d"), i + 1);
+    snprintf(stemp, sizeof(stemp), PSTR("%d"), i + 1);
 
     WSContentSend_P(PSTR("<div class='ts-field'>"
                          "<label>" D_FRIENDLY_NAME " %d <span class='ts-field-note'>(" FRIENDLY_NAME "%s)</span></label>"
@@ -2519,8 +2519,8 @@ void OtherSaveSettings(void) {
   char webindex[5];
   char cmnd2[24];                             // ";Module 0;Template "
   for (uint32_t i = 0; i < MAX_FRIENDLYNAMES; i++) {
-    snprintf_P(webindex, sizeof(webindex), PSTR("a%d"), i);
-    snprintf_P(cmnd2, sizeof(cmnd2), PSTR(D_CMND_FN "%d"), i +1);
+    snprintf(webindex, sizeof(webindex), PSTR("a%d"), i);
+    snprintf(cmnd2, sizeof(cmnd2), PSTR(D_CMND_FN "%d"), i +1);
     cmnd += AddWebCommand(cmnd2, webindex, PSTR("\""));
   }
 
@@ -2543,7 +2543,7 @@ void HandleBackupConfiguration(void) {
   Webserver->setContentLength(config_len);
 
   char attachment[TOPSZ];
-  snprintf_P(attachment, sizeof(attachment), PSTR("attachment; filename=%s"), SettingsConfigFilename().c_str());
+  snprintf(attachment, sizeof(attachment), PSTR("attachment; filename=%s"), SettingsConfigFilename().c_str());
   Webserver->sendHeader(F("Content-Disposition"), attachment);
 
   WSSend(200, CT_APP_STREAM, "");
@@ -2573,7 +2573,7 @@ void HandleResetConfiguration(void) {
   WSContentStop();
 
   char command[CMDSZ];
-  snprintf_P(command, sizeof(command), PSTR(D_CMND_RESET " 1"));
+  snprintf(command, sizeof(command), PSTR(D_CMND_RESET " 1"));
   ExecuteWebCommand(command);
 }
 
@@ -2717,7 +2717,7 @@ void HandleInformationDevice(void) {
 
   uint32_t maxfn = (TasmotaGlobal.devices_present > MAX_FRIENDLYNAMES) ? MAX_FRIENDLYNAMES : TasmotaGlobal.devices_present;
   for (uint32_t i = 0; i < maxfn; i++) {
-    snprintf_P(label, sizeof(label), PSTR(D_FRIENDLY_NAME " %d"), i + 1);
+    snprintf(label, sizeof(label), PSTR(D_FRIENDLY_NAME " %d"), i + 1);
     WSContentSend_P(PSTR("<tr><th>%s</th><td>%s</td></tr>"),
       label,
       SettingsTextEscaped(SET_FRIENDLYNAME1 + i).c_str());
@@ -2746,7 +2746,7 @@ void HandleInformationDevice(void) {
   if (Settings->flag4.network_wifi) {
     int32_t rssi = WiFi.RSSI();
 
-    snprintf_P(value, sizeof(value),
+    snprintf(value, sizeof(value),
       PSTR(D_SSID " %s<br>" D_RSSI " %d%% (%d dBm)<br>" D_MODE " %s<br>" D_CHANNEL " %d<br>" D_BSSID " %s"),
       SettingsTextEscaped(SET_STASSID1 + Settings->sta_active).c_str(),
       WifiGetRssiAsQuality(rssi), rssi,
@@ -2754,7 +2754,7 @@ void HandleInformationDevice(void) {
       WiFi.channel(),
       WiFi.BSSIDstr().c_str());
 
-    snprintf_P(label, sizeof(label), PSTR(D_AP "%d " D_INFORMATION), Settings->sta_active + 1);
+    snprintf(label, sizeof(label), PSTR(D_AP "%d " D_INFORMATION), Settings->sta_active + 1);
     WSContentSend_P(PSTR("<tr><th>%s</th><td>%s</td></tr>"), label, value);
 
     WSContentSend_P(PSTR("<tr><th>" D_HOSTNAME "</th><td>%s%s</td></tr>"),
@@ -2880,7 +2880,7 @@ void HandleInformationDevice(void) {
     for (uint32_t i = 0; i < MAX_GROUP_TOPICS; i++) {
       if (1 == i) { real_index = SET_MQTT_GRP_TOPIC2 - 1; }
       if (strlen(SettingsText(real_index + i))) {
-        snprintf_P(label, sizeof(label), PSTR(D_MQTT_GROUP_TOPIC " %d"), 1 + i);
+        snprintf(label, sizeof(label), PSTR(D_MQTT_GROUP_TOPIC " %d"), 1 + i);
         WSContentSend_P(PSTR("<tr><th>%s</th><td>%s</td></tr>"),
           label,
           GetGroupTopic_P(stopic, "", real_index + i));
@@ -2926,7 +2926,7 @@ void HandleInformationDevice(void) {
     uint8_t b4 = (uint8_t)(mac >> 32);
     uint8_t b5 = (uint8_t)(mac >> 40);
 
-    snprintf_P(value, sizeof(value), PSTR("%02X:%02X:%02X:%02X:%02X:%02X"),
+    snprintf(value, sizeof(value), PSTR("%02X:%02X:%02X:%02X:%02X:%02X"),
       b0, b1, b2, b3, b4, b5);
 
     WSContentSend_P(PSTR("<tr><th>EFuse MAC</th><td>%s</td></tr>"), value);
@@ -2987,23 +2987,23 @@ void HandleInformationDevice(void) {
           }
         }
 
-        snprintf_P(label, sizeof(label), PSTR(D_PARTITION " %s%s"),
+        snprintf(label, sizeof(label), PSTR(D_PARTITION " %s%s"),
           part->label,
           (part->subtype == cur_part) ? "*" : "");
 
         if (prog_size) {
           uint32_t part_used = ((prog_size / 1024) * 100) / part_size;
-          snprintf_P(value, sizeof(value), PSTR("%d KB (" D_USED " %d%%)"), part_size, part_used);
+          snprintf(value, sizeof(value), PSTR("%d KB (" D_USED " %d%%)"), part_size, part_used);
         } else {
-          snprintf_P(value, sizeof(value), PSTR("%d KB"), part_size);
+          snprintf(value, sizeof(value), PSTR("%d KB"), part_size);
         }
 
         WSContentSend_P(PSTR("<tr><th>%s</th><td>%s</td></tr>"), label, value);
       }
 
       if ((ESP_PARTITION_TYPE_DATA == part->type) && (ESP_PARTITION_SUBTYPE_DATA_SPIFFS == part->subtype)) {
-        snprintf_P(label, sizeof(label), PSTR(D_PARTITION " fs"));
-        snprintf_P(value, sizeof(value), PSTR("%d KB"), part_size);
+        snprintf(label, sizeof(label), PSTR(D_PARTITION " fs"));
+        snprintf(value, sizeof(value), PSTR("%d KB"), part_size);
         WSContentSend_P(PSTR("<tr><th>%s</th><td>%s</td></tr>"), label, value);
       }
     }
@@ -3115,7 +3115,7 @@ void HandleUpgradeFirmwareStart(void) {
   char otaurl[TOPSZ];
   WebGetArg(PSTR("o"), otaurl, sizeof(otaurl));
   if (strlen(otaurl)) {
-    snprintf_P(command, sizeof(command), PSTR(D_CMND_OTAURL " %s"), otaurl);
+    snprintf(command, sizeof(command), PSTR(D_CMND_OTAURL " %s"), otaurl);
     ExecuteWebCommand(command);
   }
 
@@ -3126,7 +3126,7 @@ void HandleUpgradeFirmwareStart(void) {
   WSContentSend_P(HTTP_MSG_RSTRT);
   WSContentStop();
 
-  snprintf_P(command, sizeof(command), PSTR(D_CMND_UPGRADE " 1"));
+  snprintf(command, sizeof(command), PSTR(D_CMND_UPGRADE " 1"));
   ExecuteWebCommand(command);
 }
 
@@ -3154,7 +3154,7 @@ void HandleUploadDone(void) {
     if (Web.upload_error < 10) {
       GetTextIndexed(error, sizeof(error), Web.upload_error -1, kUploadErrors);
     } else {
-      snprintf_P(error, sizeof(error), PSTR(D_UPLOAD_ERROR_CODE " %d"), Web.upload_error);
+      snprintf(error, sizeof(error), PSTR(D_UPLOAD_ERROR_CODE " %d"), Web.upload_error);
     }
     WSContentSend_P(error);
     DEBUG_CORE_LOG(PSTR("UPL: %s"), error);
@@ -3999,7 +3999,7 @@ int WebSend(char *buffer) {
         user = strtok_r(user, ":", &password);  // user = |admin|, password = |joker|
         if (user && password) {
           char userpass[200];
-          snprintf_P(userpass, sizeof(userpass), PSTR("user=%s&password=%s&"), user, password);
+          snprintf(userpass, sizeof(userpass), PSTR("user=%s&password=%s&"), user, password);
           url += userpass;                    // url = |http://192.168.178.86/cm?user=admin&password=joker&|
         }
       }

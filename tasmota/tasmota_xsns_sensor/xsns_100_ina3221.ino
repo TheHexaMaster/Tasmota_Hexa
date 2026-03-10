@@ -615,23 +615,23 @@ void Ina3221Show(bool json)
       if (!enabled_chan) continue;
 
       if (Ina3221count > 1){
-        snprintf_P(name, sizeof(name), PSTR("%s%c%d"), INA3221_TYPE, IndexSeparator(), device +1);
+        snprintf(name, sizeof(name), PSTR("%s%c%d"), INA3221_TYPE, IndexSeparator(), device +1);
       }
       else{
-        snprintf_P(name, sizeof(name), PSTR("%s"), INA3221_TYPE);
+        snprintf(name, sizeof(name), PSTR("%s"), INA3221_TYPE);
        }
 	  int32_t count_v = 0, count_i = 0, count_p = 0, count_ah = 0, count_wh = 0;
       for (int32_t chan=0 ; enabled_chan; chan++, enabled_chan>>=1, enabled_chan &= 0xF7) {
 //        if (0x11 & enabled_chan) {
-          count_v += ext_snprintf_P(&voltage[count_v], sizeof(voltage) - count_v, PSTR("%s%*_f"), (chan>0 ? ",":""), Settings->flag2.voltage_resolution, &Ina3221Data[device].chan[chan].voltage);
-          count_i += ext_snprintf_P(&current[count_i], sizeof(current) - count_i, PSTR("%s%*_f"), (chan>0 ? ",":""), Settings->flag2.current_resolution, &Ina3221Data[device].chan[chan].current);
+          count_v += ext_snprintf(&voltage[count_v], sizeof(voltage) - count_v, PSTR("%s%*_f"), (chan>0 ? ",":""), Settings->flag2.voltage_resolution, &Ina3221Data[device].chan[chan].voltage);
+          count_i += ext_snprintf(&current[count_i], sizeof(current) - count_i, PSTR("%s%*_f"), (chan>0 ? ",":""), Settings->flag2.current_resolution, &Ina3221Data[device].chan[chan].current);
           pw = Ina3221Data[device].chan[chan].voltage * Ina3221Data[device].chan[chan].current;
-          count_p += ext_snprintf_P(&power[count_p], sizeof(power) - count_p, PSTR("%s%*_f"), (chan>0 ? ",":""), Settings->flag2.wattage_resolution, &pw);
+          count_p += ext_snprintf(&power[count_p], sizeof(power) - count_p, PSTR("%s%*_f"), (chan>0 ? ",":""), Settings->flag2.wattage_resolution, &pw);
           #ifdef INA3221_CALC_CHARGE_AH
-          count_ah += ext_snprintf_P(&charge_ah[count_ah], sizeof(charge_ah) - count_ah, PSTR("%s%*_f"), (chan>0 ? ",":""), Settings->flag2.energy_resolution, &Ina3221Data[device].chan[chan].charge_ah);
+          count_ah += ext_snprintf(&charge_ah[count_ah], sizeof(charge_ah) - count_ah, PSTR("%s%*_f"), (chan>0 ? ",":""), Settings->flag2.energy_resolution, &Ina3221Data[device].chan[chan].charge_ah);
           #endif
           #ifdef INA3221_CALC_ENERGY_WH
-          count_wh += ext_snprintf_P(&energy_wh[count_wh], sizeof(energy_wh) - count_wh, PSTR("%s%*_f"), (chan>0 ? ",":""), Settings->flag2.energy_resolution, &Ina3221Data[device].chan[chan].energy_wh);
+          count_wh += ext_snprintf(&energy_wh[count_wh], sizeof(energy_wh) - count_wh, PSTR("%s%*_f"), (chan>0 ? ",":""), Settings->flag2.energy_resolution, &Ina3221Data[device].chan[chan].energy_wh);
           #endif
 //       }  //if enabled
       } // for channel	  
@@ -663,10 +663,10 @@ void Ina3221Show(bool json)
       for (int chan=0 ; enabled_chan ; chan++, enabled_chan>>=1, enabled_chan &= 0xF7) {
         if (0x11 & enabled_chan) {
           if (Ina3221count > 1){
-            snprintf_P(name, sizeof(name), PSTR("%s%c%d:%d"), INA3221_TYPE, IndexSeparator(), device +1, chan);
+            snprintf(name, sizeof(name), PSTR("%s%c%d:%d"), INA3221_TYPE, IndexSeparator(), device +1, chan);
           }
 		  else{
-            snprintf_P(name, sizeof(name), PSTR("%s:%d"), INA3221_TYPE, chan);
+            snprintf(name, sizeof(name), PSTR("%s:%d"), INA3221_TYPE, chan);
           } 
           pw = Ina3221Data[device].chan[chan].voltage * Ina3221Data[device].chan[chan].current;
 		  WSContentSend_PD(HTTP_SNS_INA3221_DATA, name, Settings->flag2.voltage_resolution, &Ina3221Data[device].chan[chan].voltage, Settings->flag2.current_resolution, &Ina3221Data[device].chan[chan].current, Settings->flag2.wattage_resolution, &pw

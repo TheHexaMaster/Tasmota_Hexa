@@ -97,7 +97,7 @@ bool LoraWanAddNode(void) {
 bool LoraWanLoadData(void) {
   char key[12];                                      // Max 99 nodes (drvset73_1 to drvset73_99)
   for (uint32_t n = 0; n < TAS_LORAWAN_ENDNODES; n++) {
-    snprintf_P(key, sizeof(key), PSTR(XDRV_73_KEY "_%d"), n +1);
+    snprintf(key, sizeof(key), PSTR(XDRV_73_KEY "_%d"), n +1);
 
     String json = UfsJsonSettingsRead(key);
     if (json.length() == 0) { continue; }            // Only load used slots
@@ -157,7 +157,7 @@ bool LoraWanSaveData(void) {
 void LoraWanDeleteData(void) {
   char key[12];                                      // Max 99 nodes (drvset73_1 to drvset73_99)
   for (uint32_t n = 0; n < TAS_LORAWAN_ENDNODES; n++) {
-    snprintf_P(key, sizeof(key), PSTR(XDRV_73_KEY "_%d"), n +1);
+    snprintf(key, sizeof(key), PSTR(XDRV_73_KEY "_%d"), n +1);
     UfsJsonSettingsDelete(key);                      // Use defaults
   }
 }
@@ -702,7 +702,7 @@ bool LoraWanInput(uint8_t* data, uint32_t packet_size) {
         bitClear(Lora->settings.end_node[node]->flags, TAS_LORAWAN_FLAG_LINK_ADR_REQ);
         if (Lora->settings.end_node[node]->name.equals(F("0x0000"))) {
           char name[10];
-          ext_snprintf_P(name, sizeof(name), PSTR("0x%04X"), Lora->settings.end_node[node]->DevEUIl & 0x0000FFFF);
+          ext_snprintf(name, sizeof(name), PSTR("0x%04X"), Lora->settings.end_node[node]->DevEUIl & 0x0000FFFF);
           Lora->settings.end_node[node]->name = name;
         }
 
@@ -1077,7 +1077,7 @@ void CmndLoraWanAppKey(void) {
       memset(Lora->settings.end_node[node], 0, sizeof(LoraEndNode_t));
     }
     char appkey[33];
-    ext_snprintf_P(appkey, sizeof(appkey), PSTR("%16_H"), Lora->settings.end_node[node]->AppKey);
+    ext_snprintf(appkey, sizeof(appkey), PSTR("%16_H"), Lora->settings.end_node[node]->AppKey);
     ResponseCmndIdxChar(appkey);
   }
 }
@@ -1094,7 +1094,7 @@ void CmndLoraWanName(void) {
     if (XdrvMailbox.data_len) {
       if (1 == XdrvMailbox.payload) {
         char name[10];
-        ext_snprintf_P(name, sizeof(name), PSTR("0x%04X"), Lora->settings.end_node[node]->DevEUIl & 0x0000FFFF);
+        ext_snprintf(name, sizeof(name), PSTR("0x%04X"), Lora->settings.end_node[node]->DevEUIl & 0x0000FFFF);
         Lora->settings.end_node[node]->name = name;
       } else {
         Lora->settings.end_node[node]->name = ('"' == XdrvMailbox.data[0]) ? "" : XdrvMailbox.data;

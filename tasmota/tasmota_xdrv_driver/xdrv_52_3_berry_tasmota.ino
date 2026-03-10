@@ -847,7 +847,7 @@ extern "C" {
     if (top >= 1 && be_isint(vm, 1)) {  // argument is int
       int32_t idx = be_toint(vm, 1);
       if (idx >= 0 && idx < COL_LAST) {
-        snprintf_P(tmp, sizeof(tmp), PSTR("#%06x"), WebColor(idx));
+        snprintf(tmp, sizeof(tmp), PSTR("#%06x"), WebColor(idx));
         be_pushstring(vm, tmp);
         be_return(vm);
       } else {
@@ -856,7 +856,7 @@ extern "C" {
     } else {
       be_newobject(vm, "list");
       for (uint32_t i = 0; i < COL_LAST; i++) {
-        snprintf_P(tmp, sizeof(tmp), PSTR("#%06x"), WebColor(i));
+        snprintf(tmp, sizeof(tmp), PSTR("#%06x"), WebColor(i));
         be_pushstring(vm, tmp);
         be_data_push(vm, -2);
         be_pop(vm, 1);
@@ -1100,7 +1100,7 @@ extern "C" {
 
     va_list arg;
     va_start(arg, berry_buf);
-    uint32_t len = ext_vsnprintf_P(log_data, LOGSZ-3, berry_buf, arg);
+    uint32_t len = ext_vsnprintf(log_data, LOGSZ-3, berry_buf, arg);
     va_end(arg);
     if (len+3 > LOGSZ) { strcat(log_data, "..."); }  // Actual data is more
     TasConsole.printf(log_data);
@@ -1118,7 +1118,7 @@ extern "C" {
 
     va_list arg;
     va_start(arg, berry_buf);
-    uint32_t len = ext_vsnprintf_P(log_data, LOGSZ-3, berry_buf, arg);
+    uint32_t len = ext_vsnprintf(log_data, LOGSZ-3, berry_buf, arg);
     va_end(arg);
     if (len+3 > LOGSZ) { strcat(log_data, "..."); }  // Actual data is more
     berry_log(log_data);

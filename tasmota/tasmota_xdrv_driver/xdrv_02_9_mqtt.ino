@@ -777,7 +777,7 @@ void MqttPublishPayloadPrefixTopic_P(uint32_t prefix, const char* subtopic, cons
   SHOW_FREE_MEM(PSTR("MqttPublishPayloadPrefixTopic_P"));
 /*
   char romram[64];                      // Claim 64 bytes from 4k stack
-  snprintf_P(romram, sizeof(romram), ((prefix > 3) && !Settings->flag.mqtt_response) ? S_RSLT_RESULT : subtopic);  // SetOption4 - Switch between MQTT RESULT or COMMAND
+  snprintf(romram, sizeof(romram), ((prefix > 3) && !Settings->flag.mqtt_response) ? S_RSLT_RESULT : subtopic);  // SetOption4 - Switch between MQTT RESULT or COMMAND
   UpperCase(romram, romram);
 
   prefix &= 3;
@@ -793,7 +793,7 @@ void MqttPublishPayloadPrefixTopic_P(uint32_t prefix, const char* subtopic, cons
   prefix &= 3;
   char *htopic = (char*)malloc(TOPSZ);  // Claim TOPSZ bytes from 16k heap
   GetTopic_P(htopic, prefix, TasmotaGlobal.mqtt_topic, romram);
-  char stopic[strlen_P(htopic) +1];     // Claim only strlen_P bytes from 4k stack
+  char stopic[strlen(htopic) +1];     // Claim only strlen bytes from 4k stack
   strcpy_P(stopic, htopic);
   free(htopic);                         // Free 16k heap from TOPSZ bytes
   free(romram);                         // Free 16k heap from 64 bytes
@@ -814,7 +814,7 @@ void MqttPublishPayloadPrefixTopic_P(uint32_t prefix, const char* subtopic, cons
       s++;
     }
     // update topic is "$aws/things/<topic>/shadow/update"
-    snprintf_P(romram, sizeof(romram), PSTR("$aws/things/%s/shadow/update"), topic2);
+    snprintf(romram, sizeof(romram), PSTR("$aws/things/%s/shadow/update"), topic2);
 
     // copy buffer
     String aws_payload = F("{\"state\":{\"reported\":%s}}");
@@ -1753,7 +1753,7 @@ void CmndInfoRetain(void) {
       ResponseClear();
       char stemp1[10];
       for (uint32_t i = 1; i <= 3; i++) {                          // Remove retained INFO1, INFO2 and INFO3
-        snprintf_P(stemp1, sizeof(stemp1), PSTR(D_RSLT_INFO "%d"), i);
+        snprintf(stemp1, sizeof(stemp1), PSTR(D_RSLT_INFO "%d"), i);
         MqttPublishPrefixTopic_P(TELE, stemp1, true);
       }
     }
@@ -1780,7 +1780,7 @@ void CmndStatusRetain(void) {
       MqttPublishPrefixTopic_P(STAT, PSTR(D_CMND_STATUS), true);   // Remove retained STATUS
       char stemp1[10];
       for (uint32_t i = 0; i <= MAX_STATUS; i++) {                 // Remove retained STATUS0, STATUS1 .. STATUS13
-        snprintf_P(stemp1, sizeof(stemp1), PSTR(D_CMND_STATUS "%d"), i);
+        snprintf(stemp1, sizeof(stemp1), PSTR(D_CMND_STATUS "%d"), i);
         MqttPublishPrefixTopic_P(STAT, stemp1, true);
       }
     }
@@ -1996,7 +1996,7 @@ void CmndTlsDump(void) {
   uint32_t end   = start + tls_block_len -1;
   for (uint32_t pos = start; pos < end; pos += 0x10) {
     uint32_t* values = (uint32_t*)(pos);
-    Serial.printf_P(PSTR("%08x:  %08x %08x %08x %08x\n"), pos, bswap32(values[0]), bswap32(values[1]), bswap32(values[2]), bswap32(values[3]));
+    Serial.printf(PSTR("%08x:  %08x %08x %08x %08x\n"), pos, bswap32(values[0]), bswap32(values[1]), bswap32(values[2]), bswap32(values[3]));
   }
 }
 #endif  // DEBUG_DUMP_TLS

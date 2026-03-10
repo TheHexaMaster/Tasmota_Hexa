@@ -288,7 +288,7 @@ void CM11EverySecond(void)
     // Serial num coded as 5 integers 0..9999. Each integer is uint16_t size
       for (uint8_t i=0; i<cm11_response[1]-1;i=i+2){ //for each 2 uint8_t
         uint16_t v = (cm11_response[3+i] <<8) | cm11_response[3+i+1]; // get int value
-        sprintf_P(cm11_serial_number+i*2,"%04u", v); //print int value to result str
+        sprintf(cm11_serial_number+i*2,"%04u", v); //print int value to result str
       }
       AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_DEBUG "Serial number: %s"),cm11_serial_number);
     }

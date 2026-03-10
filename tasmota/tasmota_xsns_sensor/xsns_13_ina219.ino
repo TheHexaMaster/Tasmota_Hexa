@@ -344,9 +344,9 @@ void Ina219Show(bool json)
     dtostrfd(Ina219Data[i].voltage * Ina219Data[i].current, Settings->flag2.wattage_resolution, power);
     char name[16];
     if (Ina219Count>1)
-      snprintf_P(name, sizeof(name), PSTR("%s%c%d"), INA219_TYPE[Ina219Data[i].model-1], IndexSeparator(), i +1);
+      snprintf(name, sizeof(name), PSTR("%s%c%d"), INA219_TYPE[Ina219Data[i].model-1], IndexSeparator(), i +1);
     else
-      snprintf_P(name, sizeof(name), PSTR("%s"), INA219_TYPE[Ina219Data[i].model-1]);
+      snprintf(name, sizeof(name), PSTR("%s"), INA219_TYPE[Ina219Data[i].model-1]);
 
     if (json) {
       ResponseAppend_P(PSTR(",\"%s\":{\"Id\":%02x,\"" D_JSON_VOLTAGE "\":%s,\"" D_JSON_CURRENT "\":%s,\"" D_JSON_POWERUSAGE "\":%s}"),

@@ -1539,7 +1539,7 @@ void NeoPoolLogRW(const char *name, uint16_t addr, uint16_t *data, uint16_t cnt)
   *log_data = 0;
   for (uint32_t i = 0; i < cnt; i++) {
     char h[8];
-    snprintf_P(h, sizeof(h), PSTR("%s0x%04X"), i ? PSTR(",") : PSTR(""), data[i]);
+    snprintf(h, sizeof(h), PSTR("%s0x%04X"), i ? PSTR(",") : PSTR(""), data[i]);
     strncat(log_data, h, cnt*7+1);
   }
   AddLog(LOG_LEVEL_DEBUG_MORE, PSTR("NEO: %s(0x%04X, %d) = [%s]"), name, addr, cnt, log_data);
@@ -2289,7 +2289,7 @@ void NeoPoolShow(bool json)
 #ifdef USE_WEBSERVER
   } else {
     char bg_color[10];
-    snprintf_P(bg_color, sizeof(bg_color), PSTR("#%02x%02x%02x"),
+    snprintf(bg_color, sizeof(bg_color), PSTR("#%02x%02x%02x"),
       Settings->web_color[COL_BACKGROUND][0],  // R
       Settings->web_color[COL_BACKGROUND][1],  // G
       Settings->web_color[COL_BACKGROUND][2]   // B
@@ -2326,7 +2326,7 @@ void NeoPoolShow(bool json)
 
       // S1
       float fhidromax = (float)NeoPoolGetData(MBF_PAR_HIDRO)/10;
-      ext_snprintf_P(stemp, sizeof(stemp), PSTR(NEOPOOL_FMT_HIDRO " %s"), decimals, &fhidromax,
+      ext_snprintf(stemp, sizeof(stemp), PSTR(NEOPOOL_FMT_HIDRO " %s"), decimals, &fhidromax,
         NeoPoolIsHydrolysisInPercent() ? PSTR(D_NEOPOOL_UNIT_PERCENT) : PSTR(D_NEOPOOL_UNIT_GPERH));
       WSContentSend_PD(HTTP_SNS_NEOPOOL_STATUS, bg_color, HTTP_SNS_NEOPOOL_STATUS_INACTIVE, stemp);
       WSContentSend_PD(PSTR(" "));
@@ -2380,7 +2380,7 @@ void NeoPoolShow(bool json)
       WSContentSend_PD(PSTR("&nbsp;"));
       // S1
       float fphmax = (float)NeoPoolGetData(MBF_PAR_PH1)/100;
-      ext_snprintf_P(stemp, sizeof(stemp), PSTR(NEOPOOL_FMT_PH), NeoPoolSettings.flags.ph, &fphmax);
+      ext_snprintf(stemp, sizeof(stemp), PSTR(NEOPOOL_FMT_PH), NeoPoolSettings.flags.ph, &fphmax);
       WSContentSend_PD(HTTP_SNS_NEOPOOL_STATUS, bg_color,
         (((uint16_t)(fvalue*10) > (uint16_t)(fphmax*10)) ? HTTP_SNS_NEOPOOL_STATUS_ACTIVE : HTTP_SNS_NEOPOOL_STATUS_INACTIVE), stemp);
       WSContentSend_PD(PSTR(" "));
@@ -2422,7 +2422,7 @@ void NeoPoolShow(bool json)
       WSContentSend_PD(HTTP_SNS_NEOPOOL_REDOX, neopool_type, NeoPoolGetData(MBF_MEASURE_RX));
       WSContentSend_PD(PSTR("&nbsp;"));
       // S1
-      ext_snprintf_P(stemp, sizeof(stemp), PSTR(NEOPOOL_FMT_RX " "  D_UNIT_MILLIVOLT), NeoPoolGetData(MBF_PAR_RX1));
+      ext_snprintf(stemp, sizeof(stemp), PSTR(NEOPOOL_FMT_RX " "  D_UNIT_MILLIVOLT), NeoPoolGetData(MBF_PAR_RX1));
       WSContentSend_PD(HTTP_SNS_NEOPOOL_STATUS, bg_color,
         (NeoPoolGetData(MBF_HIDRO_CURRENT) ? HTTP_SNS_NEOPOOL_STATUS_ACTIVE : HTTP_SNS_NEOPOOL_STATUS_INACTIVE),
         stemp);
@@ -2452,8 +2452,8 @@ void NeoPoolShow(bool json)
     // Ionization
     if (NeoPoolIsIonization()) {
       char spol[100];
-      snprintf_P(spol, sizeof(spol), PSTR(" "  D_NEOPOOL_POLARIZATION  "%d"), (NeoPoolGetData(MBF_ION_STATUS) & (MBMSK_ION_STATUS_POL1 | MBMSK_ION_STATUS_POL2)) >> 13);
-      snprintf_P(stemp, sizeof(stemp), PSTR("%s%s%s"),
+      snprintf(spol, sizeof(spol), PSTR(" "  D_NEOPOOL_POLARIZATION  "%d"), (NeoPoolGetData(MBF_ION_STATUS) & (MBMSK_ION_STATUS_POL1 | MBMSK_ION_STATUS_POL2)) >> 13);
+      snprintf(stemp, sizeof(stemp), PSTR("%s%s%s"),
         (NeoPoolGetData(MBF_ION_STATUS) & (MBMSK_ION_STATUS_POL1 | MBMSK_ION_STATUS_POL2)) ? spol : PSTR(""),
         NeoPoolGetData(MBF_ION_STATUS) & MBMSK_ION_STATUS_ON_TARGET ? PSTR(" " D_NEOPOOL_SETPOINT_OK) : PSTR(""),
         NeoPoolGetData(MBF_ION_STATUS) & MBMSK_ION_STATUS_PROGTIME_EXCEEDED ? PSTR(" " D_NEOPOOL_PR_OFF) : PSTR("")
@@ -2489,7 +2489,7 @@ void NeoPoolShow(bool json)
           char smotorspeed[32];
           strncpy(sdesc, PSTR(D_NEOPOOL_RELAY_FILTRATION), sizeof(sdesc));
           GetTextIndexed(smotorspeed, sizeof(smotorspeed), NeoPoolGetFiltrationSpeed(), kNeoPoolFiltrationSpeed);
-          snprintf_P(stemp, sizeof(stemp), PSTR("%s%s%s%s"), ((NeoPoolGetData(MBF_RELAY_STATE) & (1<<i))?D_ON:D_OFF), *smotorspeed ? PSTR(" (") : PSTR(""), smotorspeed,  *smotorspeed ? PSTR(")") : PSTR(""));
+          snprintf(stemp, sizeof(stemp), PSTR("%s%s%s%s"), ((NeoPoolGetData(MBF_RELAY_STATE) & (1<<i))?D_ON:D_OFF), *smotorspeed ? PSTR(" (") : PSTR(""), smotorspeed,  *smotorspeed ? PSTR(")") : PSTR(""));
       } else if (0 != NeoPoolGetData(MBF_PAR_LIGHTING_GPIO) && i == NeoPoolGetData(MBF_PAR_LIGHTING_GPIO)-1) {
           strncpy(sdesc, PSTR(D_NEOPOOL_RELAY_LIGHT), sizeof(sdesc));
       } else if (0 != NeoPoolGetData(MBF_PAR_HEATING_GPIO) && i == NeoPoolGetData(MBF_PAR_HEATING_GPIO)-1) {
@@ -2508,13 +2508,13 @@ void NeoPoolShow(bool json)
             sname[k*2 + 1] = (char)(data & 0xFF);
           }
           if (*sname) {
-            snprintf_P(sdesc, sizeof(sdesc), PSTR(D_NEOPOOL_RELAY_AUX  " %d (%s)"), i-2, sname);
+            snprintf(sdesc, sizeof(sdesc), PSTR(D_NEOPOOL_RELAY_AUX  " %d (%s)"), i-2, sname);
           } else {
-            snprintf_P(sdesc, sizeof(sdesc), PSTR(D_NEOPOOL_RELAY_AUX  " %d"), i-2);
+            snprintf(sdesc, sizeof(sdesc), PSTR(D_NEOPOOL_RELAY_AUX  " %d"), i-2);
           }
       } else {
           // unassigned relay
-          snprintf_P(sdesc, sizeof(sdesc), PSTR(D_NEOPOOL_RELAY  " %d"), i+1);
+          snprintf(sdesc, sizeof(sdesc), PSTR(D_NEOPOOL_RELAY  " %d"), i+1);
       }
 
       WSContentSend_PD(HTTP_SNS_NEOPOOL_RELAY, neopool_type, sdesc,
@@ -3431,7 +3431,7 @@ void NeoPoolSettingsLoad(bool erase) {
 
 
 #ifdef USE_UFILESYS
-  snprintf_P(filename, sizeof(filename), PSTR(TASM_FILE_SENSOR), XSNS_83);
+  snprintf(filename, sizeof(filename), PSTR(TASM_FILE_SENSOR), XSNS_83);
   if (erase) {
     TfsDeleteFile(filename);  // Use defaults
   }
@@ -3463,7 +3463,7 @@ void NeoPoolSettingsSave(void) {
   if (crc32 != NeoPoolSettings.crc32) {
     NeoPoolSettings.crc32 = crc32;
     char filename[20];
-    snprintf_P(filename, sizeof(filename), PSTR(TASM_FILE_SENSOR), XSNS_83);
+    snprintf(filename, sizeof(filename), PSTR(TASM_FILE_SENSOR), XSNS_83);
     if (TfsSaveFile(filename, (const uint8_t*)&NeoPoolSettings, sizeof(NeoPoolSettings))) {
 #ifdef DEBUG_TASMOTA_SENSOR
       AddLog(LOG_LEVEL_DEBUG, PSTR("NEO: saved to file '%s'"), filename);

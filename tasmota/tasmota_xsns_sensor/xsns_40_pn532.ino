@@ -619,7 +619,7 @@ void PN532_ScanForTag(void) {
           card_datas[0] = 0;
         }
       } else {
-        sprintf_P(card_datas, PSTR("AUTHFAIL"));
+        sprintf(card_datas, PSTR("AUTHFAIL"));
       }
     }
     switch (Pn532.function) {
@@ -694,7 +694,7 @@ bool PN532_Command(void) {
   if (!strcmp(argument,PSTR("ERASE"))) {
     memset(Pn532.newdata,0,sizeof(Pn532.newdata));
     Pn532.function = 1; // Block 1 of next card/tag will be reset to 0x00...
-    snprintf_P(log, sizeof(log), PSTR("data block 1 (4-7 for NTAG) will be erased"));
+    snprintf(log, sizeof(log), PSTR("data block 1 (4-7 for NTAG) will be erased"));
     serviced = true;
   }
   if (!strcmp(argument,PSTR("WRITE"))) {
@@ -704,7 +704,7 @@ bool PN532_Command(void) {
       strncpy((char *)Pn532.newdata,argument,sizeof(Pn532.newdata));
       if (strlen(argument)>16) argument[16]=0;
       Pn532.function = 2;
-      snprintf_P(log, sizeof(log), PSTR("data block 1 (4-7 for NTAG) will be set to '%s'"), argument);
+      snprintf(log, sizeof(log), PSTR("data block 1 (4-7 for NTAG) will be set to '%s'"), argument);
     serviced = true;
     }
   }
@@ -721,7 +721,7 @@ bool PN532_Command(void) {
     serviced = true;
   }
   if (!strcmp(argument,PSTR("SET_PWD"))) {
-    snprintf_P(log, sizeof(log), PSTR("will be protected"));
+    snprintf(log, sizeof(log), PSTR("will be protected"));
     Pn532.pwd_auth_new=Pn532.pwd_auth;
     Pn532.pwd_pack_new=Pn532.pwd_pack;
     if (ArgC() > 1) {
@@ -734,7 +734,7 @@ bool PN532_Command(void) {
     serviced = true;
   }
   if (!strcmp(argument,PSTR("UNSET_PWD"))) {
-    snprintf_P(log, sizeof(log), PSTR("will be unprotected"));
+    snprintf(log, sizeof(log), PSTR("will be unprotected"));
     Pn532.function = 4;
     serviced = true;
   }

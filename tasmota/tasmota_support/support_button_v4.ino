@@ -433,7 +433,7 @@ void ButtonHandler(void) {
         Button.hold_timer[button_index]++;
         if (Settings->flag.button_single) {                  // SetOption13 (0) - Allow only single button press for immediate action
           if (Button.hold_timer[button_index] == loops_per_second * hold_time_extent * Settings->param[P_HOLD_TIME] / 10) {  // SetOption32 (40) - Button held for factor times longer
-            snprintf_P(scmnd, sizeof(scmnd), PSTR(D_CMND_SETOPTION "13 0"));  // Disable single press only
+            snprintf(scmnd, sizeof(scmnd), PSTR(D_CMND_SETOPTION "13 0"));  // Disable single press only
             ExecuteCommand(scmnd, SRC_BUTTON);
           }
         } else {
@@ -455,7 +455,7 @@ void ButtonHandler(void) {
             } else {
               if ((Button.hold_timer[button_index] == loops_per_second * hold_time_extent * Settings->param[P_HOLD_TIME] / 10)) {  // SetOption32 (40) - Button held for factor times longer
                 Button.press_counter[button_index] = 0;
-                snprintf_P(scmnd, sizeof(scmnd), PSTR(D_CMND_RESET " 1"));
+                snprintf(scmnd, sizeof(scmnd), PSTR(D_CMND_RESET " 1"));
                 ExecuteCommand(scmnd, SRC_BUTTON);
               }
             }
@@ -515,7 +515,7 @@ void ButtonHandler(void) {
 
                 } else {    // 6 press start wificonfig 2
                   if (!Settings->flag.button_restrict) {     // SetOption1  - Control button multipress
-                    snprintf_P(scmnd, sizeof(scmnd), PSTR(D_CMND_WIFICONFIG " 2"));
+                    snprintf(scmnd, sizeof(scmnd), PSTR(D_CMND_WIFICONFIG " 2"));
                     ExecuteCommand(scmnd, SRC_BUTTON);
                   }
                 }
@@ -543,7 +543,7 @@ void MqttButtonTopic(uint32_t button_id, uint32_t action, uint32_t hold) {
 
   if (!Settings->flag.hass_discovery) {                        // SetOption19 - Control Home Assistant automatic discovery (See SetOption59)
     char scommand[10];
-    snprintf_P(scommand, sizeof(scommand), PSTR(D_JSON_BUTTON "%d"), button_id);
+    snprintf(scommand, sizeof(scommand), PSTR(D_JSON_BUTTON "%d"), button_id);
     char mqttstate[7];
     Response_P(S_JSON_SVALUE_ACTION_SVALUE, scommand, (hold) ? SettingsText(SET_STATE_TXT4) : GetTextIndexed(mqttstate, sizeof(mqttstate), action, kMultiPress));
     MqttPublishPrefixTopicRulesProcess_P(RESULT_OR_STAT, scommand);

@@ -581,7 +581,7 @@ void HxShow(bool json) {
       if (Hx->weight && Settings->weight_item) {
         count = (Hx->weight * 10) / Settings->weight_item;
         if (count > 1) {
-          snprintf_P(scount, sizeof(scount), PSTR(",\"" D_JSON_COUNT "\":%d"), count);
+          snprintf(scount, sizeof(scount), PSTR(",\"" D_JSON_COUNT "\":%d"), count);
         }
       }
       weight = (float)Hx->weight / 1000;             // kilograms
@@ -638,7 +638,7 @@ void HandleHxAction(void) {
   if (Webserver->hasArg("save")) {
     WebGetArg("p2", stemp1, sizeof(stemp1));
     unsigned long weight_item = (!strlen(stemp1)) ? 0 : (unsigned long)(CharToFloat(stemp1) * 1000);
-    snprintf_P(stemp1, sizeof(stemp1), PSTR("Sensor34 6,%d"), weight_item);  // WeightItem
+    snprintf(stemp1, sizeof(stemp1), PSTR("Sensor34 6,%d"), weight_item);  // WeightItem
     ExecuteWebCommand(stemp1);
 
     HandleConfiguration();
@@ -646,7 +646,7 @@ void HandleHxAction(void) {
   }
 
   if (Webserver->hasArg("reset")) {
-    snprintf_P(stemp1, sizeof(stemp1), PSTR("Sensor34 1"));  // Reset
+    snprintf(stemp1, sizeof(stemp1), PSTR("Sensor34 1"));  // Reset
     ExecuteWebCommand(stemp1);
 
     HandleRoot();  // Return to main screen
@@ -656,7 +656,7 @@ void HandleHxAction(void) {
   if (Webserver->hasArg("calibrate")) {
     WebGetArg("p1", stemp1, sizeof(stemp1));
     unsigned long weight_ref = (!strlen(stemp1)) ? 0 : (unsigned long)(CharToFloat(stemp1) * 1000);
-    snprintf_P(stemp1, sizeof(stemp1), PSTR("Sensor34 2,%d"), weight_ref);  // Start calibration
+    snprintf(stemp1, sizeof(stemp1), PSTR("Sensor34 2,%d"), weight_ref);  // Start calibration
     ExecuteWebCommand(stemp1);
 
     HandleRoot();  // Return to main screen

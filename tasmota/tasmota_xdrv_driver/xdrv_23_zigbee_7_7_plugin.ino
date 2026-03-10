@@ -25,8 +25,8 @@ const char Z_MANUF[] PROGMEM = "manuf:";
 const char Z_ADD[] PROGMEM = "add:";
 
 char * Z_subtoken(char * token, const char * prefix) {
-  size_t prefix_len = strlen_P(prefix);
-  if (!strncmp_P(token, prefix, prefix_len)) {
+  size_t prefix_len = strlen(prefix);
+  if (!strncmp(token, prefix, prefix_len)) {
     return token + prefix_len;
   }
   return nullptr;
@@ -165,7 +165,7 @@ bool ZbLoad_inner(const char *filename, File &fp) {
     if (filename_imported == nullptr) {
       // allocate only once the filename for multiple entries
       // freed only by `ZbUnload`
-      filename_imported = (char*) malloc(strlen_P(filename)+1);
+      filename_imported = (char*) malloc(strlen(filename)+1);
       strcpy_P(filename_imported, filename);
     }
 
@@ -388,16 +388,16 @@ bool ZbUnload(const char *filename_raw) {
 // append modifiers like mul/div/manuf
 void Z_AppendModifiers(char * buf, size_t buf_len, uint32_t multiplier, uint32_t divider, int32_t base, uint16_t manuf) {
   if (multiplier != 0 && multiplier != 1) {
-    ext_snprintf_P(buf, buf_len, "%s,%s%i", buf, Z_MUL, multiplier);
+    ext_snprintf(buf, buf_len, "%s,%s%i", buf, Z_MUL, multiplier);
   }
   if (divider != 0 && divider != 1) {
-    ext_snprintf_P(buf, buf_len, "%s,%s%i", buf, Z_DIV, divider);
+    ext_snprintf(buf, buf_len, "%s,%s%i", buf, Z_DIV, divider);
   }
   if (base != 0) {
-    ext_snprintf_P(buf, buf_len, "%s,%s%i", buf, Z_ADD, base);
+    ext_snprintf(buf, buf_len, "%s,%s%i", buf, Z_ADD, base);
   }
   if (manuf) {
-    ext_snprintf_P(buf, buf_len, "%s,%s%04X", buf, Z_MANUF, manuf);
+    ext_snprintf(buf, buf_len, "%s,%s%04X", buf, Z_MANUF, manuf);
   }
 }
 
@@ -409,16 +409,16 @@ void ZbLoadDump(void) {
 
   for (const Z_plugin_template & tmpl : g_plugin_templates) {
     if (tmpl.filename != nullptr) {
-      ext_snprintf_P(buf, sizeof(buf), "# imported from '%s'", tmpl.filename);
+      ext_snprintf(buf, sizeof(buf), "# imported from '%s'", tmpl.filename);
       AddLog(LOG_LEVEL_INFO, PSTR("%s"), buf);
     }
     // marchers
     if (tmpl.matchers.length() == 0) {
-      ext_snprintf_P(buf, sizeof(buf), ":    # no matcher");
+      ext_snprintf(buf, sizeof(buf), ":    # no matcher");
       AddLog(LOG_LEVEL_INFO, PSTR("%s"), buf);
     } else {
       for (const Z_plugin_matcher & matcher : tmpl.matchers) {
-        ext_snprintf_P(buf, sizeof(buf), ":%s,%s", matcher.model ? matcher.model : "", matcher.manufacturer ? matcher.manufacturer : "");
+        ext_snprintf(buf, sizeof(buf), ":%s,%s", matcher.model ? matcher.model : "", matcher.manufacturer ? matcher.manufacturer : "");
         AddLog(LOG_LEVEL_INFO, PSTR("%s"), buf);
       }
     }
@@ -428,19 +428,19 @@ void ZbLoadDump(void) {
       AddLog(LOG_LEVEL_INFO, "");
     } else {
       for (const Z_plugin_attribute & attr : tmpl.attributes) {
-        ext_snprintf_P(buf, sizeof(buf), "%04X/%04X", attr.cluster, attr.attribute);
+        ext_snprintf(buf, sizeof(buf), "%04X/%04X", attr.cluster, attr.attribute);
         // add type if known
         if (attr.type != Zunk) {
           char type_str[16];
           Z_getTypeByNumber(type_str, sizeof(type_str), attr.type);
-          ext_snprintf_P(buf, sizeof(buf), "%s%%%s", buf, type_str);
+          ext_snprintf(buf, sizeof(buf), "%s%%%s", buf, type_str);
         }
-        ext_snprintf_P(buf, sizeof(buf), "%s,%s", buf, attr.name);
+        ext_snprintf(buf, sizeof(buf), "%s,%s", buf, attr.name);
         Z_AppendModifiers(buf, sizeof(buf), attr.multiplier, attr.divider, attr.base, attr.manuf);
         AddLog(LOG_LEVEL_INFO, PSTR("%s"), buf);
       }
       for (const Z_attribute_synonym & syn : tmpl.synonyms) {
-        ext_snprintf_P(buf, sizeof(buf), "%04X/%04X=%04X/%04X", syn.cluster, syn.attribute, syn.new_cluster, syn.new_attribute);
+        ext_snprintf(buf, sizeof(buf), "%04X/%04X=%04X/%04X", syn.cluster, syn.attribute, syn.new_cluster, syn.new_attribute);
         Z_AppendModifiers(buf, sizeof(buf), syn.multiplier, syn.divider, syn.base, 0);
         AddLog(LOG_LEVEL_INFO, PSTR("%s"), buf);
       }

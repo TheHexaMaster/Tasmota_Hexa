@@ -531,12 +531,12 @@ void UBXsendRecord(uint8_t *buf)
 	char record[100];
 	char stime[32];
 	UBX_t::entry_t *entry = (UBX_t::entry_t*)buf;
-	snprintf_P(stime, sizeof(stime), GetDT(entry->time).c_str());
+	snprintf(stime, sizeof(stime), GetDT(entry->time).c_str());
 	char lat[FLOATSZ];
 	char lon[FLOATSZ];
 	dtostrfd((double)entry->lat/10000000.0f,7,lat);
 	dtostrfd((double)entry->lon/10000000.0f,7,lon);
-	snprintf_P(record, sizeof(record),PSTR("<trkpt\n\t lat=\"%s\" lon=\"%s\">\n\t<time>%s</time>\n</trkpt>\n"),lat ,lon, stime);
+	snprintf(record, sizeof(record),PSTR("<trkpt\n\t lat=\"%s\" lon=\"%s\">\n\t<time>%s</time>\n</trkpt>\n"),lat ,lon, stime);
 	// DEBUG_SENSOR_LOG(PSTR("FLOG: DL %u %u"), Flog->sector.dword_buffer[k+j],Flog->sector.dword_buffer[k+j+1]);
 	Webserver->sendContent_P(record);
 }

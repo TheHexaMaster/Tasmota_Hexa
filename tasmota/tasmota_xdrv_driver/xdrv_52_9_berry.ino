@@ -486,7 +486,7 @@ void CmndBrRun(void) {
 
   char br_cmd[XdrvMailbox.data_len+12];
   // encapsulate into a function, copied from `be_repl.c` / `try_return()`
-  snprintf_P(br_cmd, sizeof(br_cmd), PSTR("return (%s)"), XdrvMailbox.data);
+  snprintf(br_cmd, sizeof(br_cmd), PSTR("return (%s)"), XdrvMailbox.data);
 
   checkBeTop();
   do {
@@ -535,7 +535,7 @@ void BrREPLRun(char * cmd) {
   do {
     int32_t ret_code;
 
-    snprintf_P(cmd2, cmd2_len, PSTR("return (%s)"), cmd);
+    snprintf(cmd2, cmd2_len, PSTR("return (%s)"), cmd);
     ret_code = be_loadbuffer(berry.vm, PSTR("input"), cmd2, strlen(cmd2));
     // AddLog(LOG_LEVEL_INFO, PSTR(">>>> be_loadbuffer cmd2 '%s', ret=%i"), cmd2, ret_code);
     if (be_getexcept(berry.vm, ret_code) == BE_SYNTAX_ERROR) {

@@ -172,7 +172,7 @@ unsigned char *min_br_ssl_engine_sendrec_buf(const br_ssl_engine_context *cc, si
 
 //#define DEBUG_ESP_SSL
 #ifdef DEBUG_ESP_SSL
-//#define DEBUG_BSSL(fmt, ...)  DEBUG_ESP_PORT.printf_P((PGM_P)PSTR( "BSSL:" fmt), ## __VA_ARGS__)
+//#define DEBUG_BSSL(fmt, ...)  DEBUG_ESP_PORT.printf((PGM_P)PSTR( "BSSL:" fmt), ## __VA_ARGS__)
 #define DEBUG_BSSL(fmt, ...)  Serial.printf(fmt, ## __VA_ARGS__)
 #else
 #define DEBUG_BSSL(...)

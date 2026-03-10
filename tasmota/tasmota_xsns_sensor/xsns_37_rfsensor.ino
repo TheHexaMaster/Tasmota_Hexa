@@ -257,7 +257,7 @@ void RfSnsTheoV2Show(bool json) {
   for (uint32_t i = 0; i < RFSNS_THEOV2_MAX_CHANNEL; i++) {
     if (rfsns_theo_v2_t1[i].time) {
       char sensor[10];
-      snprintf_P(sensor, sizeof(sensor), PSTR("TV2T1C%d"), i +1);
+      snprintf(sensor, sizeof(sensor), PSTR("TV2T1C%d"), i +1);
       char voltage[33];
       dtostrfd((float)rfsns_theo_v2_t1[i].volt / 10, 1, voltage);
 
@@ -287,7 +287,7 @@ void RfSnsTheoV2Show(bool json) {
   for (uint32_t i = 0; i < RFSNS_THEOV2_MAX_CHANNEL; i++) {
     if (rfsns_theo_v2_t2[i].time) {
       char sensor[10];
-      snprintf_P(sensor, sizeof(sensor), PSTR("TV2T2C%d"), i +1);
+      snprintf(sensor, sizeof(sensor), PSTR("TV2T2C%d"), i +1);
       char voltage[33];
       dtostrfd((float)rfsns_theo_v2_t2[i].volt / 10, 1, voltage);
 
@@ -545,7 +545,7 @@ void RfSnsAlectoV2Show(bool json) {
       char direction[20];
       if (rfsns_alecto_v2->type) {
         GetTextIndexed(wdir, sizeof(wdir), rfsns_alecto_v2->wdir, kAlectoV2Directions);
-        snprintf_P(direction, sizeof(direction), PSTR(",\"Direction\":\"%s\""), wdir);
+        snprintf(direction, sizeof(direction), PSTR(",\"Direction\":\"%s\""), wdir);
       }
 
       if (json) {

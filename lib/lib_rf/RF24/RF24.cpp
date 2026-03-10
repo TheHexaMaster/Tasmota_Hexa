@@ -205,7 +205,7 @@ uint8_t RF24::write_register(uint8_t reg, uint8_t value)
 {
   uint8_t status;
 
-  IF_SERIAL_DEBUG(printf_P(PSTR("write_register(%02x,%02x)\r\n"),reg,value));
+  IF_SERIAL_DEBUG(printf(PSTR("write_register(%02x,%02x)\r\n"),reg,value));
 
   #if defined (RF24_LINUX)
     beginTransaction();
@@ -369,7 +369,7 @@ uint8_t RF24::get_status(void)
 #if !defined (MINIMAL)
 void RF24::print_status(uint8_t status)
 {
-  printf_P(PSTR("STATUS\t\t = 0x%02x RX_DR=%x TX_DS=%x MAX_RT=%x RX_P_NO=%x TX_FULL=%x\r\n"),
+  printf(PSTR("STATUS\t\t = 0x%02x RX_DR=%x TX_DS=%x MAX_RT=%x RX_P_NO=%x TX_FULL=%x\r\n"),
            status,
            (status & _BV(RX_DR))?1:0,
            (status & _BV(TX_DS))?1:0,
@@ -383,7 +383,7 @@ void RF24::print_status(uint8_t status)
 
 void RF24::print_observe_tx(uint8_t value)
 {
-  printf_P(PSTR("OBSERVE_TX=%02x: POLS_CNT=%x ARC_CNT=%x\r\n"),
+  printf(PSTR("OBSERVE_TX=%02x: POLS_CNT=%x ARC_CNT=%x\r\n"),
            value,
            (value >> PLOS_CNT) & 0x0F,
            (value >> ARC_CNT) & 0x0F
@@ -394,16 +394,16 @@ void RF24::print_observe_tx(uint8_t value)
 
 void RF24::print_byte_register(const char* name, uint8_t reg, uint8_t qty)
 {
-  //char extra_tab = strlen_P(name) < 8 ? '\t' : 0;
-  //printf_P(PSTR(PRIPSTR"\t%c ="),name,extra_tab);
+  //char extra_tab = strlen(name) < 8 ? '\t' : 0;
+  //printf(PSTR(PRIPSTR"\t%c ="),name,extra_tab);
   #if defined (RF24_LINUX)
     printf("%s\t =", name);
   #else
-    printf_P(PSTR(PRIPSTR"\t ="),name);
+    printf(PSTR(PRIPSTR"\t ="),name);
   #endif
   while (qty--)
-    printf_P(PSTR(" 0x%02x"),read_register(reg++));
-  printf_P(PSTR("\r\n"));
+    printf(PSTR(" 0x%02x"),read_register(reg++));
+  printf(PSTR("\r\n"));
 }
 
 /****************************************************************************/
@@ -414,20 +414,20 @@ void RF24::print_address_register(const char* name, uint8_t reg, uint8_t qty)
   #if defined (RF24_LINUX)
     printf("%s\t =",name);
   #else
-    printf_P(PSTR(PRIPSTR"\t ="),name);
+    printf(PSTR(PRIPSTR"\t ="),name);
   #endif
   while (qty--)
   {
     uint8_t buffer[addr_width];
     read_register(reg++,buffer,sizeof buffer);
 
-    printf_P(PSTR(" 0x"));
+    printf(PSTR(" 0x"));
     uint8_t* bufptr = buffer + sizeof buffer;
     while( --bufptr >= buffer )
-      printf_P(PSTR("%02x"),*bufptr);
+      printf(PSTR("%02x"),*bufptr);
   }
 
-  printf_P(PSTR("\r\n"));
+  printf(PSTR("\r\n"));
 }
 #endif
 /****************************************************************************/
@@ -576,10 +576,10 @@ void RF24::printDetails(void)
   print_byte_register(PSTR("CONFIG\t"),NRF_CONFIG);
   print_byte_register(PSTR("DYNPD/FEATURE"),DYNPD,2);
 
-  printf_P(PSTR("Data Rate\t = " PRIPSTR "\r\n"),pgm_read_ptr(&rf24_datarate_e_str_P[getDataRate()]));
-  printf_P(PSTR("Model\t\t = " PRIPSTR "\r\n"),pgm_read_ptr(&rf24_model_e_str_P[isPVariant()]));
-  printf_P(PSTR("CRC Length\t = " PRIPSTR "\r\n"),pgm_read_ptr(&rf24_crclength_e_str_P[getCRCLength()]));
-  printf_P(PSTR("PA Power\t = " PRIPSTR "\r\n"),  pgm_read_ptr(&rf24_pa_dbm_e_str_P[getPALevel()]));
+  printf(PSTR("Data Rate\t = " PRIPSTR "\r\n"),pgm_read_ptr(&rf24_datarate_e_str_P[getDataRate()]));
+  printf(PSTR("Model\t\t = " PRIPSTR "\r\n"),pgm_read_ptr(&rf24_model_e_str_P[isPVariant()]));
+  printf(PSTR("CRC Length\t = " PRIPSTR "\r\n"),pgm_read_ptr(&rf24_crclength_e_str_P[getCRCLength()]));
+  printf(PSTR("PA Power\t = " PRIPSTR "\r\n"),  pgm_read_ptr(&rf24_pa_dbm_e_str_P[getPALevel()]));
 
 }
 
@@ -818,7 +818,7 @@ void RF24::powerUp(void)
 #if defined (FAILURE_HANDLING) || defined (RF24_LINUX)
 void RF24::errNotify(){
 	#if defined (SERIAL_DEBUG) || defined (RF24_LINUX)
-	  printf_P(PSTR("RF24 HARDWARE FAIL: Radio not responding, verify pin connections, wiring, etc.\r\n"));
+	  printf(PSTR("RF24 HARDWARE FAIL: Radio not responding, verify pin connections, wiring, etc.\r\n"));
 	#endif
 	#if defined (FAILURE_HANDLING)
 	failureDetected = 1;

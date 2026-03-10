@@ -102,7 +102,7 @@ void DrvDemoSettingsLoad(bool erase) {
   // *** Start init default values in case key is not found ***
   memset(&DrvDemoSettings, 0x00, sizeof(DrvDemoSettings));
   // Init any other parameter in struct DrvDemoSettings
-  snprintf_P(DrvDemoSettings.drv_text[0], sizeof(DrvDemoSettings.drv_text[0]), PSTR("Azalea"));
+  snprintf(DrvDemoSettings.drv_text[0], sizeof(DrvDemoSettings.drv_text[0]), PSTR("Azalea"));
 
   // *** End Init default values ***
 
@@ -164,7 +164,7 @@ void CmndDrvText(void) {
       // Command DrvText<index> <text>
       uint32_t index = XdrvMailbox.index -1;
       if (XdrvMailbox.data_len > 0) {
-        snprintf_P(DrvDemoSettings.drv_text[index], sizeof(DrvDemoSettings.drv_text[index]), XdrvMailbox.data);
+        snprintf(DrvDemoSettings.drv_text[index], sizeof(DrvDemoSettings.drv_text[index]), XdrvMailbox.data);
       }
       ResponseCmndIdxChar(DrvDemoSettings.drv_text[index]);
     }

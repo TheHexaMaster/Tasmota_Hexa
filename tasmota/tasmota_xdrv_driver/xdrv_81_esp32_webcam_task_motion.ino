@@ -1228,7 +1228,7 @@ void CmndWebcamGetMotionPixels(void) {
   }
 
   char resp[100] = "0";
-  snprintf_P(resp, sizeof(resp), PSTR("{\"buff\":%d,\"addr\":%d,\"len\":%d,\"w\":%d,\"h\":%d,\"format\":%d}"), 
+  snprintf(resp, sizeof(resp), PSTR("{\"buff\":%d,\"addr\":%d,\"len\":%d,\"w\":%d,\"h\":%d,\"format\":%d}"), 
       bnum, p->buff, p->len, p->width, p->height, p->format+1);
   Response_P(S_JSON_COMMAND_XVALUE, XdrvMailbox.command, resp);
 }

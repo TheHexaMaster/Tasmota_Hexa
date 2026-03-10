@@ -233,16 +233,16 @@ void Ds18x20Name(uint8_t sensor) {
     sprintf(address+2*j, "%02X", ds18x20_sensor[sensor_index].address[3-j]);  // Only last 3 bytes
   }
   // DS18B20-8EC44C
-  snprintf_P(DS18X20Data.name, sizeof(DS18X20Data.name), PSTR("%s%c%s"), DS18X20Data.name, IndexSeparator(), address);
+  snprintf(DS18X20Data.name, sizeof(DS18X20Data.name), PSTR("%s%c%s"), DS18X20Data.name, IndexSeparator(), address);
   return;
 #elif defined(DS18x20_USE_ID_ALIAS)
   if (ds18x20_sensor[sensor_index].alias[0] && (ds18x20_sensor[sensor_index].alias[0] != '0')) {
     if (isdigit(ds18x20_sensor[sensor_index].alias[0])) {
       // DS18Sens-1
-      snprintf_P(DS18X20Data.name, sizeof(DS18X20Data.name), PSTR("DS18Sens%c%d"), IndexSeparator(), atoi(ds18x20_sensor[sensor_index].alias));
+      snprintf(DS18X20Data.name, sizeof(DS18X20Data.name), PSTR("DS18Sens%c%d"), IndexSeparator(), atoi(ds18x20_sensor[sensor_index].alias));
     } else {
       // UserText
-      snprintf_P(DS18X20Data.name, sizeof(DS18X20Data.name), PSTR("%s"), ds18x20_sensor[sensor_index].alias);
+      snprintf(DS18X20Data.name, sizeof(DS18X20Data.name), PSTR("%s"), ds18x20_sensor[sensor_index].alias);
     }
     return;
   }
@@ -250,7 +250,7 @@ void Ds18x20Name(uint8_t sensor) {
 
   if (DS18X20Data.sensors > 1) {
     // DS18B20-1
-    snprintf_P(DS18X20Data.name, sizeof(DS18X20Data.name), PSTR("%s%c%d"), DS18X20Data.name, IndexSeparator(), sensor + 1);
+    snprintf(DS18X20Data.name, sizeof(DS18X20Data.name), PSTR("%s%c%d"), DS18X20Data.name, IndexSeparator(), sensor + 1);
   }
 }
 
@@ -407,7 +407,7 @@ void CmndDSAlias(void) {
         sprintf(address+2*j, "%02X", ds18x20_sensor[i].address[7-j]);
       }
       if (!strncmp(Argument1, address, 12) && Argument2[0]) {
-        snprintf_P(ds18x20_sensor[i].alias, DS18X20_ALIAS_LEN, PSTR("%s"), Argument2);
+        snprintf(ds18x20_sensor[i].alias, DS18X20_ALIAS_LEN, PSTR("%s"), Argument2);
         break;
       }
     }

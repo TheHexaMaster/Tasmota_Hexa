@@ -854,12 +854,12 @@ void DisplayText(void)
             if (*cp=='S') {
               cp++;
               if (dp < (linebuf + DISPLAY_BUFFER_COLS) -8) {
-                snprintf_P(dp, 9, PSTR("%02d" D_HOUR_MINUTE_SEPARATOR "%02d" D_MINUTE_SECOND_SEPARATOR "%02d"), RtcTime.hour, RtcTime.minute, RtcTime.second);
+                snprintf(dp, 9, PSTR("%02d" D_HOUR_MINUTE_SEPARATOR "%02d" D_MINUTE_SECOND_SEPARATOR "%02d"), RtcTime.hour, RtcTime.minute, RtcTime.second);
                 dp += 8;
               }
             } else {
               if (dp < (linebuf + DISPLAY_BUFFER_COLS) -5) {
-                snprintf_P(dp, 6, PSTR("%02d" D_HOUR_MINUTE_SEPARATOR "%02d"), RtcTime.hour, RtcTime.minute);
+                snprintf(dp, 6, PSTR("%02d" D_HOUR_MINUTE_SEPARATOR "%02d"), RtcTime.hour, RtcTime.minute);
                 dp += 5;
               }
             }
@@ -873,7 +873,7 @@ void DisplayText(void)
               param2 = RtcTime.day_of_month;
             }
             if (dp < (linebuf + DISPLAY_BUFFER_COLS) -8) {
-              snprintf_P(dp, 9, PSTR("%02d" D_MONTH_DAY_SEPARATOR "%02d" D_YEAR_MONTH_SEPARATOR "%02d"), param1, param2, RtcTime.year%2000);
+              snprintf(dp, 9, PSTR("%02d" D_MONTH_DAY_SEPARATOR "%02d" D_YEAR_MONTH_SEPARATOR "%02d"), param1, param2, RtcTime.year%2000);
               dp += 8;
             }
             break; }
@@ -1402,27 +1402,27 @@ void DisplayLogBufferInit(void) {
     disp_log_buffer_ptr = 0;
     disp_refresh = Settings->display_refresh;
 
-    snprintf_P(disp_temp, sizeof(disp_temp), PSTR("%c"), TempUnit());
-    snprintf_P(disp_pres, sizeof(disp_pres), PressureUnit().c_str());
+    snprintf(disp_temp, sizeof(disp_temp), PSTR("%c"), TempUnit());
+    snprintf(disp_pres, sizeof(disp_pres), PressureUnit().c_str());
 
     DisplayReAllocLogBuffer();
 
     char buffer[40];
-    snprintf_P(buffer, sizeof(buffer), PSTR(D_VERSION " %s%s"), TasmotaGlobal.version, TasmotaGlobal.image_name);
+    snprintf(buffer, sizeof(buffer), PSTR(D_VERSION " %s%s"), TasmotaGlobal.version, TasmotaGlobal.image_name);
     DisplayLogBufferAdd(buffer);
-    snprintf_P(buffer, sizeof(buffer), PSTR("Display mode %d"), Settings->display_mode);
+    snprintf(buffer, sizeof(buffer), PSTR("Display mode %d"), Settings->display_mode);
     DisplayLogBufferAdd(buffer);
 
-    snprintf_P(buffer, sizeof(buffer), PSTR(D_CMND_HOSTNAME " %s"), NetworkHostname());
+    snprintf(buffer, sizeof(buffer), PSTR(D_CMND_HOSTNAME " %s"), NetworkHostname());
     DisplayLogBufferAdd(buffer);
-    snprintf_P(buffer, sizeof(buffer), PSTR(D_JSON_MAC " %s"), NetworkMacAddress().c_str());
+    snprintf(buffer, sizeof(buffer), PSTR(D_JSON_MAC " %s"), NetworkMacAddress().c_str());
     DisplayLogBufferAdd(buffer);
-    ext_snprintf_P(buffer, sizeof(buffer), PSTR("IP %_I"), (uint32_t)NetworkAddress());
+    ext_snprintf(buffer, sizeof(buffer), PSTR("IP %_I"), (uint32_t)NetworkAddress());
     DisplayLogBufferAdd(buffer);
     if (!TasmotaGlobal.global_state.wifi_down) {
-      snprintf_P(buffer, sizeof(buffer), PSTR(D_JSON_SSID " %s"), SettingsText(SET_STASSID1 + Settings->sta_active));
+      snprintf(buffer, sizeof(buffer), PSTR(D_JSON_SSID " %s"), SettingsText(SET_STASSID1 + Settings->sta_active));
       DisplayLogBufferAdd(buffer);
-      snprintf_P(buffer, sizeof(buffer), PSTR(D_JSON_RSSI " %d%%"), WifiGetRssiAsQuality(WiFi.RSSI()));
+      snprintf(buffer, sizeof(buffer), PSTR(D_JSON_RSSI " %d%%"), WifiGetRssiAsQuality(WiFi.RSSI()));
       DisplayLogBufferAdd(buffer);
     }
   }
@@ -1486,13 +1486,13 @@ void DisplayJsonValue(const char* topic, const char* mkey, const char* value) {
 
   char svalue[Settings->display_cols[1] +1];                              // Max sized unit string
   if (quantity_code <= JSON_HEATINDEX) {                                  // Temperature
-    snprintf_P(svalue, sizeof(svalue), PSTR("%s~%s"), value, disp_temp);  // Used by DisplayLogBuffer replace degrees character (276 octal)
+    snprintf(svalue, sizeof(svalue), PSTR("%s~%s"), value, disp_temp);  // Used by DisplayLogBuffer replace degrees character (276 octal)
   }
   else if (quantity_code <= JSON_PRESSUREATSEALEVEL) {                    // Pressure
-    snprintf_P(svalue, sizeof(svalue), PSTR("%s%s"), value, disp_pres);   // hPa or mmHg
+    snprintf(svalue, sizeof(svalue), PSTR("%s%s"), value, disp_pres);   // hPa or mmHg
   }
   else {
-    snprintf_P(svalue, sizeof(svalue), PSTR("%s%s"), value, GetTextIndexed(temp, sizeof(temp), quantity_code, kSensorUnit));
+    snprintf(svalue, sizeof(svalue), PSTR("%s%s"), value, GetTextIndexed(temp, sizeof(temp), quantity_code, kSensorUnit));
   }
 
   char buffer[Settings->display_cols[0] +1];                              // Max sized buffer string
@@ -1503,7 +1503,7 @@ void DisplayJsonValue(const char* topic, const char* mkey, const char* value) {
       char buffer2[Settings->display_cols[0] +1];                         // Max sized buffer string
       memset(buffer2, '-', sizeof(buffer2));                              // Set to -
       buffer2[sizeof(buffer2) -1] = '\0';
-      snprintf_P(buffer, sizeof(buffer), PSTR("- %s %s"), topic, buffer2);  // - pow1 -------------
+      snprintf(buffer, sizeof(buffer), PSTR("- %s %s"), topic, buffer2);  // - pow1 -------------
       DisplayLogBufferAdd(buffer);
     }
     size = 0;                                                             // Remove topic from source
@@ -1511,8 +1511,8 @@ void DisplayJsonValue(const char* topic, const char* mkey, const char* value) {
   memset(buffer, ' ', sizeof(buffer));                                    // Temporarily use for spaces
   buffer[sizeof(buffer) -1] = '\0';
   char source[Settings->display_cols[0] - Settings->display_cols[1]];     // Max sized source string
-  snprintf_P(source, sizeof(source), PSTR("%s%s%s%s"), (size)?topic:"", (size)?"/":"", mkey, buffer);  // pow1/Voltage or Voltage if topic is empty (local sensor or header)
-  snprintf_P(buffer, sizeof(buffer), PSTR("%s %s"), source, svalue);
+  snprintf(source, sizeof(source), PSTR("%s%s%s%s"), (size)?topic:"", (size)?"/":"", mkey, buffer);  // pow1/Voltage or Voltage if topic is empty (local sensor or header)
+  snprintf(buffer, sizeof(buffer), PSTR("%s %s"), source, svalue);
 
 //  AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_DEBUG "topic [%s], mkey [%s], source [%s], value [%s], quantity_code %d, log_buffer [%s]"),
 //    topic, mkey, source, value, quantity_code, buffer);
@@ -1552,11 +1552,11 @@ void DisplayAnalyzeJson(char *topic, const char *json) {
 
     const char *unit = root.getStr(PSTR(D_JSON_TEMPERATURE_UNIT), nullptr);   // nullptr if not found
     if (unit) {
-      snprintf_P(disp_temp, sizeof(disp_temp), PSTR("%s"), unit);  // C or F
+      snprintf(disp_temp, sizeof(disp_temp), PSTR("%s"), unit);  // C or F
     }
     unit = root.getStr(PSTR(D_JSON_PRESSURE_UNIT), nullptr);   // nullptr if not found
     if (unit) {
-      snprintf_P(disp_pres, sizeof(disp_pres), PSTR("%s"), unit);  // hPa or mmHg
+      snprintf(disp_pres, sizeof(disp_pres), PSTR("%s"), unit);  // hPa or mmHg
     }
 
     DisplayAnalyzeJsonObject(topic, root);
@@ -1627,12 +1627,12 @@ void DisplayState(const char *topic, const char *json) {
       char buffer2[Settings->display_cols[0] +1];  // Max sized buffer string
       memset(buffer2, '-', sizeof(buffer2));       // Set to -
       buffer2[sizeof(buffer2) -1] = '\0';
-      snprintf_P(buffer, sizeof(buffer), PSTR("- %02d" D_HOUR_MINUTE_SEPARATOR "%02d %s"), RtcTime.hour, RtcTime.minute, buffer2);
+      snprintf(buffer, sizeof(buffer), PSTR("- %02d" D_HOUR_MINUTE_SEPARATOR "%02d %s"), RtcTime.hour, RtcTime.minute, buffer2);
       DisplayLogBufferAdd(buffer);
     }
     int spaces = Settings->display_cols[0] - strlen(leftitem) - strlen(rightitem);
     if (spaces < 1) { spaces = 1; }
-    snprintf_P(buffer, sizeof(buffer), PSTR("%s%*s%s"), leftitem, spaces, "", rightitem);
+    snprintf(buffer, sizeof(buffer), PSTR("%s%*s%s"), leftitem, spaces, "", rightitem);
     DisplayLogBufferAdd(buffer);
   }
 }
@@ -1673,7 +1673,7 @@ bool DisplayMqttData(void) {
   if (disp_subscribed) {
     char stopic[TOPSZ];
 
-    snprintf_P(stopic, sizeof(stopic) , PSTR("%s/"), SettingsText(SET_MQTTPREFIX3));  // tele/
+    snprintf(stopic, sizeof(stopic) , PSTR("%s/"), SettingsText(SET_MQTTPREFIX3));  // tele/
     char *tp = strstr(XdrvMailbox.topic, stopic);
     if (tp) {                                                // tele/tasmota/SENSOR
       if (Settings->display_mode >= DM_MQTT_SENSORS) {       // 4..6
@@ -2668,7 +2668,7 @@ void Save_graph(uint8_t num, char *path) {
   fp=ufsp->open(path,FS_FILE_WRITE);
   if (!fp) return;
   char str[32];
-  sprintf_P(str,PSTR("%d\t%d\t%d\t"),gp->xcnt,gp->xs,gp->ys);
+  sprintf(str,PSTR("%d\t%d\t%d\t"),gp->xcnt,gp->xs,gp->ys);
   fp.print(str);
   dtostrfd(gp->ymin,2,str);
   fp.print(str);

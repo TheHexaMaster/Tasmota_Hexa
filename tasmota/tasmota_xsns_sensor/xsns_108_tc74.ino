@@ -217,7 +217,7 @@ void TC74Show(bool json) {
   for (uint8_t i = 0; i < TC74_MAX_SENSORS; i++) {
     if (tc74_sensors[i].is_active) {
       char sname[10];
-      snprintf_P(sname, sizeof(sname), PSTR("TC74%c%02X"), IndexSeparator(), tc74_sensors[i].address);
+      snprintf(sname, sizeof(sname), PSTR("TC74%c%02X"), IndexSeparator(), tc74_sensors[i].address);
       if (json) {
         ResponseAppend_P(JSON_SNS_F_TEMP, sname, Settings->flag2.temperature_resolution, &tc74_sensors[i].temperature);
         // also send KNX and Domoticz if enabled...and first sensor reporting

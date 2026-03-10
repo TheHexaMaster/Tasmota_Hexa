@@ -67,11 +67,11 @@ public:
     if (suffix == nullptr) { suffix = ""; }
     if (prefix == nullptr) { prefix = ""; }
     if (s == nullptr) { s = ""; }
-    size_t s_len = strlen_P(s) + strlen_P(prefix) + strlen_P(suffix);
+    size_t s_len = strlen(s) + strlen(prefix) + strlen(suffix);
     if (0 == s_len) { return nullptr; }   // do nothing
     LList_elt<Log_line> * log_elt = new LList_elt<Log_line>();
     log_elt->val().allocate(s_len + 1);
-    snprintf_P(log_elt->val().getBuffer(), s_len+1, PSTR("%s%s%s"), prefix, s, suffix);
+    snprintf(log_elt->val().getBuffer(), s_len+1, PSTR("%s%s%s"), prefix, s, suffix);
     log.addToLast(log_elt);
     return log_elt;
   }

@@ -40,13 +40,13 @@
 
 // void test_snprintf1(void) {
 //   char c[100];
-//   snprintf_P(c, sizeof(c), PSTR("s1=%s, s2=%s"), k_str.c_str(), f_str().c_str());
+//   snprintf(c, sizeof(c), PSTR("s1=%s, s2=%s"), k_str.c_str(), f_str().c_str());
 // }
 // void test_snprintf2(void) {
 //   char c[100];
-//   ext_snprintf_P(c, sizeof(c), PSTR("s1=%_s, s2=%_S"), &k_str, &f_str, &ResponseAppendTHD);
+//   ext_snprintf(c, sizeof(c), PSTR("s1=%_s, s2=%_S"), &k_str, &f_str, &ResponseAppendTHD);
 // }
-void test_ext_snprintf_P(void) {
+void test_ext_snprintf(void) {
 //   test_snprintf1();
 //   test_snprintf2();
 //   if (0) {
@@ -56,32 +56,32 @@ void test_ext_snprintf_P(void) {
   float fpi=-3333.1415926535f;
   float f3 = 3333;
   float f31 = 3333.1;
-  ext_snprintf_P(c, sizeof(c), "Int1 = %d, ip=%_I", 1, 0x10203040);
+  ext_snprintf(c, sizeof(c), "Int1 = %d, ip=%_I", 1, 0x10203040);
   Serial.printf("--> out=%s\n", c);
 
-  ext_snprintf_P(c, sizeof(c), "Float default=%_f %_f", &f3, &fpi);
+  ext_snprintf(c, sizeof(c), "Float default=%_f %_f", &f3, &fpi);
   Serial.printf("--> out=%s\n", c);
 
-  ext_snprintf_P(c, sizeof(c), "Float default=%1_f, int(3)=%4_f, int(3)=%-4_f, int(3)=%-4_f, 6dec=%-8_f", &fpi, &f3, &f3, &f31, &fpi);
+  ext_snprintf(c, sizeof(c), "Float default=%1_f, int(3)=%4_f, int(3)=%-4_f, int(3)=%-4_f, 6dec=%-8_f", &fpi, &f3, &f3, &f31, &fpi);
   Serial.printf("--> out=%s\n", c);
-  ext_snprintf_P(c, sizeof(c), "Float default=%*_f, int(3)=%*_f, int(3)=%*_f, int(3)=%*_f, 6dec=%*_f", 1, &fpi, 4, &f3, -4, &f3, -4, &f31, -8, &fpi);
+  ext_snprintf(c, sizeof(c), "Float default=%*_f, int(3)=%*_f, int(3)=%*_f, int(3)=%*_f, 6dec=%*_f", 1, &fpi, 4, &f3, -4, &f3, -4, &f31, -8, &fpi);
   Serial.printf("--> out=%s\n", c);
 
   uint64_t u641 = 0x1122334455667788LL;  // 1234605616436508552
   uint64_t u642 = 0x0123456789ABCDEFLL;  // 81985529216486895
   uint64_t u643 = 0xFEDCBA9876543210LL;  // 18364758544493064720
-  ext_snprintf_P(c, sizeof(c), "Int64 0x%_X 0x%_X 0x%_X", &u641, &u642, &u643);
+  ext_snprintf(c, sizeof(c), "Int64 0x%_X 0x%_X 0x%_X", &u641, &u642, &u643);
   Serial.printf("--> out=%s\n", c);
-  ext_snprintf_P(c, sizeof(c), "Int64 decimal %_U %_U %_U", &u641, &u642, &u643);
+  ext_snprintf(c, sizeof(c), "Int64 decimal %_U %_U %_U", &u641, &u642, &u643);
   Serial.printf("--> out=%s\n", c);
 
-  // ext_snprintf_P(c, sizeof(c), "Float default=%*_f, int(3)=%*_f, int(3)=%*_f, int(3)=%*_f, 6dec=%*_f", &fpi, &f3, &f3, &f31, &fpi);
+  // ext_snprintf(c, sizeof(c), "Float default=%*_f, int(3)=%*_f, int(3)=%*_f, int(3)=%*_f, 6dec=%*_f", &fpi, &f3, &f3, &f31, &fpi);
 
   // String string("Foobar");
-  // ext_snprintf_P(c, sizeof(c), "String 0x%08X %_s", &string, &string);
+  // ext_snprintf(c, sizeof(c), "String 0x%08X %_s", &string, &string);
   // Serial.printf("--> out=%s\n", c);
   
-  // ext_snprintf_P(c, sizeof(c), "StringFunc 0x%08X %_S", &test_string, &test_string);
+  // ext_snprintf(c, sizeof(c), "StringFunc 0x%08X %_S", &test_string, &test_string);
   // Serial.printf("--> out=%s\n", c);
 
   // uint64_t u64 = 0x123456789ABCDEFLL;

@@ -96,7 +96,7 @@ char* As608Message(char* response, uint32_t index) {
 
 void As608PublishMessage(const char* message) {
   char romram[TOPSZ];
-  snprintf_P(romram, sizeof(romram), message);
+  snprintf(romram, sizeof(romram), message);
   if (strlen(romram) > 0) {
     char json_name[20];
     if (As608.enroll_step) {

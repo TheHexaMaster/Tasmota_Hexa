@@ -495,7 +495,7 @@ char * TInfo::valueGet_P(const char * name, char * value)
 {
   // Get our linked list 
   ValueList * me = &_valueslist;
-  uint8_t lgname = strlen_P(name);
+  uint8_t lgname = strlen(name);
 
   // Got one and all seems good ?
   if (me && lgname) {

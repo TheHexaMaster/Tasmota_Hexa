@@ -485,7 +485,7 @@ void SwitchHandler(void) {
         }
         Response_P(S_JSON_SVALUE_ACTION_SVALUE, GetSwitchText(i).c_str(), mqtt_state);
         char scommand[10];
-        snprintf_P(scommand, sizeof(scommand), PSTR(D_JSON_SWITCH "%d"), i +1);
+        snprintf(scommand, sizeof(scommand), PSTR(D_JSON_SWITCH "%d"), i +1);
         MqttPublishPrefixTopicRulesProcess_P(RESULT_OR_STAT, scommand);
       }
       mqtt_action = POWER_NONE;

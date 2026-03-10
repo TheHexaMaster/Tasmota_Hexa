@@ -109,7 +109,7 @@ void JsonGeneratorObject::add(const char* key, const String & str) {
 // Add up to 32 bits hex value
 void JsonGeneratorObject::addHex32(const char* key, uint32_t uval32) {
   char hex[16];
-  snprintf_P(hex, sizeof(hex), PSTR("\"0x%8X\""), uval32);
+  snprintf(hex, sizeof(hex), PSTR("\"0x%8X\""), uval32);
   addStrRaw(key, hex);
 }
 

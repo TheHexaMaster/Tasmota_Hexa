@@ -277,7 +277,7 @@ String SettingsConfigFilename(void) {
   char hostname[sizeof(TasmotaGlobal.hostname)];
   strlcpy(hostname, TasmotaGlobal.hostname, sizeof(hostname));  // FIX: hostname buffer musí obsahovať kópiu
   NoAlNumToUnderscore(hostname, hostname);
-  snprintf_P(filename, sizeof(filename), PSTR("Config_%s_%s.dmp"), hostname, TasmotaGlobal.version);
+  snprintf(filename, sizeof(filename), PSTR("Config_%s_%s.dmp"), hostname, TasmotaGlobal.version);
   return String(filename);
 }
 void SettingsBufferXor(void) {
@@ -314,7 +314,7 @@ bool SettingsBufferAlloc(uint32_t upload_size) {
   } else {  
     char filename[14];
     for (uint32_t i = 0; i < 129; i++) {
-      snprintf_P(filename, sizeof(filename), PSTR(TASM_FILE_DRIVER), i);      // /.drvset012
+      snprintf(filename, sizeof(filename), PSTR(TASM_FILE_DRIVER), i);      // /.drvset012
       uint32_t fsize = TfsFileSize(filename);
       if (fsize) {
         if (settings_size == sizeof(TSettings)) {
@@ -343,7 +343,7 @@ uint32_t SettingsConfigBackup(void) {
 #ifdef USE_UFILESYS
   if (settings_size > sizeof(TSettings)) {
     // Add tar header with total file size
-    snprintf_P((char*)filebuf_ptr, 14, PSTR(TASM_FILE_SETTINGS));  // /.settings
+    snprintf((char*)filebuf_ptr, 14, PSTR(TASM_FILE_SETTINGS));  // /.settings
     filebuf_ptr[14] = settings_size;
     filebuf_ptr[15] = settings_size >> 8;
     filebuf_ptr += 16;
@@ -360,7 +360,7 @@ uint32_t SettingsConfigBackup(void) {
     filebuf_ptr += sizeof(TSettings);
     char filename[14];
     for (uint32_t i = 0; i < 129; i++) {
-      snprintf_P(filename, sizeof(filename), PSTR(TASM_FILE_DRIVER), i);      // /.drvset012
+      snprintf(filename, sizeof(filename), PSTR(TASM_FILE_DRIVER), i);      // /.drvset012
       uint32_t fsize = TfsFileSize(filename);
       if (fsize) {
         // Add tar header with file size
@@ -517,7 +517,7 @@ bool SettingsUpdateText(uint32_t index, const char* replace_me) {
   }
 
   // Make a copy first in case we use source from Settings->text
-  uint32_t replace_len = strlen_P(replace_me);
+  uint32_t replace_len = strlen(replace_me);
   char replace[replace_len +1];
   memcpy(replace, replace_me, sizeof(replace));
   uint32_t index_save = index;

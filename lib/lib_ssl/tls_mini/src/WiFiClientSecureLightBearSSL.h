@@ -59,7 +59,7 @@ class WiFiClientSecure_light : public WiFiClient {
       return write((const uint8_t*)buf, strlen(buf));
     }
     size_t write_P(const char *buf) {
-      return write_P((PGM_P)buf, strlen_P(buf));
+      return write_P((PGM_P)buf, strlen(buf));
     }
     size_t write(Stream& stream); // Note this is not virtual
     int read(uint8_t *buf, size_t size) override;

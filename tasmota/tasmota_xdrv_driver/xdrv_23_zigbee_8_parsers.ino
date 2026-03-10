@@ -1700,7 +1700,7 @@ void Z_IncomingMessage(class ZCLFrame &zcl_received) {
   }
 
   char shortaddr[8];
-  snprintf_P(shortaddr, sizeof(shortaddr), PSTR("0x%04X"), srcaddr);
+  snprintf(shortaddr, sizeof(shortaddr), PSTR("0x%04X"), srcaddr);
 
   Z_attribute_list attr_list;
   attr_list.lqi = linkquality;

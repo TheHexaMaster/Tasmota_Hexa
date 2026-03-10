@@ -200,7 +200,7 @@ void Sr04Show(uint32_t i, bool json) {
     if (i == 0 && sr04_sensor_count == 1) {
       strcpy_P(types, PSTR("SR04"));
     } else {
-      snprintf_P(types, sizeof(types), PSTR("SR04%c%d"), IndexSeparator(), i+1);
+      snprintf(types, sizeof(types), PSTR("SR04%c%d"), IndexSeparator(), i+1);
     }
     if(json) {
       ResponseAppend_P(PSTR(",\"%s\":{\"" D_JSON_DISTANCE "\":%1_f}"), types, &SR04[i].distance);

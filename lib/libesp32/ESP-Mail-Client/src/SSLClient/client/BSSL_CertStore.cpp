@@ -34,7 +34,7 @@
 #include <memory>
 
 #if defined(DEBUG_ESP_SSL) && defined(DEBUG_ESP_PORT)
-#define DEBUG_BSSL(fmt, ...) DEBUG_ESP_PORT.printf_P((PGM_P)PSTR("BSSL:" fmt), ##__VA_ARGS__)
+#define DEBUG_BSSL(fmt, ...) DEBUG_ESP_PORT.printf((PGM_P)PSTR("BSSL:" fmt), ##__VA_ARGS__)
 #else
 #define DEBUG_BSSL(...)
 #endif
@@ -109,16 +109,16 @@ namespace bssl
     free(_dataName);
 
     // No strdup_P, so manually do it
-    _indexName = (char *)malloc(strlen_P(indexFileName) + 1);
-    _dataName = (char *)malloc(strlen_P(dataFileName) + 1);
+    _indexName = (char *)malloc(strlen(indexFileName) + 1);
+    _dataName = (char *)malloc(strlen(dataFileName) + 1);
     if (!_indexName || !_dataName)
     {
       free(_indexName);
       free(_dataName);
       return 0;
     }
-    memcpy(_indexName, indexFileName, strlen_P(indexFileName) + 1);
-    memcpy(_dataName, dataFileName, strlen_P(dataFileName) + 1);
+    memcpy(_indexName, indexFileName, strlen(indexFileName) + 1);
+    memcpy(_dataName, dataFileName, strlen(dataFileName) + 1);
 
     File index = _fs->open(_indexName, FILE_WRITE);
     if (!index)

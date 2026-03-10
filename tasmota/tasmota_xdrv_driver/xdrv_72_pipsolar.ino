@@ -482,7 +482,7 @@ void (* const PipSolarCommand[])(void) PROGMEM = {
 void PIPSOLARPublishResult(const char *subtopic, const char *payload, const char *parameter)
 {
   char buffer[150];
-  snprintf_P(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\": \"%s\", \"parameter\": \"%s\"}}"), subtopic, payload, parameter);
+  snprintf(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\": \"%s\", \"parameter\": \"%s\"}}"), subtopic, payload, parameter);
   //AddLog(LOG_LEVEL_DEBUG_MORE, PSTR("PIPSOLAR: RESULT %s"), (const char*)buffer);
   MqttPublishPayloadPrefixTopic_P(RESULT_OR_STAT, subtopic, (const char*)buffer);
   XdrvRulesProcess(0, buffer);
@@ -491,7 +491,7 @@ void PIPSOLARPublishResult(const char *subtopic, const char *payload, const char
 void PIPSOLARPublishResult(const char *subtopic, int payload, const char *parameter)
 {
   char buffer[150];
-  snprintf_P(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\": %d, \"parameter\": \"%s\"}}"), subtopic, payload, parameter);
+  snprintf(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\": %d, \"parameter\": \"%s\"}}"), subtopic, payload, parameter);
   //AddLog(LOG_LEVEL_DEBUG_MORE, PSTR("PIPSOLAR: RESULT %s"), (const char*)buffer);
   MqttPublishPayloadPrefixTopic_P(RESULT_OR_STAT, subtopic, (const char*)buffer);
   XdrvRulesProcess(0, buffer);
@@ -500,7 +500,7 @@ void PIPSOLARPublishResult(const char *subtopic, int payload, const char *parame
 void PIPSOLARPublishResult(const char *subtopic, const char* payload)
 {
   char buffer[150];
-  snprintf_P(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\": \"%s\"}}"), subtopic, payload);
+  snprintf(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\": \"%s\"}}"), subtopic, payload);
   //AddLog(LOG_LEVEL_DEBUG_MORE, PSTR("PIPSOLAR: RESULT %s"), (const char*)buffer);
   MqttPublishPayloadPrefixTopic_P(RESULT_OR_STAT, subtopic, (const char*)buffer);
   XdrvRulesProcess(0, buffer);
@@ -509,7 +509,7 @@ void PIPSOLARPublishResult(const char *subtopic, const char* payload)
 void PIPSOLARPublishResult(const char *subtopic, int payload)
 {
   char buffer[150];
-  snprintf_P(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\": %d}}"), subtopic, payload);
+  snprintf(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\": %d}}"), subtopic, payload);
   //AddLog(LOG_LEVEL_DEBUG_MORE, PSTR("PIPSOLAR: RESULT %s"), (const char*)buffer);
   MqttPublishPayloadPrefixTopic_P(RESULT_OR_STAT, subtopic, (const char*)buffer);
   XdrvRulesProcess(0, buffer);
@@ -520,9 +520,9 @@ void PIPSOLARPublishRaw(const char *subtopic, const char *payload, bool usebrack
   MqttPublishPayloadPrefixTopic_P(STAT, subtopic, payload);
   char buffer[300];
   if(usebracket)
-    snprintf_P(buffer, sizeof(buffer), PSTR("{\"%s\":\"%s\"}"), subtopic, payload);
+    snprintf(buffer, sizeof(buffer), PSTR("{\"%s\":\"%s\"}"), subtopic, payload);
   else
-    snprintf_P(buffer, sizeof(buffer), PSTR("{\"%s\":%s}"), subtopic, payload);
+    snprintf(buffer, sizeof(buffer), PSTR("{\"%s\":%s}"), subtopic, payload);
   
   //AddLog(LOG_LEVEL_DEBUG_MORE, PSTR("PIPSOLAR: PUBLISH %s"), (const char*)buffer);
   XdrvRulesProcess(0, buffer);
@@ -532,7 +532,7 @@ void PIPSOLARPublish(const char *subtopic, const char *value, bool json = false,
 {
   if (json) {
     char buffer[150];
-    snprintf_P(buffer, sizeof(buffer), PSTR("{\"%s\":{\"value\":\"%s\",\"unit\":\"%s\"}}"), name, value, unit);
+    snprintf(buffer, sizeof(buffer), PSTR("{\"%s\":{\"value\":\"%s\",\"unit\":\"%s\"}}"), name, value, unit);
     PIPSOLARPublishRaw(subtopic, buffer);
   } else {
     PIPSOLARPublishRaw(subtopic, value, true);
@@ -545,9 +545,9 @@ void PIPSOLARPublish(const char *subtopic, int value, bool json = false, const c
 {
   char buffer[150];
   if (json) {
-    snprintf_P(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\":%d,\"unit\":\"%s\"}}"), name, value, unit);
+    snprintf(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\":%d,\"unit\":\"%s\"}}"), name, value, unit);
   } else {
-    snprintf_P(buffer, sizeof(buffer), PSTR("%d"), value);
+    snprintf(buffer, sizeof(buffer), PSTR("%d"), value);
   }
   PIPSOLARPublishRaw(subtopic, buffer);
 }
@@ -555,9 +555,9 @@ void PIPSOLARPublish(const char *subtopic, uint32_t value, bool json = false, co
 {
   char buffer[150];
   if (json) {
-    snprintf_P(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\":%u,\"unit\":\"%s\"}}"), name, value, unit);
+    snprintf(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\":%u,\"unit\":\"%s\"}}"), name, value, unit);
   } else {
-    snprintf_P(buffer, sizeof(buffer), PSTR("%u"), value);
+    snprintf(buffer, sizeof(buffer), PSTR("%u"), value);
   }
   PIPSOLARPublishRaw(subtopic, buffer);
 }
@@ -566,9 +566,9 @@ void PIPSOLARPublish(const char *subtopic, float value, bool json = false, const
 {
   char buffer[150];
   if (json) {
-    snprintf_P(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\":%.1f,\"unit\":\"%s\"}}"), name, value, unit);
+    snprintf(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\":%.1f,\"unit\":\"%s\"}}"), name, value, unit);
   } else {
-    snprintf_P(buffer, sizeof(buffer), PSTR("%.1f"), value);
+    snprintf(buffer, sizeof(buffer), PSTR("%.1f"), value);
   }
   PIPSOLARPublishRaw(subtopic, buffer);
 }
@@ -577,9 +577,9 @@ void PIPSOLARPublish(const char *subtopic, char value, bool json = false, const 
 {
   char buffer[150];
   if (json) {
-    snprintf_P(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\":\"%c\",\"unit\":\"%s\"}}"), name, value, unit);
+    snprintf(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\":\"%c\",\"unit\":\"%s\"}}"), name, value, unit);
   } else {
-    snprintf_P(buffer, sizeof(buffer), PSTR("%c"), value);
+    snprintf(buffer, sizeof(buffer), PSTR("%c"), value);
   }
   PIPSOLARPublish(subtopic, buffer);
 }
@@ -588,9 +588,9 @@ void PIPSOLARPublish(const char *subtopic, bool value, bool json = false, const 
 {
   char buffer[150];
   if (json) {
-    snprintf_P(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\":%s,\"unit\":\"%s\"}}"), name, (value ? PSTR("true") : PSTR("false")), unit);
+    snprintf(buffer, sizeof(buffer), PSTR("{\"%s\": {\"value\":%s,\"unit\":\"%s\"}}"), name, (value ? PSTR("true") : PSTR("false")), unit);
   } else {
-    snprintf_P(buffer, sizeof(buffer), PSTR("%s"), (value ? PSTR("true") : PSTR("false")));
+    snprintf(buffer, sizeof(buffer), PSTR("%s"), (value ? PSTR("true") : PSTR("false")));
   }
   PIPSOLARPublishRaw(subtopic, buffer);
 }
@@ -602,9 +602,9 @@ void PIPSOLARQFlagPublish(const char *subtopic)
   for(int i = 0; i < PIPSOLARqflagValueSettingsCount; ++i) {
     int8_t addition = 0;
     if (PIPSOLARqflagValueSettings[i].value == PipSolar::BoolFlag::True) {
-      addition = snprintf_P(buffer+position, sizeof(buffer)-position, PSTR("\"%s\":true,"), PIPSOLARqflagValueSettings[i].name);
+      addition = snprintf(buffer+position, sizeof(buffer)-position, PSTR("\"%s\":true,"), PIPSOLARqflagValueSettings[i].name);
     } else if (PIPSOLARqflagValueSettings[i].value == PipSolar::BoolFlag::False) {
-      addition = snprintf_P(buffer+position, sizeof(buffer)-position, PSTR("\"%s\":false,"), PIPSOLARqflagValueSettings[i].name);
+      addition = snprintf(buffer+position, sizeof(buffer)-position, PSTR("\"%s\":false,"), PIPSOLARqflagValueSettings[i].name);
     }
     //AddLog(LOG_LEVEL_DEBUG_MORE, PSTR("qflag: buffer:\"%s\" position:%d"), buffer, position);
     if (position+addition > sizeof(buffer)-1) {
@@ -911,7 +911,7 @@ void PIPSOLARInterpret(void)
     char buffer[8+3+1];
     auto &deviceState1 = PIPSOLARqpigsValueSettings[16];
     auto &deviceState2 = PIPSOLARqpigsValueSettings[20];
-    snprintf_P(buffer, sizeof(buffer), PSTR("%3s%8s")
+    snprintf(buffer, sizeof(buffer), PSTR("%3s%8s")
     , PIPSOLARGetValueString((char*)PIPSOLAR.receiveBuffer, deviceState2.position, deviceState2.count)
     , PIPSOLARGetValueString((char*)PIPSOLAR.receiveBuffer, deviceState1.position, deviceState1.count));
     PIPSOLARPublish(PSTR("Device_state"), buffer);

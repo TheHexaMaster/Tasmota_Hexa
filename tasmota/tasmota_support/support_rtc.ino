@@ -82,7 +82,7 @@ String GetBuildDateAndTime(void) {
   char bdt[21];
   char *p;
   static const char mdate_P[] PROGMEM = __DATE__;  // "Mar  7 2017"
-  char mdate[strlen_P(mdate_P)+1];      // copy on stack first
+  char mdate[strlen(mdate_P)+1];      // copy on stack first
   strcpy_P(mdate, mdate_P);
   char *smonth = mdate;
   int day = 0;
@@ -105,7 +105,7 @@ String GetBuildDateAndTime(void) {
   char MonthNamesEnglish[sizeof(kMonthNamesEnglish)];
   strcpy_P(MonthNamesEnglish, kMonthNamesEnglish);
   int month = (strstr(MonthNamesEnglish, smonth) -MonthNamesEnglish) /3 +1;
-  snprintf_P(bdt, sizeof(bdt), PSTR("%d" D_YEAR_MONTH_SEPARATOR "%02d" D_MONTH_DAY_SEPARATOR "%02d" D_DATE_TIME_SEPARATOR "%s"), year, month, day, PSTR(__TIME__));
+  snprintf(bdt, sizeof(bdt), PSTR("%d" D_YEAR_MONTH_SEPARATOR "%02d" D_MONTH_DAY_SEPARATOR "%02d" D_DATE_TIME_SEPARATOR "%s"), year, month, day, PSTR(__TIME__));
   return String(bdt);  // 2017-03-07T11:08:02
 }
 
@@ -117,27 +117,27 @@ String GetSyslogDate(char* mxtime) {
   char month[4] = { 0 };
   strncpy(month, kMonthNamesEnglish + month_idx, 3);
   char dt[16];
-  snprintf_P(dt, sizeof(dt), PSTR("%s %2d %s"), month, RtcTime.day_of_month, mxtime);
+  snprintf(dt, sizeof(dt), PSTR("%s %2d %s"), month, RtcTime.day_of_month, mxtime);
   return String(dt);
 }
 
 String GetDate(void) {
   // yyyy-mm-ddT
   char dt[12];
-  snprintf_P(dt, sizeof(dt), PSTR("%04d-%02d-%02dT"), RtcTime.year, RtcTime.month, RtcTime.day_of_month);
+  snprintf(dt, sizeof(dt), PSTR("%04d-%02d-%02dT"), RtcTime.year, RtcTime.month, RtcTime.day_of_month);
   return String(dt);
 }
 
 String GetMinuteTime(uint32_t minutes) {
   char tm[6];
-  snprintf_P(tm, sizeof(tm), PSTR("%02d:%02d"), minutes / 60, minutes % 60);
+  snprintf(tm, sizeof(tm), PSTR("%02d:%02d"), minutes / 60, minutes % 60);
 
   return String(tm);  // 03:45
 }
 
 String GetTimeZone(void) {
   char tz[7];
-  snprintf_P(tz, sizeof(tz), PSTR("%+03d:%02d"), Rtc.time_timezone / 60, abs(Rtc.time_timezone % 60));
+  snprintf(tz, sizeof(tz), PSTR("%+03d:%02d"), Rtc.time_timezone / 60, abs(Rtc.time_timezone % 60));
 
   return String(tz);  // -03:45
 }
@@ -149,11 +149,11 @@ String GetDuration(uint32_t time) {
   BreakTime(time, ut);
 
   // "P128DT14H35M44S" - ISO8601:2004 - https://en.wikipedia.org/wiki/ISO_8601 Durations
-//  snprintf_P(dt, sizeof(dt), PSTR("P%dDT%02dH%02dM%02dS"), ut.days, ut.hour, ut.minute, ut.second);
+//  snprintf(dt, sizeof(dt), PSTR("P%dDT%02dH%02dM%02dS"), ut.days, ut.hour, ut.minute, ut.second);
 
   // "128 14:35:44" - OpenVMS
   // "128T14:35:44" - Tasmota
-  snprintf_P(dt, sizeof(dt), PSTR("%dT%02d:%02d:%02d"), ut.days, ut.hour, ut.minute, ut.second);
+  snprintf(dt, sizeof(dt), PSTR("%dT%02d:%02d:%02d"), ut.days, ut.hour, ut.minute, ut.second);
 
   return String(dt);  // 128T14:35:44
 }
@@ -165,7 +165,7 @@ String GetDT(uint32_t time) {
   TIME_T tmpTime;
 
   BreakTime(time, tmpTime);
-  snprintf_P(dt, sizeof(dt), PSTR("%04d-%02d-%02dT%02d:%02d:%02d"),
+  snprintf(dt, sizeof(dt), PSTR("%04d-%02d-%02dT%02d:%02d:%02d"),
     tmpTime.year +1970, tmpTime.month, tmpTime.day_of_month, tmpTime.hour, tmpTime.minute, tmpTime.second);
 
   return String(dt);  // 2017-03-07T11:08:02
@@ -213,7 +213,7 @@ String GetDateAndTime(uint8_t time_type) {
 
   if (DT_LOCAL_MILLIS == time_type) {
     char ms[10];
-    snprintf_P(ms, sizeof(ms), PSTR(".%03d"), RtcMillis());
+    snprintf(ms, sizeof(ms), PSTR(".%03d"), RtcMillis());
     dt += ms;               // 2017-03-07T11:08:02.123
     time_type = DT_LOCAL;
   }

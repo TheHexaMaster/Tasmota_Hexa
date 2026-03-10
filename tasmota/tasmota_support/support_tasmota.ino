@@ -30,7 +30,7 @@ char* Format(char* output, const char* input_p, int size)
 {
   char *token;
   uint32_t digits = 0;
-  char input[strlen_P(input_p)+1];  // copy from PMEM to RAM
+  char input[strlen(input_p)+1];  // copy from PMEM to RAM
   strcpy_P(input, input_p);
 
   if (strchr(input, '%') != nullptr) {
@@ -46,17 +46,17 @@ char* Format(char* output, const char* input_p, int size)
       if (digits) {
         char tmp[size];
         if (strchr(token, 'd')) {
-          snprintf_P(tmp, size, PSTR("%s%c0%dd"), output, '%', digits);
-          snprintf_P(output, size, tmp, ESP_getChipId() & 0x1fff);            // %04d - short chip ID in dec, like in hostname
+          snprintf(tmp, size, PSTR("%s%c0%dd"), output, '%', digits);
+          snprintf(output, size, tmp, ESP_getChipId() & 0x1fff);            // %04d - short chip ID in dec, like in hostname
         } else {
           String mac_address = NetworkUniqueId();
           if (digits > 12) { digits = 12; }
           String mac_part = mac_address.substring(12 - digits);
-          snprintf_P(output, size, PSTR("%s%s"), output, mac_part.c_str());  // %01X .. %12X - mac address in hex
+          snprintf(output, size, PSTR("%s%s"), output, mac_part.c_str());  // %01X .. %12X - mac address in hex
         }
       } else {
         if (strchr(token, 'd')) {
-          snprintf_P(output, size, PSTR("%s%d"), output, ESP_getChipId());   // %d - full chip ID in dec
+          snprintf(output, size, PSTR("%s%d"), output, ESP_getChipId());   // %d - full chip ID in dec
           digits = 8;
         }
       }
@@ -74,7 +74,7 @@ char* GetOtaUrl(char *otaurl, size_t otaurl_size)
     snprintf(otaurl, otaurl_size, SettingsText(SET_OTAURL), ESP_getChipId() & 0x1fff);
   }
   else if (strstr(SettingsText(SET_OTAURL), "%d") != nullptr) {  // OTA url contains placeholder for chip ID
-    snprintf_P(otaurl, otaurl_size, SettingsText(SET_OTAURL), ESP_getChipId());
+    snprintf(otaurl, otaurl_size, SettingsText(SET_OTAURL), ESP_getChipId());
   }
   else {
     strlcpy(otaurl, SettingsText(SET_OTAURL), otaurl_size);
@@ -105,7 +105,7 @@ char* GetTopic_P(char *stopic, uint32_t prefix, const char *topic, const char* s
   char romram[CMDSZ];
   String fulltopic;
 
-  snprintf_P(romram, sizeof(romram), subtopic);
+  snprintf(romram, sizeof(romram), subtopic);
   if (TasmotaGlobal.fallback_topic_flag || (prefix > 3)) {
     bool fallback = (prefix < 8);
     prefix &= 3;
@@ -140,7 +140,7 @@ char* GetTopic_P(char *stopic, uint32_t prefix, const char *topic, const char* s
   if (!fulltopic.endsWith("/")) {
     fulltopic += "/";
   }
-  snprintf_P(stopic, TOPSZ, PSTR("%s%s"), fulltopic.c_str(), romram);
+  snprintf(stopic, TOPSZ, PSTR("%s%s"), fulltopic.c_str(), romram);
   return stopic;
 }
 
@@ -1280,7 +1280,7 @@ void Every250mSeconds(void)
             char *pch = strrchr(bch, '-');                     // Find last dash (-) and ignore remainder - handles tasmota-DE
             if (pch == nullptr) { pch = ech; }                 // No dash so ignore filetype
             *pch = '\0';                                       // full_ota_url = http://domus1:80/api/arduino/tasmota
-            snprintf_P(full_ota_url, sizeof(full_ota_url), PSTR("%s-safeboot%s"), full_ota_url, ota_url_type);  // Safeboot filename must be filename-safeboot
+            snprintf(full_ota_url, sizeof(full_ota_url), PSTR("%s-safeboot%s"), full_ota_url, ota_url_type);  // Safeboot filename must be filename-safeboot
           } else
 #endif  // USE_WEBCLIENT_HTTPS
           if (EspSingleOtaPartition()) {
@@ -1295,7 +1295,7 @@ void Every250mSeconds(void)
 #endif  // FIRMWARE_MINIMAL
 
           char version[50];
-          snprintf_P(version, sizeof(version), PSTR("%s%s"), TasmotaGlobal.version, TasmotaGlobal.image_name);
+          snprintf(version, sizeof(version), PSTR("%s%s"), TasmotaGlobal.version, TasmotaGlobal.image_name);
           AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_UPLOAD "%s %s"), full_ota_url, version);
 #if defined(USE_WEBCLIENT_HTTPS)
           HTTPClientLight OTAclient;

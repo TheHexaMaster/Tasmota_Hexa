@@ -138,7 +138,7 @@ void ImprovSendSetting(uint32_t command) {
   char data[100];
   uint32_t len = 0;
 #ifdef USE_WEBSERVER
-  len = ext_snprintf_P(data, sizeof(data), PSTR("01\nhttp://%_I:%d\n"), (uint32_t)WiFi.localIP(), WEB_PORT);
+  len = ext_snprintf(data, sizeof(data), PSTR("01\nhttp://%_I:%d\n"), (uint32_t)WiFi.localIP(), WEB_PORT);
   len -= 3;
 #endif  // USE_WEBSERVER
   data[0] = command;
@@ -173,7 +173,7 @@ void ImprovReceived(void) {
         ImprovSendState(IMPROV_STATE_PROVISIONING);
         Settings->flag4.network_wifi = 1;                      // Enable WiFi
         char cmnd[TOPSZ];
-        snprintf_P(cmnd, sizeof(cmnd), PSTR(D_CMND_BACKLOG "0 " D_CMND_SSID "1 %s;" D_CMND_PASSWORD "1 %s"), ssid, password);
+        snprintf(cmnd, sizeof(cmnd), PSTR(D_CMND_BACKLOG "0 " D_CMND_SSID "1 %s;" D_CMND_PASSWORD "1 %s"), ssid, password);
         ExecuteCommand(cmnd, SRC_SERIAL);                      // Set SSID and Password and restart
 //      }
       break;
@@ -196,15 +196,15 @@ void ImprovReceived(void) {
       // Tasmota Sensors 11.0.0.7 ESP8266EX Wemos4
       // Tasmota DE 11.0.0.7 ESP8266EX Wemos4
       char image_name[33];
-      snprintf_P(image_name, sizeof(image_name), PSTR(D_HTML_LANGUAGE));
+      snprintf(image_name, sizeof(image_name), PSTR(D_HTML_LANGUAGE));
       UpperCase(image_name, image_name);                       // Language id
       if (!strcmp(image_name, PSTR("EN")) &&                 // English
            strcasecmp_P("Tasmota", PSTR(CODE_IMAGE_STR))) {    // Not Tasmota
-        snprintf_P(image_name, sizeof(image_name), PSTR(CODE_IMAGE_STR));  // English image name
+        snprintf(image_name, sizeof(image_name), PSTR(CODE_IMAGE_STR));  // English image name
         image_name[0] &= 0xDF;                                 // Make first character uppercase
       }
       char data[200];
-      uint32_t len = snprintf_P(data, sizeof(data), PSTR("01\nTasmota %s\n%s\n%s\n%s\n"),
+      uint32_t len = snprintf(data, sizeof(data), PSTR("01\nTasmota %s\n%s\n%s\n%s\n"),
                                 image_name, TasmotaGlobal.version, GetDeviceHardware().c_str(), SettingsText(SET_DEVICENAME));
       data[0] = command;
       ImprovSendResponse((uint8_t*)data, len);
@@ -245,7 +245,7 @@ void ImprovReceived(void) {
           int32_t rssi = WiFi.RSSI(indices[i]);
           bool encryption = (ENC_TYPE_NONE == WiFi.encryptionType(indices[i]));
           // Send each ssid separately to avoid overflowing the buffer
-          uint32_t len = snprintf_P(data, sizeof(data), PSTR("01\n%s\n%d\n%s\n"),
+          uint32_t len = snprintf(data, sizeof(data), PSTR("01\n%s\n%d\n%s\n"),
                                     ssid_copy.c_str(), rssi, (encryption)?"NO":"YES");
           data[0] = command;
           ImprovSendResponse((uint8_t*)data, len);
@@ -264,7 +264,7 @@ void ImprovReceived(void) {
       uint32_t data_length = Improv.serial_in_buffer[3];
       if (0 == data_length) {
         char data[100];
-        uint32_t len = snprintf_P(data, sizeof(data), PSTR("01\n%s\n"), 
+        uint32_t len = snprintf(data, sizeof(data), PSTR("01\n%s\n"), 
           (IMPROV_GET_SET_HOSTNAME == command) ? TasmotaGlobal.hostname : SettingsText(SET_DEVICENAME));
         data[0] = command;
         ImprovSendResponse((uint8_t*)data, len);
@@ -276,7 +276,7 @@ void ImprovReceived(void) {
         AddLog(LOG_LEVEL_DEBUG, PSTR("IMP: Name '%s'"), name);
 #endif  // IMPROV_DEBUG
         char cmnd[TOPSZ];
-        snprintf_P(cmnd, sizeof(cmnd), PSTR("%s %s"), (IMPROV_GET_SET_HOSTNAME == command) ? D_CMND_HOSTNAME : D_CMND_DEVICENAME, name);
+        snprintf(cmnd, sizeof(cmnd), PSTR("%s %s"), (IMPROV_GET_SET_HOSTNAME == command) ? D_CMND_HOSTNAME : D_CMND_DEVICENAME, name);
         ExecuteCommand(cmnd, SRC_SERIAL);                      // Set hostname and restart / devicename
       }
       break;
@@ -334,7 +334,7 @@ bool ImprovSerialInput(const char *serial_in_buffer,
     // I  M  P  R  O  V  ve
     // 49 4D 50 52 4F 56 01
     // Check if received data is IMPROV data
-    if (!strncmp_P(serial_in_buffer, PSTR("IMPROV"), 6)) {
+    if (!strncmp(serial_in_buffer, PSTR("IMPROV"), 6)) {
       if (IMPROV_SERIAL_VERSION == serial_in_byte) {
         if (Improv.serial_in_buffer == nullptr) {
           if (!(Improv.serial_in_buffer = (char*)calloc(1, 260))) {

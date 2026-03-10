@@ -1035,7 +1035,7 @@ String GetDeviceHardwareRevision(void) {
   esp_chip_info(&chip_info);
   uint32_t chip_revision = chip_info.revision;       // 16-bit chip revision number (in format MXX; where M - wafer major version, XX - wafer minor version)
   char revision[16];
-  snprintf_P(revision, sizeof(revision), PSTR(" v%d.%d"), chip_revision / 100, chip_revision % 100);
+  snprintf(revision, sizeof(revision), PSTR(" v%d.%d"), chip_revision / 100, chip_revision % 100);
   result += revision;                  // ESP32-C3 v0.3
 
   return result;

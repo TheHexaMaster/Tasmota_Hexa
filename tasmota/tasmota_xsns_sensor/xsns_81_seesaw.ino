@@ -312,7 +312,7 @@ private:
 
   void GetDeviceName(uint8_t index, char* name, size_t len) {
     if (index >= count || !devices[index]) {
-      snprintf_P(name, len, PSTR("Seesaw"));
+      snprintf(name, len, PSTR("Seesaw"));
       return;
     }
 
@@ -343,14 +343,14 @@ private:
 
     if (use_address) {
       // Address-based naming: always include address, even for single device (e.g. "SeeSoil-36", "SeeEnc-38")
-      snprintf_P(name, len, PSTR("%s%c%02X"), type_prefix, IndexSeparator(), devices[index]->GetAddress());
+      snprintf(name, len, PSTR("%s%c%02X"), type_prefix, IndexSeparator(), devices[index]->GetAddress());
     } else {
       // Index-based naming: only add index if multiple devices of same type
       uint8_t type_count = GetTypeCount(device_type);
 
       if (type_count > 1) {
         // Multiple devices: "SeeSoil-1", "SeeEnc-1" using a type-specific device_index
-        snprintf_P(name, len, PSTR("%s%c%u"), type_prefix, IndexSeparator(), devices[index]->GetDeviceIndex() + 1);
+        snprintf(name, len, PSTR("%s%c%u"), type_prefix, IndexSeparator(), devices[index]->GetDeviceIndex() + 1);
       } else {
         // Single device of this type: just "SeeSoil" or "SeeEnc"
         strlcpy(name, type_prefix, len);

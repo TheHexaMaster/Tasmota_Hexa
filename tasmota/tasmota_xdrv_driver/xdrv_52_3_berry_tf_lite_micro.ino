@@ -694,39 +694,39 @@ extern "C" {
     char * s = (char*)calloc(size,1);
     uint32_t pos = 0;
     uint32_t inc = 0;
-    inc = snprintf_P(s + pos, size, PSTR("{\"model\":{\"input_shape\":["));
+    inc = snprintf(s + pos, size, PSTR("{\"model\":{\"input_shape\":["));
     pos += inc;
     uint32_t dims = TFL->input->dims->size;
     for(int i=0;i<dims;i++){
-      inc = snprintf_P(s + pos, size-pos, PSTR("%u"),TFL->input->dims->data[i]);
+      inc = snprintf(s + pos, size-pos, PSTR("%u"),TFL->input->dims->data[i]);
       pos += inc;
       if (i != dims-1){
-        inc = snprintf_P(s + pos, size-pos,",");
+        inc = snprintf(s + pos, size-pos,",");
         pos += inc;
       } 
     }
-    inc = snprintf_P(s + pos, size-pos, PSTR("],\"input_type\":%u,\"output_shape\":["),TFL->input->type);
+    inc = snprintf(s + pos, size-pos, PSTR("],\"input_type\":%u,\"output_shape\":["),TFL->input->type);
     pos += inc;
     dims = TFL->output->dims->size;
     for(int i=0;i<dims;i++){
-      inc = snprintf_P(s + pos, size-pos, PSTR("%u"),TFL->output->dims->data[i]);
+      inc = snprintf(s + pos, size-pos, PSTR("%u"),TFL->output->dims->data[i]);
       pos += inc;
       if (i != dims-1){
-        inc = snprintf_P(s + pos, size-pos,",");
+        inc = snprintf(s + pos, size-pos,",");
         pos += inc;
       } 
     }
-    inc = snprintf_P(s + pos, size-pos, PSTR("],\"output_type\":%u}"),TFL->output->type);
+    inc = snprintf(s + pos, size-pos, PSTR("],\"output_type\":%u}"),TFL->output->type);
     pos += inc;
-    inc = snprintf_P(s + pos, size-pos, PSTR(",\"session\":{\"used_arena\":%u"),TFL->stats->used_arena_bytes);
+    inc = snprintf(s + pos, size-pos, PSTR(",\"session\":{\"used_arena\":%u"),TFL->stats->used_arena_bytes);
     pos += inc;
-    inc = snprintf_P(s + pos, size-pos, PSTR(",\"loop_stack\":%u"),TFL->stats->loop_task_free_stack_bytes);
+    inc = snprintf(s + pos, size-pos, PSTR(",\"loop_stack\":%u"),TFL->stats->loop_task_free_stack_bytes);
     pos += inc;
     if(TFL->option.use_mic == 1){
-      inc = snprintf_P(s + pos, size-pos, PSTR(",\"audio_stack\":%u"),TFL->stats->mic_task_free_stack_bytes);
+      inc = snprintf(s + pos, size-pos, PSTR(",\"audio_stack\":%u"),TFL->stats->mic_task_free_stack_bytes);
       pos += inc;
     }
-    inc = snprintf_P(s + pos, size-pos, PSTR(",\"invocations\":%u}}"),TFL->stats->invocations);
+    inc = snprintf(s + pos, size-pos, PSTR(",\"invocations\":%u}}"),TFL->stats->invocations);
     be_pushstring(vm, s);
     free(s);
     return s;

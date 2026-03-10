@@ -205,24 +205,24 @@ void MPU_6050Show(bool json)
 
   if (json) {
     char json_axis_ax[25];
-    snprintf_P(json_axis_ax, sizeof(json_axis_ax), PSTR(",\"" D_JSON_AXIS_AX "\":%s"), axis_ax);
+    snprintf(json_axis_ax, sizeof(json_axis_ax), PSTR(",\"" D_JSON_AXIS_AX "\":%s"), axis_ax);
     char json_axis_ay[25];
-    snprintf_P(json_axis_ay, sizeof(json_axis_ay), PSTR(",\"" D_JSON_AXIS_AY "\":%s"), axis_ay);
+    snprintf(json_axis_ay, sizeof(json_axis_ay), PSTR(",\"" D_JSON_AXIS_AY "\":%s"), axis_ay);
     char json_axis_az[25];
-    snprintf_P(json_axis_az, sizeof(json_axis_az), PSTR(",\"" D_JSON_AXIS_AZ "\":%s"), axis_az);
+    snprintf(json_axis_az, sizeof(json_axis_az), PSTR(",\"" D_JSON_AXIS_AZ "\":%s"), axis_az);
     char json_axis_gx[25];
-    snprintf_P(json_axis_gx, sizeof(json_axis_gx), PSTR(",\"" D_JSON_AXIS_GX "\":%s"), axis_gx);
+    snprintf(json_axis_gx, sizeof(json_axis_gx), PSTR(",\"" D_JSON_AXIS_GX "\":%s"), axis_gx);
     char json_axis_gy[25];
-    snprintf_P(json_axis_gy, sizeof(json_axis_gy), PSTR(",\"" D_JSON_AXIS_GY "\":%s"), axis_gy);
+    snprintf(json_axis_gy, sizeof(json_axis_gy), PSTR(",\"" D_JSON_AXIS_GY "\":%s"), axis_gy);
     char json_axis_gz[25];
-    snprintf_P(json_axis_gz, sizeof(json_axis_gz), PSTR(",\"" D_JSON_AXIS_GZ "\":%s"), axis_gz);
+    snprintf(json_axis_gz, sizeof(json_axis_gz), PSTR(",\"" D_JSON_AXIS_GZ "\":%s"), axis_gz);
 #ifdef USE_MPU6050_DMP
     char json_ypr_y[25];
-    snprintf_P(json_ypr_y, sizeof(json_ypr_y), PSTR(",\"" D_JSON_YAW "\":%s"), axis_yaw);
+    snprintf(json_ypr_y, sizeof(json_ypr_y), PSTR(",\"" D_JSON_YAW "\":%s"), axis_yaw);
     char json_ypr_p[25];
-    snprintf_P(json_ypr_p, sizeof(json_ypr_p), PSTR(",\"" D_JSON_PITCH "\":%s"), axis_pitch);
+    snprintf(json_ypr_p, sizeof(json_ypr_p), PSTR(",\"" D_JSON_PITCH "\":%s"), axis_pitch);
     char json_ypr_r[25];
-    snprintf_P(json_ypr_r, sizeof(json_ypr_r), PSTR(",\"" D_JSON_ROLL "\":%s"), axis_roll);
+    snprintf(json_ypr_r, sizeof(json_ypr_r), PSTR(",\"" D_JSON_ROLL "\":%s"), axis_roll);
     ResponseAppend_P(PSTR(",\"%s\":{\"" D_JSON_TEMPERATURE "\":%*_f%s%s%s%s%s%s%s%s%s}"),
       D_SENSOR_MPU6050, Settings->flag2.temperature_resolution, &tempConv, json_axis_ax, json_axis_ay, json_axis_az, json_axis_gx, json_axis_gy, json_axis_gz,
       json_ypr_y, json_ypr_p, json_ypr_r);

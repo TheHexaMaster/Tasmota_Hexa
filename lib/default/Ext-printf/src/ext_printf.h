@@ -24,13 +24,13 @@
 #include <cstdint>
 #include <cstdarg>
 
-int32_t ext_vsnprintf_P(char * buf, size_t buf_len, const char * fmt_P, va_list va);
-int32_t ext_snprintf_P(char * buf, size_t buf_len, const char * fmt, ...);
+int32_t ext_vsnprintf(char * buf, size_t buf_len, const char * fmt_P, va_list va);
+int32_t ext_snprintf(char * buf, size_t buf_len, const char * fmt, ...);
 char * ext_snprintf_malloc_P(const char * fmt, ...);
 char * ext_vsnprintf_malloc_P(const char * fmt_P, va_list va);
 
 char* ToHex_P(const unsigned char * in, size_t insz, char * out, size_t outsz, char inbetween);
 
-// void test_ext_snprintf_P(void);
+// void test_ext_snprintf(void);
 
 #endif // EXT_PRINTF_H

@@ -85,7 +85,7 @@ void DS1624_HotPlugUp(uint32_t idx)
     uint8_t tmp;
     ds1624_sns[idx].type = (I2cValidRead8(&tmp, addr, DS1624_MEM_REGISTER)) ? DS1624_TYPE_DS1624 : DS1624_TYPE_DS1621;
 
-    snprintf_P(ds1624_sns[idx].name, sizeof(ds1624_sns[idx].name), PSTR("DS162%c%c%d"),
+    snprintf(ds1624_sns[idx].name, sizeof(ds1624_sns[idx].name), PSTR("DS162%c%c%d"),
       (ds1624_sns[idx].type == DS1624_TYPE_DS1621) ? '1' : '4', IndexSeparator(), idx);
     I2cSetActiveFound(addr, ds1624_sns[idx].name);
 

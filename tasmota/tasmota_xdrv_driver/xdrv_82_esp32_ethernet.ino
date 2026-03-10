@@ -427,7 +427,7 @@ void CmndEthSetIpConfig(void) {
   char network_address[22] = { 0 };
   if (0 == param_id) {
     if (!Settings->eth_ipv4_address[0]) {
-      ext_snprintf_P(network_address, sizeof(network_address), PSTR(" (%_I)"), (uint32_t)ETH.localIP());
+      ext_snprintf(network_address, sizeof(network_address), PSTR(" (%_I)"), (uint32_t)ETH.localIP());
     }
   }
   Response_P(PSTR("{\"%s%s\":\"%_I%s\"}"), XdrvMailbox.command, cmnd_idx, Settings->eth_ipv4_address[param_id], network_address);

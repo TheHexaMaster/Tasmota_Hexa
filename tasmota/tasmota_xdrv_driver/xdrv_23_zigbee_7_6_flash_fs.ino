@@ -39,7 +39,7 @@ public:
 
   FlashFileImpl(const char* str) {
     _buf = str;
-    _len = strlen_P(str);
+    _len = strlen(str);
     _seek = 0;
   }
 

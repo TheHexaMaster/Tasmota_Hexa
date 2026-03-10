@@ -160,7 +160,7 @@ void Amsx915SettingsLoad(bool erase) {
 #else
   // Try to load sensor config file
   char filename[20];
-  snprintf_P(filename, sizeof(filename), PSTR(TASM_FILE_SENSOR), XSNS_114);
+  snprintf(filename, sizeof(filename), PSTR(TASM_FILE_SENSOR), XSNS_114);
 
   if (erase) {
     TfsDeleteFile(filename);  // Use defaults
@@ -189,7 +189,7 @@ void Amsx915SettingsSave(void) {
     amsx915->file_crc32 = crc32;
 
     char filename[20];
-    snprintf_P(filename, sizeof(filename), PSTR(TASM_FILE_SENSOR), XSNS_114);
+    snprintf(filename, sizeof(filename), PSTR(TASM_FILE_SENSOR), XSNS_114);
 
     if (TfsSaveFile(filename, (const uint8_t*)amsx915, sizeof(amsx915data_t))) {
       AddLog(LOG_LEVEL_DEBUG, PSTR("CFG: " AMSX915_DEVICE_NAME " Settings saved to file"));

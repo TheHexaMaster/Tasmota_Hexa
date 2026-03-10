@@ -86,7 +86,7 @@ void MPU_Detect(void) {
   if (mpu_sensor.Mpu.Init() == 0) {
     char model_name[16];
     mpu_sensor.mpu_model = mpu_sensor.Mpu.getModel();
-    snprintf_P(model_name, sizeof(model_name), PSTR("MPU%04d"), mpu_sensor.mpu_model);
+    snprintf(model_name, sizeof(model_name), PSTR("MPU%04d"), mpu_sensor.mpu_model);
     I2cSetActiveFound(MPU_ACCEL_ADDRESS, model_name, mpu_sensor.bus);
     mpu_sensor.ready = true;
   }

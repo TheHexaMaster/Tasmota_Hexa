@@ -131,7 +131,7 @@ void ens16xShow(bool json)
   for (uint8_t i = 0 ; i < ENS16xCount; i++) {
     ENS16xDATA_t *pENS16X = ENS16xData[i];
     if (pENS16X->ready) {
-      snprintf_P(name, sizeof(name), (ENS16xCount > 1) ? PSTR("%s%c%d") : PSTR("%s"), ENS16x_DEVICE_NAME, IndexSeparator(), i +1);
+      snprintf(name, sizeof(name), (ENS16xCount > 1) ? PSTR("%s%c%d") : PSTR("%s"), ENS16x_DEVICE_NAME, IndexSeparator(), i +1);
       if (json) {
         ResponseAppend_P(PSTR(",\"%s\":{\"AQIS\":%d,\"" D_JSON_ECO2 "\":%d,\"" D_JSON_TVOC "\":%d}"), name, pENS16X->AQIS, pENS16X->eCO2, pENS16X->TVOC);
   #ifdef USE_WEBSERVER

@@ -61,7 +61,7 @@ void i2s_bridge_init(uint8_t mode) {
       AddLog(LOG_LEVEL_INFO, PSTR("I2S_bridge: slave started"));
     } else {
       char buffer[32];
-      sprintf_P(buffer, PSTR("%u.%u.%u.%u"), audio_i2s_mp3.i2s_bridge_ip[0], audio_i2s_mp3.i2s_bridge_ip[1], audio_i2s_mp3.i2s_bridge_ip[2], audio_i2s_mp3.i2s_bridge_ip[3]);
+      sprintf(buffer, PSTR("%u.%u.%u.%u"), audio_i2s_mp3.i2s_bridge_ip[0], audio_i2s_mp3.i2s_bridge_ip[1], audio_i2s_mp3.i2s_bridge_ip[2], audio_i2s_mp3.i2s_bridge_ip[3]);
       AddLog(LOG_LEVEL_INFO, PSTR("I2S_bridge: master started sending to ip: %s"), buffer);
     }
     AUDIO_PWR_ON

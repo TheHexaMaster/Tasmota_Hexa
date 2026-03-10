@@ -78,7 +78,7 @@ void MCP9808Show(bool json) {
     char sensor_name[11];
     strlcpy(sensor_name, mcp9808_cfg.types, sizeof(sensor_name));
     if (mcp9808_cfg.count > 1) {
-      snprintf_P(sensor_name, sizeof(sensor_name), PSTR("%s%c%02X"), sensor_name, IndexSeparator(), mcp9808_sensors[i].address); // MCP9808-18, MCP9808-1A  etc.
+      snprintf(sensor_name, sizeof(sensor_name), PSTR("%s%c%02X"), sensor_name, IndexSeparator(), mcp9808_sensors[i].address); // MCP9808-18, MCP9808-1A  etc.
     }
 
     if (json) {

@@ -21,8 +21,6 @@
   
   //typedef uint16_t prog_uint16_t;
   #define PSTR(x) (x)
-  #define printf_P printf
-  #define strlen_P strlen
   #define PROGMEM
   #define PRIPSTR "%s"
 
@@ -31,7 +29,6 @@
   #else
 	#define IF_SERIAL_DEBUG(x)
 	#if defined(RF24_TINY)
-	  #define printf_P(...)
     #endif
   #endif
   

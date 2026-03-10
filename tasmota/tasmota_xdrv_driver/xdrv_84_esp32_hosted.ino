@@ -69,7 +69,7 @@ String GetHostedFwVersion(uint32_t device) {
   uint8_t minor1 = version >> 8;
   uint8_t patch1 = version;
   char data[40];
-  snprintf_P(data, sizeof(data), PSTR("%d.%d.%d"), major1, minor1, patch1);
+  snprintf(data, sizeof(data), PSTR("%d.%d.%d"), major1, minor1, patch1);
   return String(data);
 }
 
@@ -94,7 +94,7 @@ void HostedMCUStatus(void) {
       if (pconfig->transport_in_use == H_TRANSPORT_SDIO) {
         struct esp_hosted_sdio_config *psdio_config;
         if (ESP_TRANSPORT_OK == esp_hosted_sdio_get_config(&psdio_config)) {
-          snprintf_P(config, sizeof(config), PSTR(" using GPIO%02d(CLK), GPIO%02d(CMD), GPIO%02d(D0), GPIO%02d(D1), GPIO%02d(D2), GPIO%02d(D3) and GPIO%02d(RST)"), 
+          snprintf(config, sizeof(config), PSTR(" using GPIO%02d(CLK), GPIO%02d(CMD), GPIO%02d(D0), GPIO%02d(D1), GPIO%02d(D2), GPIO%02d(D3) and GPIO%02d(RST)"), 
             psdio_config->pin_clk.pin, psdio_config->pin_cmd.pin, psdio_config->pin_d0.pin, psdio_config->pin_d1.pin, psdio_config->pin_d2.pin, psdio_config->pin_d3.pin, psdio_config->pin_reset.pin);
         }
       }
@@ -317,9 +317,9 @@ void CmndHostedLoad(void) {
   } else {
     char version[16] = { 0 };
     if (XdrvMailbox.data_len) {
-      snprintf_P(version, sizeof(version), PSTR("/%s"), XdrvMailbox.data);
+      snprintf(version, sizeof(version), PSTR("/%s"), XdrvMailbox.data);
     }
-    snprintf_P(Hosted.ota_url, 200, PSTR("/coprocessor%s/network_adapter_" CONFIG_ESP_HOSTED_IDF_SLAVE_TARGET ".bin"),
+    snprintf(Hosted.ota_url, 200, PSTR("/coprocessor%s/network_adapter_" CONFIG_ESP_HOSTED_IDF_SLAVE_TARGET ".bin"),
       version);
   }
   Hosted.ota_file_state_flag = 1;
@@ -351,9 +351,9 @@ void CmndHostedOta(void) {
     *bch = '\0';                                   // full_ota_url = https://ota.tasmota.com/tasmota32
     char version[16] = { 0 };
     if (XdrvMailbox.data_len) {
-      snprintf_P(version, sizeof(version), PSTR("/%s"), XdrvMailbox.data);
+      snprintf(version, sizeof(version), PSTR("/%s"), XdrvMailbox.data);
     }
-    snprintf_P(Hosted.ota_url, 200, PSTR("%s/coprocessor%s/network_adapter_" CONFIG_ESP_HOSTED_IDF_SLAVE_TARGET ".bin"), 
+    snprintf(Hosted.ota_url, 200, PSTR("%s/coprocessor%s/network_adapter_" CONFIG_ESP_HOSTED_IDF_SLAVE_TARGET ".bin"), 
       Hosted.ota_url, version);
   }
   Hosted.ota_http_state_flag = 1;

@@ -452,9 +452,9 @@ uint32_t parseSingleAttribute(Z_attribute & attr, const SBuffer &buf,
         // uint8_t len = attrtype - 0x27;   // 5 - 8
         // print as HEX "0x...."
         char hex[2*len+3];
-        snprintf_P(hex, sizeof(hex), PSTR("0x"));
+        snprintf(hex, sizeof(hex), PSTR("0x"));
         for (uint32_t j=0; j<len; j++) {
-          snprintf_P(hex, sizeof(hex), PSTR("%s%02X"), hex, buf.get8(i+len-j-1));
+          snprintf(hex, sizeof(hex), PSTR("%s%02X"), hex, buf.get8(i+len-j-1));
         }
         attr.setStr(hex);
         // i += len;
@@ -1104,7 +1104,7 @@ void ZCLFrame::parseResponse_inner(uint8_t cmd, bool cluster_specific, uint8_t s
 
   // "Device"
   char s[12];
-  snprintf_P(s, sizeof(s), PSTR("0x%04X"), shortaddr);
+  snprintf(s, sizeof(s), PSTR("0x%04X"), shortaddr);
   attr_list.addAttributePMEM(PSTR(D_JSON_ZIGBEE_DEVICE)).setStr(s);
   // "Name"
   const char * friendlyName = zigbee_devices.getFriendlyName(shortaddr);
@@ -1112,7 +1112,7 @@ void ZCLFrame::parseResponse_inner(uint8_t cmd, bool cluster_specific, uint8_t s
     attr_list.addAttributePMEM(PSTR(D_JSON_ZIGBEE_NAME)).setStr(friendlyName);
   }
   // "Command"
-  snprintf_P(s, sizeof(s), PSTR("%04X%c%02X"), cluster, cluster_specific ? '!' : '_', cmd);
+  snprintf(s, sizeof(s), PSTR("%04X%c%02X"), cluster, cluster_specific ? '!' : '_', cmd);
   attr_list.addAttributePMEM(PSTR(D_JSON_ZIGBEE_CMD)).setStr(s);
   // "Status"
   attr_list.addAttributePMEM(PSTR(D_JSON_ZIGBEE_STATUS)).setUInt(status);
@@ -1286,7 +1286,7 @@ void ZCLFrame::syntheticAqaraSensor(Z_attribute_list &attr_list, class Z_attribu
       if (!translated) {
         if (attrid >= 100) {    // payload is always above 0x64 or 100
           char attr_name[12];
-          snprintf_P(attr_name, sizeof(attr_name), PSTR("Xiaomi_%02X"), attrid);
+          snprintf(attr_name, sizeof(attr_name), PSTR("Xiaomi_%02X"), attrid);
           attr_list.addAttribute(attr_name).copyVal(attr);
         }
       }
@@ -1461,7 +1461,7 @@ void ZCLFrame::syntheticAqaraVibration(class Z_attribute_list &attr_list, class 
           y = buf2.get16(2);
           x = buf2.get16(4);
           char temp[32];
-          snprintf_P(temp, sizeof(temp), PSTR("[%i,%i,%i]"), x, y, z);
+          snprintf(temp, sizeof(temp), PSTR("[%i,%i,%i]"), x, y, z);
           attr.setStrRaw(temp);
           // calculate angles
           float X = x;
@@ -1470,7 +1470,7 @@ void ZCLFrame::syntheticAqaraVibration(class Z_attribute_list &attr_list, class 
           int32_t Angle_X = 0.5f + atanf(X/sqrtf(z*z+y*y)) * f_180pi;
           int32_t Angle_Y = 0.5f + atanf(Y/sqrtf(x*x+z*z)) * f_180pi;
           int32_t Angle_Z = 0.5f + atanf(Z/sqrtf(x*x+y*y)) * f_180pi;
-          snprintf_P(temp, sizeof(temp), PSTR("[%i,%i,%i]"), Angle_X, Angle_Y, Angle_Z);
+          snprintf(temp, sizeof(temp), PSTR("[%i,%i,%i]"), Angle_X, Angle_Y, Angle_Z);
           attr_list.addAttributePMEM(PSTR("AqaraAngles")).setStrRaw(temp);
         }
       }

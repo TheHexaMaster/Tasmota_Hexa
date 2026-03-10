@@ -77,8 +77,8 @@ void MS5837Show(bool json) {
     ms5837_sensor.read();
     ms5837Temp = ConvertTemp(ms5837_sensor.temperature());
     ms5837Pres = ConvertPressure(ms5837_sensor.pressure() + ms5837_pressure_offset);
-    ext_snprintf_P(temperature_str, sizeof(temperature_str), PSTR("%1_f"), &ms5837Temp);
-    ext_snprintf_P(pressure_str, sizeof(pressure_str), PSTR("%1_f"), &ms5837Pres);
+    ext_snprintf(temperature_str, sizeof(temperature_str), PSTR("%1_f"), &ms5837Temp);
+    ext_snprintf(pressure_str, sizeof(pressure_str), PSTR("%1_f"), &ms5837Pres);
     if (json) {
       ResponseAppend_P(PSTR(",\"MS5837\":{\"" D_JSON_TEMPERATURE "\":%s,\"" D_JSON_PRESSURE "\":%s"), temperature_str, pressure_str);
     }
@@ -86,7 +86,7 @@ void MS5837Show(bool json) {
     if (I2cEnabled(XI2C_10)) {
       pressure_delta = (ms5837_sensor.pressure() + ms5837_pressure_offset) - bmp_sensors[0].bmp_pressure;
       cm_water = pressure_delta*0.401463078662f*2.54f; // changes from inches to cm after read using 2.54cm/in conversion
-      ext_snprintf_P(cmWater_str, sizeof(cmWater_str), PSTR("%1_f"), &cm_water);
+      ext_snprintf(cmWater_str, sizeof(cmWater_str), PSTR("%1_f"), &cm_water);
       if (json) {
         ResponseAppend_P(PSTR(",\"" D_JSON_WATER_DEPTH "\":%s"),cmWater_str);
       }

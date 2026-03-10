@@ -273,7 +273,7 @@ int AdcFindSlot(uint32_t channel) {
 
 void AdcSaveSettings(uint32_t channel) {
   char parameters[40];
-  snprintf_P(parameters, sizeof(parameters), PSTR("%d,%d,%d,%d,%d,%d"),
+  snprintf(parameters, sizeof(parameters), PSTR("%d,%d,%d,%d,%d,%d"),
     Adc[channel].type,
     Adc[channel].param[0], Adc[channel].param[1], Adc[channel].param[2], Adc[channel].param[3],
     Adc[channel].pin);
@@ -495,7 +495,7 @@ void AdcEvery250ms(void) {
   for (uint32_t channel = 0; channel < Adcs.present; channel++) {
     uint32_t type_index = Adc[channel].index;
 #ifdef ESP32
-    snprintf_P(adc_channel, sizeof(adc_channel), PSTR("%d"), type_index +1);
+    snprintf(adc_channel, sizeof(adc_channel), PSTR("%d"), type_index +1);
     offset = 1;
 #endif
     uint32_t adc_type = Adc[channel].type;
@@ -754,8 +754,8 @@ void AdcShow(bool json) {
   for (uint32_t channel = 0; channel < Adcs.present; channel++) {
     uint32_t type_index = Adc[channel].index;
 #ifdef ESP32
-    snprintf_P(adc_name, sizeof(adc_name), PSTR("ADC%d"), type_index +1);
-    snprintf_P(adc_channel, sizeof(adc_channel), PSTR("%d"), type_index +1);
+    snprintf(adc_name, sizeof(adc_name), PSTR("ADC%d"), type_index +1);
+    snprintf(adc_channel, sizeof(adc_channel), PSTR("%d"), type_index +1);
     offset = 1;
 #endif
     uint32_t adc_type = Adc[channel].type;
@@ -955,7 +955,7 @@ void CmndAdcGpio(void) {
       XdrvMailbox.index = channel +1;
       if (XdrvMailbox.data_len) {
         char data[64];
-        snprintf_P(data, sizeof(data), PSTR("1,%s"), XdrvMailbox.data);
+        snprintf(data, sizeof(data), PSTR("1,%s"), XdrvMailbox.data);
         XdrvMailbox.data = data;
         XdrvMailbox.data_len = strlen(data);
       }

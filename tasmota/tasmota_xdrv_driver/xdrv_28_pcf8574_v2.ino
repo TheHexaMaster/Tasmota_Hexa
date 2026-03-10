@@ -568,7 +568,7 @@ void Pcf8574SaveSettings(void) {
       UpdateDevicesPresent(-count);
     }
     for (byte i = 0; i < 8; i++) {
-      snprintf_P(stemp, sizeof(stemp), PSTR("i2cs%d"), i+8*idx);
+      snprintf(stemp, sizeof(stemp), PSTR("i2cs%d"), i+8*idx);
       WebGetArg(stemp, tmp, sizeof(tmp));
       byte _value = (!strlen(tmp)) ?  0 : atoi(tmp);
       if (_value) {
@@ -634,7 +634,7 @@ void Pcf8574ModuleInit(void) {
         Pcf8574.max_devices++;
 
         char stype[12];
-        sprintf_P(stype, PSTR("PCF8574%s"), (pcf8574_address >= PCF8574_ADDR2) ? "A" : "");
+        sprintf(stype, PSTR("PCF8574%s"), (pcf8574_address >= PCF8574_ADDR2) ? "A" : "");
         I2cSetActiveFound(pcf8574_address, stype);
       }
 

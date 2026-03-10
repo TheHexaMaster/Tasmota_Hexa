@@ -38,7 +38,7 @@
   --
   1.0.0.2 20180928  tests     - same as in version 1.0.0.1
                     cleaned   - source code
-                    changed   - snprintf_P for json and web server output
+                    changed   - snprintf for json and web server output
                               - much more compressed and more professional code
                     added     - uv_risk_text to json and web server output
                     changed   - switch (function) to be 100% compatible
@@ -223,17 +223,17 @@ double Veml6070UvRiskLevel(uint16_t uv_level)
   if (uv_level < uv_risk_map[VEML6070_UV_MAX_INDEX-1]) {
     risk = (double)uv_level / uv_risk_map[0];
     // generate uv-risk string
-    if ( (risk >= 0) && (risk <= 2.9) ) { snprintf_P(str_uvrisk_text, sizeof(str_uvrisk_text), D_UV_INDEX_1); }
-    else if ( (risk >= 3.0)  && (risk <= 5.9) )  { snprintf_P(str_uvrisk_text, sizeof(str_uvrisk_text), D_UV_INDEX_2); }
-    else if ( (risk >= 6.0)  && (risk <= 7.9) )  { snprintf_P(str_uvrisk_text, sizeof(str_uvrisk_text), D_UV_INDEX_3); }
-    else if ( (risk >= 8.0)  && (risk <= 10.9) ) { snprintf_P(str_uvrisk_text, sizeof(str_uvrisk_text), D_UV_INDEX_4); }
-    else if ( (risk >= 11.0) && (risk <= 12.9) ) { snprintf_P(str_uvrisk_text, sizeof(str_uvrisk_text), D_UV_INDEX_5); }
-    else if ( (risk >= 13.0) && (risk <= 25.0) ) { snprintf_P(str_uvrisk_text, sizeof(str_uvrisk_text), D_UV_INDEX_6); }
-    else { snprintf_P(str_uvrisk_text, sizeof(str_uvrisk_text), D_UV_INDEX_7); }
+    if ( (risk >= 0) && (risk <= 2.9) ) { snprintf(str_uvrisk_text, sizeof(str_uvrisk_text), D_UV_INDEX_1); }
+    else if ( (risk >= 3.0)  && (risk <= 5.9) )  { snprintf(str_uvrisk_text, sizeof(str_uvrisk_text), D_UV_INDEX_2); }
+    else if ( (risk >= 6.0)  && (risk <= 7.9) )  { snprintf(str_uvrisk_text, sizeof(str_uvrisk_text), D_UV_INDEX_3); }
+    else if ( (risk >= 8.0)  && (risk <= 10.9) ) { snprintf(str_uvrisk_text, sizeof(str_uvrisk_text), D_UV_INDEX_4); }
+    else if ( (risk >= 11.0) && (risk <= 12.9) ) { snprintf(str_uvrisk_text, sizeof(str_uvrisk_text), D_UV_INDEX_5); }
+    else if ( (risk >= 13.0) && (risk <= 25.0) ) { snprintf(str_uvrisk_text, sizeof(str_uvrisk_text), D_UV_INDEX_6); }
+    else { snprintf(str_uvrisk_text, sizeof(str_uvrisk_text), D_UV_INDEX_7); }
     return risk;
   } else {
     // out of range and much to high - it must be outerspace or sensor damaged
-    snprintf_P(str_uvrisk_text, sizeof(str_uvrisk_text), D_UV_INDEX_7);
+    snprintf(str_uvrisk_text, sizeof(str_uvrisk_text), D_UV_INDEX_7);
     return ( risk = 99 );
     AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_DEBUG "VEML6070 out of range %d"), risk);
   }

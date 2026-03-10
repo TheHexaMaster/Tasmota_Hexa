@@ -102,7 +102,7 @@ void HP303B_Show(bool json) {
       char sensor_name[12];
       strlcpy(sensor_name, hp303b_cfg.types, sizeof(sensor_name));
       if (hp303b_cfg.count > 1) {
-        snprintf_P(sensor_name, sizeof(sensor_name), PSTR("%s%c%02X"), sensor_name, IndexSeparator(), hp303b_sensor[i].address); // HP303B-76, HP303B-77
+        snprintf(sensor_name, sizeof(sensor_name), PSTR("%s%c%02X"), sensor_name, IndexSeparator(), hp303b_sensor[i].address); // HP303B-76, HP303B-77
       }
 
       float sealevel = ConvertPressureForSeaLevel(hp303b_sensor[i].pressure);

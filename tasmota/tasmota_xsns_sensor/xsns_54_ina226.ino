@@ -499,7 +499,7 @@ void Ina226Show(bool json)
     char power[16];
     dtostrfd(powers[i], Settings->flag2.wattage_resolution, power);
     char name[16];
-    snprintf_P(name, sizeof(name), PSTR("INA226%c%d"),IndexSeparator(), i + 1);
+    snprintf(name, sizeof(name), PSTR("INA226%c%d"),IndexSeparator(), i + 1);
 
 
     if (json) {

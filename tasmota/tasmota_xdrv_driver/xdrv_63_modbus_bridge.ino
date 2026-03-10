@@ -531,7 +531,7 @@ void ModbusBridgeHandle(void)
               ((uint8_t *)&value)[1] = modbusBridge.buffer[dataOffset + 2 + (count * 4)];
               ((uint8_t *)&value)[0] = modbusBridge.buffer[dataOffset + 3 + (count * 4)];
             }
-            ext_snprintf_P(svalue, sizeof(svalue), "%*_f", 10, &value);
+            ext_snprintf(svalue, sizeof(svalue), "%*_f", 10, &value);
           }
           else if (modbusBridge.type == ModbusBridgeType::mb_bit)
           {

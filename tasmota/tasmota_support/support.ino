@@ -534,9 +534,9 @@ char* SetStr(const char* str) {
 }
 
 char* StrCaseStr_P(const char* source, const char* search) {
-  char case_source[strlen_P(source) +1];
+  char case_source[strlen(source) +1];
   UpperCase_P(case_source, source);
-  char case_search[strlen_P(search) +1];
+  char case_search[strlen(search) +1];
   UpperCase_P(case_search, search);
   char *cp = strstr(case_source, case_search);
   if (cp) {
@@ -588,7 +588,7 @@ String HexToString(uint8_t* data, uint32_t length) {
 // Returns the number of bytes in the array, or -1 if an error occured
 // The `out` buffer must be at least half the size of hex string
 int32_t HexToBytes(const char* hex, uint8_t* out, size_t out_len) {
-  size_t len = strlen_P(hex);
+  size_t len = strlen(hex);
   if (len % 2 != 0) {
     return -1;
   }
@@ -709,7 +709,7 @@ bool ParseIPv4(uint32_t* addr, const char* str_p)
 {
   uint8_t *part = (uint8_t*)addr;
   uint8_t i;
-  char str_r[strlen_P(str_p)+1];
+  char str_r[strlen(str_p)+1];
   char * str = &str_r[0];
   strcpy_P(str, str_p);
 
@@ -801,7 +801,7 @@ char* GetPowerDevice(char* dest, uint32_t idx, size_t size, uint32_t option)
   strncpy(dest, S_RSLT_POWER, size);                // POWER
   if ((TasmotaGlobal.devices_present + option) > 1) {
     char sidx[8];
-    snprintf_P(sidx, sizeof(sidx), PSTR("%d"), idx);  // x
+    snprintf(sidx, sizeof(sidx), PSTR("%d"), idx);  // x
     strncat(dest, sidx, size - strlen(dest) -1);      // POWERx
   }
   return dest;
@@ -1098,7 +1098,7 @@ bool DecodeCommand(const char* haystack, void (* const MyCommand[])(void), const
   int prefix_length = strlen(XdrvMailbox.command);
   if (prefix_length) {
     char prefix[prefix_length +1];
-    snprintf_P(prefix, sizeof(prefix), XdrvMailbox.topic);  // Copy prefix part only
+    snprintf(prefix, sizeof(prefix), XdrvMailbox.topic);  // Copy prefix part only
     if (strcasecmp(prefix, XdrvMailbox.command)) {
       return false;                                         // Prefix not in command
     }
@@ -1236,16 +1236,16 @@ char* ResponseGetTime(uint32_t format, char* time_str)
 {
   switch (format) {
   case 1:
-    snprintf_P(time_str, TIMESZ, PSTR("{\"" D_JSON_TIME "\":\"%s\",\"Epoch\":%u"), GetDateAndTime(DT_LOCAL).c_str(), UtcTime());
+    snprintf(time_str, TIMESZ, PSTR("{\"" D_JSON_TIME "\":\"%s\",\"Epoch\":%u"), GetDateAndTime(DT_LOCAL).c_str(), UtcTime());
     break;
   case 2:
-    snprintf_P(time_str, TIMESZ, PSTR("{\"" D_JSON_TIME "\":%u"), UtcTime());
+    snprintf(time_str, TIMESZ, PSTR("{\"" D_JSON_TIME "\":%u"), UtcTime());
     break;
   case 3:
-    snprintf_P(time_str, TIMESZ, PSTR("{\"" D_JSON_TIME "\":\"%s\""), GetDateAndTime(DT_LOCAL_MILLIS).c_str());
+    snprintf(time_str, TIMESZ, PSTR("{\"" D_JSON_TIME "\":\"%s\""), GetDateAndTime(DT_LOCAL_MILLIS).c_str());
     break;
   default:
-    snprintf_P(time_str, TIMESZ, PSTR("{\"" D_JSON_TIME "\":\"%s\""), GetDateAndTime(DT_LOCAL).c_str());
+    snprintf(time_str, TIMESZ, PSTR("{\"" D_JSON_TIME "\":\"%s\""), GetDateAndTime(DT_LOCAL).c_str());
   }
   return time_str;
 }
@@ -1273,7 +1273,7 @@ void ResponseJsonStart(void) {
   TasmotaGlobal.mqtt_data.setCharAt(0,'{');
 }
 
-int Response_P(const char* format, ...)        // Content send snprintf_P char data
+int Response_P(const char* format, ...)        // Content send snprintf char data
 {
   // This uses char strings. Be aware of sending %% if % is needed
   va_list arg;
@@ -1289,7 +1289,7 @@ int Response_P(const char* format, ...)        // Content send snprintf_P char d
   return TasmotaGlobal.mqtt_data.length();
 }
 
-int ResponseTime_P(const char* format, ...)    // Content send snprintf_P char data
+int ResponseTime_P(const char* format, ...)    // Content send snprintf char data
 {
   // This uses char strings. Be aware of sending %% if % is needed
   char timestr[100];
@@ -1306,7 +1306,7 @@ int ResponseTime_P(const char* format, ...)    // Content send snprintf_P char d
   return TasmotaGlobal.mqtt_data.length();
 }
 
-int ResponseAppend_P(const char* format, ...)  // Content send snprintf_P char data
+int ResponseAppend_P(const char* format, ...)  // Content send snprintf char data
 {
   // This uses char strings. Be aware of sending %% if % is needed
   va_list arg;
@@ -2129,7 +2129,7 @@ void SyslogAsync(bool refresh) {
          :programname, startswith, "ESP-" stop                       # Do not log in syslog
 
       */
-//      snprintf_P(header, sizeof(header), PSTR("%s ESP-"), NetworkHostname());
+//      snprintf(header, sizeof(header), PSTR("%s ESP-"), NetworkHostname());
 
       /* Legacy format - <PRI>HOSTNAME TAG: MSG
          <PRI> = Facility 16 (= local use 0), Severity 6 (= informational) => 16 * 8 + 6 = 128 + 6 = <134>
@@ -2147,7 +2147,7 @@ void SyslogAsync(bool refresh) {
          :programname, startswith, "ESP-" /var/log/udp-logs/esp.log  # Log in esp.log
          :programname, startswith, "ESP-" stop                       # Do not log in syslog
       */
-//      snprintf_P(header, sizeof(header), PSTR("<%d>%s ESP-"), 128 + min(loglevel * 3, 7), NetworkHostname());
+//      snprintf(header, sizeof(header), PSTR("<%d>%s ESP-"), 128 + min(loglevel * 3, 7), NetworkHostname());
 
       /* RFC3164 - BSD syslog protocol - <PRI>TIMESTAMP HOSTNAME TAG: MSG
          <PRI> = Facility 16 (= local use 0), Severity 6 (= informational) => 16 * 8 + 6 = <134>
@@ -2161,7 +2161,7 @@ void SyslogAsync(bool refresh) {
          :programname, startswith, "ESP-" /var/log/udp-logs/esp.log  # Log in esp.log
          :programname, startswith, "ESP-" stop                       # Do not log in syslog
       */
-//      snprintf_P(header, sizeof(header), PSTR("<134>%s %s ESP-"), GetSyslogDate(line).c_str(), NetworkHostname());
+//      snprintf(header, sizeof(header), PSTR("<134>%s %s ESP-"), GetSyslogDate(line).c_str(), NetworkHostname());
 
       char* msg_start = line +mxtime;
       uint32_t msg_len = len -mxtime -1;
@@ -2187,7 +2187,7 @@ void SyslogAsync(bool refresh) {
       subStr(timestamp, line, " ", 1);                        // 00:00:02.096-026
       subStr(timestamp, timestamp, "-", 1);                   // 00:00:02.096
 
-      snprintf_P(header, sizeof(header), PSTR("<%d>1 %s%s000%s %s tasmota - - - "),
+      snprintf(header, sizeof(header), PSTR("<%d>1 %s%s000%s %s tasmota - - - "),
         128 + min(loglevel * 3, 7),                           // Error (1) = 131, Info (2) = 134, Debug (3) = 135, DebugMore = (4) 135
         GetDate().c_str(), timestamp, GetTimeZone().c_str(),  // 1970-01-01T00:00:02.096000+01:00
         NetworkHostname());
@@ -2203,7 +2203,7 @@ void SyslogAsync(bool refresh) {
       } else {
         strcpy(msgid, "-");                                   // -
       }
-      snprintf_P(header, sizeof(header), PSTR("<%d>1 %s%s000%s %s tasmota - %s -"),
+      snprintf(header, sizeof(header), PSTR("<%d>1 %s%s000%s %s tasmota - %s -"),
         128 + min(loglevel * 3, 7),                           // Error (1) = 131, Info (2) = 134, Debug (3) = 135, DebugMore = (4) 135
         GetDate().c_str(), timestamp, GetTimeZone().c_str(),  // 1970-01-01T00:00:02.096000+01:00
         NetworkHostname(), msgid);
@@ -2408,11 +2408,11 @@ void AddLogData(uint32_t loglevel, const char* log_data, const char* log_data_pa
   TasAutoMutex mutex((SemaphoreHandle_t *)&TasmotaGlobal.log_buffer_mutex);
 
   char mxtime[21];  // "13:45:21.999-123/12 "
-  snprintf_P(mxtime, sizeof(mxtime), PSTR("%02d" D_HOUR_MINUTE_SEPARATOR "%02d" D_MINUTE_SECOND_SEPARATOR "%02d.%03d"),
+  snprintf(mxtime, sizeof(mxtime), PSTR("%02d" D_HOUR_MINUTE_SEPARATOR "%02d" D_MINUTE_SECOND_SEPARATOR "%02d.%03d"),
     RtcTime.hour, RtcTime.minute, RtcTime.second, RtcMillis());
   if (Settings->flag5.show_heap_with_timestamp) {
 
-    snprintf_P(mxtime, sizeof(mxtime), PSTR("%s-%03d/%02d"),
+    snprintf(mxtime, sizeof(mxtime), PSTR("%s-%03d/%02d"),
       mxtime, ESP_getFreeHeap1024(), ESP_getHeapFragmentation());
   }
   strcat(mxtime, " ");
@@ -2441,8 +2441,8 @@ void AddLogData(uint32_t loglevel, const char* log_data, const char* log_data_pa
     uint32_t log_data_len = strlen(log_data) + strlen(log_data_payload) + strlen(log_data_retained);
     if (log_data_len > MAX_LOGSZ) {
       too_long = (char*)malloc(TOPSZ);     // Use heap in favour of stack
-      snprintf_P(too_long, TOPSZ - 20, PSTR("%s%s"), log_data, log_data_payload);   // 20 = strlen("... 123456 truncated")
-      snprintf_P(too_long, TOPSZ, PSTR("%s... %d truncated"), too_long, log_data_len);
+      snprintf(too_long, TOPSZ - 20, PSTR("%s%s"), log_data, log_data_payload);   // 20 = strlen("... 123456 truncated")
+      snprintf(too_long, TOPSZ, PSTR("%s... %d truncated"), too_long, log_data_len);
       log_data = too_long;
       log_data_payload = empty;
       log_data_retained = empty;
@@ -2462,7 +2462,7 @@ void AddLogData(uint32_t loglevel, const char* log_data, const char* log_data_pa
       memmove(TasmotaGlobal.log_buffer, it, LOG_BUFFER_SIZE -(it-TasmotaGlobal.log_buffer));  // Move buffer forward to remove oldest log line
     }
     char *log_line = TasmotaGlobal.log_buffer + strlen(TasmotaGlobal.log_buffer);  // Ponter to next entry
-    snprintf_P(log_line, log_data_len +4, PSTR("%c%c%s%s%s%s\1"),
+    snprintf(log_line, log_data_len +4, PSTR("%c%c%s%s%s%s\1"),
       TasmotaGlobal.log_buffer_pointer++, '0'+loglevel, mxtime, log_data, log_data_payload, log_data_retained);
     if (too_long) { free(too_long); }
     TasmotaGlobal.log_buffer_pointer &= 0xFF;
@@ -2607,7 +2607,7 @@ int32_t DecompressNoAlloc(const char * compressed, size_t uncompressed_size, Str
   content.reserve(uncompressed_size);
   char * buffer = content.begin();
 
-  int32_t len = compressor.unishox_decompress(compressed, strlen_P(compressed), buffer, uncompressed_size);
+  int32_t len = compressor.unishox_decompress(compressed, strlen(compressed), buffer, uncompressed_size);
   if (len > 0) {
     buffer[len] = 0;    // terminate string with NULL
     content = buffer;         // copy in place

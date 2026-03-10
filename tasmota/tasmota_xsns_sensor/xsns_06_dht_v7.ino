@@ -162,7 +162,7 @@ bool DhtRead(uint32_t sensor) {
 
   char cycle_dump[200] = { 0 };
   for (uint32_t i = 0; i < 20; i++) {
-    snprintf_P(cycle_dump, sizeof(cycle_dump), PSTR("%s %u"), cycle_dump, cycles[i]);
+    snprintf(cycle_dump, sizeof(cycle_dump), PSTR("%s %u"), cycle_dump, cycles[i]);
   }
   AddLog(LOG_LEVEL_DEBUG_MORE, PSTR("DHT: Pin%d cycles (%d/80) %s .."), dht_pin, i, cycle_dump);
 
@@ -338,7 +338,7 @@ void DhtInit(void) {
       Dht[i].lastresult = DHT_MAX_RETRY;  // Start with NAN
       GetTextIndexed(Dht[i].stype, sizeof(Dht[i].stype), Dht[i].type, kSensorNames);
       if (dht_sensors > 1) {
-        snprintf_P(Dht[i].stype, sizeof(Dht[i].stype), PSTR("%s%c%02d"), Dht[i].stype, IndexSeparator(), Dht[i].pin);
+        snprintf(Dht[i].stype, sizeof(Dht[i].stype), PSTR("%s%c%02d"), Dht[i].stype, IndexSeparator(), Dht[i].pin);
       }
     }
 

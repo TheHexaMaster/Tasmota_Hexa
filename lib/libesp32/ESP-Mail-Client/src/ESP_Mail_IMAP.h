@@ -1633,7 +1633,7 @@ int ESP_Mail_Client::parseSearchResponse(IMAPSession *imap, esp_mail_imap_respon
     int idx = 0;
     int num = 0;
 
-    size_t tagLen = strlen_P(tag);
+    size_t tagLen = strlen(tag);
     MB_String _tag = tag;
 
     while (imap->client.available() > 0 && idx < bufLen)
@@ -3704,7 +3704,7 @@ void ESP_Mail_Client::parseCmdResponse(IMAPSession *imap, char *buf, PGM_P find)
             imap->_imap_cmd == esp_mail_imap_cmd_my_rights)
         {
             int ofs = imap->_imap_cmd == esp_mail_imap_cmd_get_quota_root ? 0 : 1;
-            int p2 = strposP(buf, esp_mail_str_2 /* " " */, p1 + strlen_P(find) + ofs);
+            int p2 = strposP(buf, esp_mail_str_2 /* " " */, p1 + strlen(find) + ofs);
             if (p2 != -1)
             {
                 int len = strlen(buf) - p2 - 1;
@@ -3727,7 +3727,7 @@ void ESP_Mail_Client::parseCmdResponse(IMAPSession *imap, char *buf, PGM_P find)
         }
         else
         {
-            int len = imap->_imap_cmd == esp_mail_imap_cmd_get_uid ? 20 : strlen(buf) - p1 - strlen_P(find);
+            int len = imap->_imap_cmd == esp_mail_imap_cmd_get_uid ? 20 : strlen(buf) - p1 - strlen(find);
             int ofs = imap->_imap_cmd == esp_mail_imap_cmd_get_uid ||
                               imap->_imap_cmd == esp_mail_imap_cmd_fetch_sequence_set
                           ? 1
@@ -3735,7 +3735,7 @@ void ESP_Mail_Client::parseCmdResponse(IMAPSession *imap, char *buf, PGM_P find)
                                                                                                                   : 2;
             tmp = allocMem<char *>(len);
 
-            strncpy(tmp, buf + p1 + strlen_P(find), strlen(buf) - p1 - strlen_P(find) - ofs);
+            strncpy(tmp, buf + p1 + strlen(find), strlen(buf) - p1 - strlen(find) - ofs);
 
             esp_mail_imap_msg_num_t msg_num;
 

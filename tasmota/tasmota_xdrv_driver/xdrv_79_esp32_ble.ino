@@ -1001,7 +1001,7 @@ int SafeAddLog_P(uint32_t loglevel, PGM_P formatP, ...) {
   // assume this is thread safe - it may not be
   va_list arg;
   va_start(arg, formatP);
-  vsnprintf_P(BLE_temp_log_data, maxlen, formatP, arg);
+  vsnprintf(BLE_temp_log_data, maxlen, formatP, arg);
   va_end(arg);
 #ifdef USE_NATIVE_LOGGING
   AddLog(loglevel, PSTR("%s"), BLE_temp_log_data);

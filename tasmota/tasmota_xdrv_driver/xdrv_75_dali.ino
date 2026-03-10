@@ -954,7 +954,7 @@ void CmndDaliGroup(void) {
         for (uint32_t arg = 0; arg < argc; arg++) {
           uint32_t sa = sas[arg] -1;
           if (sa < 64) {
-            snprintf_P(temp, sizeof(temp), PSTR("%s%s%d"), temp, (more)?",":"", sa +1);
+            snprintf(temp, sizeof(temp), PSTR("%s%s%d"), temp, (more)?",":"", sa +1);
             more = true;
             DaliSendData((sa << 1) | DALI_SELECTOR_BIT, command);
           }
@@ -973,12 +973,12 @@ void CmndDaliGroup(void) {
         if (tcount) { DaliToggle(adr, &tcount); }
         int result = DaliSendWaitResponse((sa << 1) | DALI_SELECTOR_BIT, command, 20);
         if ((result >= 0) && (result & bitmask)) {
-          snprintf_P(temp, sizeof(temp), PSTR("%s%s%d"), temp, (more)?",":"", sa +1);
+          snprintf(temp, sizeof(temp), PSTR("%s%s%d"), temp, (more)?",":"", sa +1);
           more = true;
         }
       }
       if (!strlen(temp)) {
-        snprintf_P(temp, sizeof(temp), PSTR("None"));
+        snprintf(temp, sizeof(temp), PSTR("None"));
       } else {
         while (tcount) { DaliToggle(adr, &tcount); }
       }
@@ -1018,7 +1018,7 @@ void CmndDaliGear(void) {
     uint32_t adr = address << 1;
     uint32_t tcount = toggle_count;
     if (DaliSendWaitResponse(adr | DALI_SELECTOR_BIT, DALI_102_QUERY_CONTROL_GEAR_PRESENT, 20) >= 0) {
-      snprintf_P(temp, sizeof(temp), PSTR("%s%s%d"), temp, (count)?",":"", address +1);
+      snprintf(temp, sizeof(temp), PSTR("%s%s%d"), temp, (count)?",":"", address +1);
       count++;
       AddLog(LOG_LEVEL_DEBUG, PSTR("DLI: Device %d at %d, short address %d"), count, address, adr);
       while (tcount) { DaliToggle(adr, &tcount); }
@@ -1304,12 +1304,12 @@ void DaliWebGetArg(void) {
   uint32_t index;
   for (uint32_t i = Settings->sbflag1.dali_no_broadcast_slider;    // DaliBS 0/1
                 i <= Settings->mbflag2.dali_group_sliders; i++) {  // DaliGroupSliders
-    snprintf_P(webindex, sizeof(webindex), PSTR("i75%d"), i);
+    snprintf(webindex, sizeof(webindex), PSTR("i75%d"), i);
     WebGetArg(webindex, tmp, sizeof(tmp));     // 0 - 100 percent
     if (strlen(tmp)) {
       index = i;
       if (index > 0) { index += 100; }         // Group
-      snprintf_P(svalue, sizeof(svalue), PSTR("DaliDimmer%d %s"), index, tmp);
+      snprintf(svalue, sizeof(svalue), PSTR("DaliDimmer%d %s"), index, tmp);
       ExecuteWebCommand(svalue);
     }
   }
@@ -1317,7 +1317,7 @@ void DaliWebGetArg(void) {
   if (strlen(tmp)) {
     index = atoi(tmp);
     if (index > 0) { index += 100; }           // Group
-    snprintf_P(svalue, sizeof(svalue), PSTR("DaliPower%d 2"), index);
+    snprintf(svalue, sizeof(svalue), PSTR("DaliPower%d 2"), index);
     ExecuteWebCommand(svalue);
   }
 }

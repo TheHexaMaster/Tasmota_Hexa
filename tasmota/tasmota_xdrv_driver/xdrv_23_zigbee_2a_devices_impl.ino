@@ -652,20 +652,20 @@ void Z_Device::jsonPublishAttrList(const char * json_prefix, const Z_attribute_l
       strlcpy(stemp, local_friendfly_name, sizeof(stemp));
       MakeValidMqtt(0, stemp);
       if (Settings->flag5.zigbee_hide_bridge_topic) {
-        snprintf_P(subtopic, sizeof(subtopic), PSTR("%s"), stemp);
+        snprintf(subtopic, sizeof(subtopic), PSTR("%s"), stemp);
       } else {
-        snprintf_P(subtopic, sizeof(subtopic), PSTR("%s/%s"), TasmotaGlobal.mqtt_topic, stemp);
+        snprintf(subtopic, sizeof(subtopic), PSTR("%s/%s"), TasmotaGlobal.mqtt_topic, stemp);
       }
     } else {
       if (Settings->flag5.zigbee_hide_bridge_topic) {
-        snprintf_P(subtopic, sizeof(subtopic), PSTR("%04X"), shortaddr);
+        snprintf(subtopic, sizeof(subtopic), PSTR("%04X"), shortaddr);
       } else {
-        snprintf_P(subtopic, sizeof(subtopic), PSTR("%s/%04X"), TasmotaGlobal.mqtt_topic, shortaddr);
+        snprintf(subtopic, sizeof(subtopic), PSTR("%s/%04X"), TasmotaGlobal.mqtt_topic, shortaddr);
       }
     }
     if (Settings->flag5.zb_topic_endpoint) {
       if (attr_list.validSrcEp()) {
-        snprintf_P(subtopic, sizeof(subtopic), PSTR("%s_%d"), subtopic, attr_list.src_ep);
+        snprintf(subtopic, sizeof(subtopic), PSTR("%s_%d"), subtopic, attr_list.src_ep);
       }
     }
     char stopic[TOPSZ];
@@ -810,9 +810,9 @@ void Z_Device::jsonAddConfig(Z_attribute_list & attr_list) const {
   for (auto & data_elt : data) {
     char key[8];
     if (data_elt.validConfig()) {
-      snprintf_P(key, sizeof(key), PSTR("?%02X.%1X"), data_elt.getEndpoint(), data_elt.getConfig());
+      snprintf(key, sizeof(key), PSTR("?%02X.%1X"), data_elt.getEndpoint(), data_elt.getConfig());
     } else {
-      snprintf_P(key, sizeof(key), PSTR("?%02X"), data_elt.getEndpoint());
+      snprintf(key, sizeof(key), PSTR("?%02X"), data_elt.getEndpoint());
     }
     key[0] = Z_Data::DataTypeToChar(data_elt.getType());
     arr_data.addStr(key);
