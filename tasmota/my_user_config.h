@@ -843,7 +843,6 @@
 //  #define GM861_DECODE_AIM                       // Decode AIM-id (+0k3 code)
 //  #define GM861_HEARTBEAT                        // Enable heartbeat (+0k2 code)
 //#define USE_WOOLIIS                              // Add support for Wooliis Hall Effect Coulometer or Battery capacity monitor (+1k6 code)
-//#define USE_DALI                                 // Add support for DALI gateway (+7k6 code)
 //  #define DALI_POWER_OFF_NO_FADE                 // Power off immediatly without fading (+0k1 code)
 //  #define DALI_LIGHT_NO_READ_AFTER_WRITE         // Use no DTR read-after-write for smooth color transitions saving 55ms / channel (-0k1 code)
 

@@ -664,9 +664,7 @@ constexpr uint32_t feature[] = {
 #if defined(USE_SPI) && defined(USE_SHELLY_PRO)
   0x00000020 |  // xdrv_88_esp32_shelly_pro.ino
 #endif
-#ifdef USE_DALI
-  0x00000040 |  // xdrv_75_dali.ino
-#endif
+//  0x00000040 |  // xdrv_75_dali.ino - USE_DALI - DELETED
 //  0x00000080 |  // xlgt_10_bp1658cj.ino - USE_BP1658CJ - DELETED
 #ifdef USE_DINGTIAN_RELAY
   0x00000100 |  // xdrv_90_dingtian_relay.ino
