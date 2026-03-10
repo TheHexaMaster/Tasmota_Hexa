@@ -526,210 +526,376 @@ void CmndBrRun(void) {
 \*********************************************************************************************/
 #ifdef USE_WEBSERVER
 
-void BrREPLRun(char * cmd) {
+static void BrREPLAppendError(void) {
   if (berry.vm == nullptr) { return; }
+
+  /*
+
+  int32_t top = be_top(berry.vm);
+  if ((top >= 2) && be_isstring(berry.vm, -1) && be_isstring(berry.vm, -2)) {
+    String err = F("[");
+    err += be_tostring(berry.vm, -2);
+    err += F("] ");
+    err += be_tostring(berry.vm, -1);
+    berry.log.addString(err.c_str(), nullptr, "\n");
+  } else {
+    berry.log.addString("[exception] Berry REPL error", nullptr, "\n");
+  }
+*/
+
+  be_error_pop_all(berry.vm);
+}
+
+static String BrCollectConsoleOutput(void) {
+  String out;
+
+  if (!berry.log.isEmpty()) {
+    for (auto &l : berry.log.log) {
+      out += l.getBuffer();
+    }
+    berry.log.reset();
+  }
+
+  return out;
+}
+
+void BrREPLRun(const char * cmd) {
+  if ((berry.vm == nullptr) || (cmd == nullptr) || (cmd[0] == '\0')) { return; }
 
   size_t cmd_len = strlen(cmd);
   size_t cmd2_len = cmd_len + 12;
   char * cmd2 = (char*) malloc(cmd2_len);
+  if (cmd2 == nullptr) {
+    berry.log.addString("[memory_error] Not enough memory", nullptr, "\n");
+    return;
+  }
+
   do {
     int32_t ret_code;
 
     snprintf(cmd2, cmd2_len, PSTR("return (%s)"), cmd);
     ret_code = be_loadbuffer(berry.vm, PSTR("input"), cmd2, strlen(cmd2));
-    // AddLog(LOG_LEVEL_INFO, PSTR(">>>> be_loadbuffer cmd2 '%s', ret=%i"), cmd2, ret_code);
-    if (be_getexcept(berry.vm, ret_code) == BE_SYNTAX_ERROR) {
-      be_pop(berry.vm, 2);    // remove exception values
-      // if fails, try the direct command
-      ret_code = be_loadbuffer(berry.vm, PSTR("input"), cmd, cmd_len);
-      // AddLog(LOG_LEVEL_INFO, PSTR(">>>> be_loadbuffer cmd1 '%s', ret=%i"), cmd, ret_code);
-    }
-    if (0 == ret_code) {    // code is ready to run
-      BrTimeoutStart();
-      ret_code = be_pcall(berry.vm, 0);     // execute code
-      BrTimeoutReset();
-      // AddLog(LOG_LEVEL_INFO, PSTR(">>>> be_pcall ret=%i"), ret_code);
-      if (0 == ret_code) {
-        if (!be_isnil(berry.vm, 1)) {
-          const char * ret_val = be_tostring(berry.vm, 1);
-          berry.log.addString(ret_val, nullptr, "\n");
-          // AddLog(LOG_LEVEL_INFO, PSTR(">>> %s"), ret_val);
-        }
-        be_pop(berry.vm, 1);
-      }
-    }
-    if (BE_EXCEPTION == ret_code) {
-      be_error_pop_all(berry.vm);             // clear Berry stack
-    }
-  } while(0);
 
-  if (cmd2 != nullptr) {
-    free(cmd2);
-    cmd2 = nullptr;
-  }
+    if (be_getexcept(berry.vm, ret_code) == BE_SYNTAX_ERROR) {
+      be_pop(berry.vm, 2);    // remove exception values from wrapped try
+      ret_code = be_loadbuffer(berry.vm, PSTR("input"), cmd, cmd_len);
+    }
+
+    if (0 != ret_code) {
+      BrREPLAppendError();
+      break;
+    }
+
+    BrTimeoutStart();
+    ret_code = be_pcall(berry.vm, 0);
+    BrTimeoutReset();
+
+    if (0 == ret_code) {
+      if (!be_isnil(berry.vm, 1)) {
+        const char * ret_val = be_tostring(berry.vm, 1);
+        if ((ret_val != nullptr) && ret_val[0]) {
+          berry.log.addString(ret_val, nullptr, "\n");
+        }
+      }
+      be_pop(berry.vm, 1);
+    } else {
+      BrREPLAppendError();
+    }
+  } while (0);
+
+  free(cmd2);
   checkBeTop();
 }
 
 const char HTTP_SCRIPT_BERRY_CONSOLE[] PROGMEM =
-  "var sn=0,id=0,ft,ltm=%d;"                      // Scroll position, Get most of weblog initially
-  // Console command history
-  "var hc=[],cn=0;"                       // hc = History commands, cn = Number of history being shown
+R"BRY(
+(function(w,d){
+  var BC = {
+    xhr: null,
+    loopTimer: null,
+    failTimer: null,
+    refreshMs: %u,
+    history: [],
+    historyPos: 0,
+    bound: false,
+    lastEnter: 0
+  };
 
-  "function l(p){"                        // Console log and command service
-    "var c,cc,o='';"
-    "clearTimeout(lt);"
-    "clearTimeout(ft);"
-    "t=eb('t1');"
-    "if(p==1){"
-      "c=eb('c1');"                       // Console command id
-      "cc=c.value.trim();"
-      "if(cc){"
-        "o='&c1='+encodeURIComponent(cc);"
-        "hc.length>19&&hc.pop();"
-        "hc.unshift(cc);"
-        "cn=0;"
-      "}"
-      "c.value='';"
-      "t.scrollTop=1e8;"
-      "sn=t.scrollTop;"
-    "}"
-    "if(t.scrollTop>=sn){"                // User scrolled back so no updates
-      "if(x!=null){x.abort();}"           // Abort if no response within 2 seconds (happens on restart 1)
-      "x=new XMLHttpRequest();"
-      "x.onreadystatechange=()=>{"
-        "if(x.readyState==4&&x.status==200){"
-          "var d,t1;"
-          "d=x.responseText.split(/" BERRY_CONSOLE_CMD_DELIMITER "/,2);"  // Field separator
-          "var d1=d.length>1?d[0]:null;"
-          "if(d1){"
-            "t1=document.createElement('div');"
-            "t1.classList.add('br1');"
-            "t1.innerText=d1;"
-            "t.appendChild(t1);"
-          "}"
-          "d1=d.length>1?d[1]:d[0];"
-          "if(d1){"
-            "t1=document.createElement('div');"
-            "t1.classList.add('br2');"
-            "t1.innerText=d1;"
-            "t.appendChild(t1);"
-          "}"
-          "t.scrollTop=1e8;"
-          "sn=t.scrollTop;"
-          "clearTimeout(ft);"
-          "lt=setTimeout(l,ltm);" // webrefresh timer....
-        "}"
-      "};"
-      "x.open('GET','bc?c2='+id+o,true);"  // Related to Webserver->hasArg("c2") and WebGetArg("c2", stmp, sizeof(stmp))
-      "x.send();"
-      "ft=setTimeout(l,2e4);" // fail timeout, triggered 20s after asking for XHR
-    "}else{"
-      "lt=setTimeout(l,ltm);" // webrefresh timer....
-    "}"
-    "c1.focus();"
-    "return false;"
-  "}"
-  "wl(l);"                                // Load initial console text
-;                               // Add console command key eventlistener after name has been synced with id (= wl(jd))
+  var SEP = ')BRY" BERRY_CONSOLE_CMD_DELIMITER R"BRY(';
 
-const char HTTP_SCRIPT_BERRY_CONSOLE2[] PROGMEM =
-  // // Console command history
-  // "var hc=[],cn=0;"                       // hc = History commands, cn = Number of history being shown
-  "var pc=0;"                                // pc = previous char
-  "function h(){"
-//    "if(!(navigator.maxTouchPoints||'ontouchstart'in document.documentElement)){eb('c1').autocomplete='off';}"  // No touch so stop browser autocomplete
-    "eb('c1').addEventListener('keydown',function(e){"
-      "var b=eb('c1'),c=e.keyCode;"       // c1 = Console command id
-      "if((38==c||40==c)&&0==this.selectionStart&&0==this.selectionEnd){"
-        "b.autocomplete='off';"
-        "e.preventDefault();"
-        "38==c?(++cn>hc.length&&(cn=hc.length),b.value=hc[cn-1]||''):"   // ArrowUp
-        "40==c?(0>--cn&&(cn=0),b.value=hc[cn-1]||''):"                   // ArrowDown
-        "0;"
-        "this.selectionStart=this.selectionEnd=0;"
-      "}"  // ArrowUp or ArrowDown must be a keyboard so stop browser autocomplete
-      "if(c==13&&pc==13){"
-        "e.preventDefault();"             // prevent 'enter' from being inserted
-        "l(1);"
-      "}"
-      "if(c==9){"
-        "e.preventDefault();"
-        "var start=this.selectionStart;"
-        "var end=this.selectionEnd;"
-        // set textarea value to: text before caret + tab + text after caret
-        "this.value=this.value.substring(0, start)+\"  \"+this.value.substring(end);"
-        // put caret at right position again
-        "this.selectionStart=this.selectionEnd=start + 1;"
-      "}"
-      "pc=c;"                                                          // record previous key
-      // "13==c&&(hc.length>19&&hc.pop(),hc.unshift(b.value),cn=0)"       // Enter, 19 = Max number -1 of commands in history
-    "});"
-  "}"
-  "wl(h);";                               // Add console command key eventlistener after name has been synced with id (= wl(jd))
+  function box() {
+    return eb('bt1');
+  }
+
+  function input() {
+    return eb('bc1');
+  }
+
+  function pinnedToBottom(el) {
+    if (!el) { return true; }
+    return (el.scrollTop + el.clientHeight) >= (el.scrollHeight - 12);
+  }
+
+  function appendLine(kind, text) {
+    var el = box();
+    var row;
+    var stick;
+
+    if (!el || typeof text !== 'string' || !text.length) { return; }
+
+    stick = pinnedToBottom(el);
+
+    row = d.createElement('div');
+    row.className = 'ts-berry-line ' + kind;
+    row.textContent = text;
+    el.appendChild(row);
+
+    if (stick) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }
+
+  function appendBlock(kind, text) {
+    var lines, i, line;
+
+    if (typeof text !== 'string' || !text.length) { return; }
+
+    lines = text.replace(/\r/g, '').split('\n');
+
+    for (i = 0; i < lines.length; i++) {
+      line = lines[i];
+
+      if (kind === 'in') {
+        appendLine('in', '#' + (i + 1) + ' - ' + line);
+      } else {
+        if (line.length) {
+          appendLine('out', line);
+        }
+      }
+    }
+  }
+
+  function scheduleNext() {
+    clearTimeout(BC.loopTimer);
+    BC.loopTimer = setTimeout(function () {
+      poll('');
+    }, BC.refreshMs);
+  }
+
+  function scheduleFail() {
+    clearTimeout(BC.failTimer);
+    BC.failTimer = setTimeout(function () {
+      poll('');
+    }, 20000);
+  }
+
+  function poll(extra) {
+    clearTimeout(BC.loopTimer);
+    clearTimeout(BC.failTimer);
+
+    if (BC.xhr !== null) {
+      BC.xhr.abort();
+      BC.xhr = null;
+    }
+
+    BC.xhr = new XMLHttpRequest();
+    BC.xhr.onreadystatechange = function () {
+      var raw, pos, left, right;
+
+      if (BC.xhr.readyState !== 4) { return; }
+
+      if (BC.xhr.status === 200) {
+        raw = BC.xhr.responseText || '';
+        if (raw.length) {
+          pos = raw.indexOf(SEP);
+          if (pos >= 0) {
+            left = raw.substring(0, pos);
+            right = raw.substring(pos + SEP.length);
+
+            if (left.length)  { appendBlock('in', left); }
+            if (right.length) { appendBlock('out', right); }
+          } else {
+            appendBlock('out', raw);
+          }
+        }
+
+        scheduleNext();
+      } else if (BC.xhr.status !== 0) {
+        scheduleFail();
+      }
+    };
+
+    BC.xhr.open('GET', '/bc?c2=1' + (extra || ''), true);
+    BC.xhr.send();
+
+    scheduleFail();
+  }
+
+  function remember(cmd) {
+    if (!cmd.length) { return; }
+
+    if (BC.history.length > 19) {
+      BC.history.pop();
+    }
+
+    BC.history.unshift(cmd);
+    BC.historyPos = 0;
+  }
+
+  function send() {
+    var el = input();
+    var code = '';
+
+    if (!el) { return false; }
+
+    code = el.value.trim();
+    if (!code.length) {
+      el.focus();
+      return false;
+    }
+
+    remember(code);
+    poll('&c1=' + encodeURIComponent(code));
+    el.value = '';
+    el.focus();
+    return false;
+  }
+
+  function bind() {
+    var el = input();
+    if (!el || BC.bound) { return; }
+
+    BC.bound = true;
+
+    el.addEventListener('keydown', function(e) {
+      var c = e.keyCode;
+      var start = this.selectionStart;
+      var end = this.selectionEnd;
+
+      if ((c === 38 || c === 40) && start === 0 && end === 0) {
+        e.preventDefault();
+        this.autocomplete = 'off';
+
+        if (c === 38) {
+          BC.historyPos++;
+          if (BC.historyPos > BC.history.length) {
+            BC.historyPos = BC.history.length;
+          }
+          this.value = BC.history[BC.historyPos - 1] || '';
+        } else {
+          BC.historyPos--;
+          if (BC.historyPos < 0) {
+            BC.historyPos = 0;
+          }
+          this.value = BC.history[BC.historyPos - 1] || '';
+        }
+        return;
+      }
+
+      if (c === 9) {
+        e.preventDefault();
+        this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
+        this.selectionStart = this.selectionEnd = start + 2;
+        return;
+      }
+
+      if (c === 13) {
+        if (BC.lastEnter && (Date.now() - BC.lastEnter) < 500) {
+          e.preventDefault();
+          BC.lastEnter = 0;
+          send();
+          return;
+        }
+        BC.lastEnter = Date.now();
+      } else {
+        BC.lastEnter = 0;
+      }
+    });
+  }
+
+  wl(function(){
+    bind();
+    poll('');
+    if (box()) {
+      box().scrollTop = box().scrollHeight;
+    }
+  });
+
+  w.tsBerryConsoleSend = send;
+})(window, document);
+)BRY";
 
 const char HTTP_BERRY_STYLE_CMND[] PROGMEM =
-  "<style>"
-  ".br1{"   // berry output
-    "border-left:dotted 2px #860;"
-    "margin-bottom:4px;"
-    "margin-top:4px;"
-    "padding:1px 5px 1px 18px;"
-  "}"
-  ".br2{"   // user input
-    "padding:0px 5px 0px 5px;"
-    "color:#faffff;"
-  "}"
-  ".br0{"
-    // "-moz-appearance: textfield-multiline;"
-    // "-webkit-appearance: textarea;"
-    "font:medium -moz-fixed;"
-    "font:-webkit-small-control;"
-    "box-sizing:border-box;"
-    "width:100%;"
+  ".ts-berry-wrap .ts-card-body{display:grid;gap:6px;}"
+  ".ts-berry-help{font-size:.85rem;opacity:.78;line-height:1.32;}"
+  ".ts-berry-help a{font-weight:700;}"
+  ".ts-berry-log{"
+    "min-height:300px;"
+    "max-height:40vh;"
     "overflow:auto;"
-    "resize:vertical;"
-    "font-family:monospace;"
-    "overflow:auto;"
-    "font-size:1em;"
+    "padding:6px;"
+    "border-radius:10px;"
+    "border:1px solid rgba(255,255,255,.10);"
+    "background:var(--c_csl);"
+    "color:var(--c_csltxt);"
+    "font-family:Consolas,Monaco,monospace;"
+    "white-space:pre-wrap;"
   "}"
-  ".bro{"
-    // "-moz-appearance: textfield-multiline;"
-    // "-webkit-appearance: textarea;"
-    "border:1px solid gray;"
-    "height:250px;"
-    "padding:2px;"
-    "background:#222;"
-    "color:#fb1;"
+  ".ts-berry-line{"
+    "padding:1px 4px;"
+    "border-radius:8px;"
+    "line-height:1.28;"
+    "font-size:.95rem;"
+  "}"
+  ".ts-berry-line+.ts-berry-line{margin-top:4px;}"
+  ".ts-berry-line.in{"
+    "background:rgba(255,255,255,.05);"
+    "border-left:2px solid rgba(255, 255, 255, 0.2);"
+    "color:var(--c_csltxt);"
+  "}"
+  ".ts-berry-line.out{"
+    "background:rgba(0,0,0,.12);"
+    "border-left:2px solid var(--c_btn);"
+    "color:var(--c_csltxt);"
+  "}"
+  ".ts-berry-input{"
+    "height:110px;"
+    "min-height:110px;"
+    "padding:6px;"
+    "font-family:Consolas,Monaco,monospace;"
     "white-space:pre;"
-    "padding:2px 5px 2px 5px;"
-  "}"
-  ".bri{"
-    // "-moz-appearance: textfield-multiline;"
-    // "-webkit-appearance: textarea;"
-    "border:1px solid gray;"
-    "height:60px;"
-    "padding:5px;"
-    "color:#000000;background:#faffff"
-  "}"
-  "</style>"
-  ;
+    "line-height:1.28;"
+    "font-size:.95rem;"
+  "}";
 
 const char HTTP_BERRY_FORM_CMND[] PROGMEM =
-  "<br>"
-  "<div contenteditable='false' class='br0 bro' readonly id='t1' cols='340' wrap='off'>"
-    "<div class='br1'>Welcome to the Berry Scripting console. "
-      "Check the <a href='https://tasmota.github.io/docs/Berry/' target='_blank'>documentation</a>."
+  "<section class='ts-card ts-berry-wrap'>"
+    "<div class='ts-card-body'>"
+      "<div id='bt1' class='ts-berry-log'>"
+        "<div class='ts-berry-line out'>Welcome to the Berry scripting console.</div>"
+      "</div>"
+      "<form method='get' id='bfo' class='ts-form' onsubmit='return tsBerryConsoleSend();'>"
+        "<div class='ts-field'>"
+          "<label for='bc1'>Code</label>"
+          "<textarea id='bc1' class='ts-berry-input' rows='5' wrap='soft' spellcheck='false' autofocus required></textarea>"
+        "</div>"
+        "<div class='ts-form-actions'>"
+          "<button type='submit'>Run code</button>"
+        "</div>"
+      "</form>"
     "</div>"
-  "</div>"
-  "<form method='get' id='fo' onsubmit='return l(1);'>"
-  "<textarea id='c1' class='br0 bri' rows='4' cols='340' wrap='soft' autofocus required></textarea>"
-  "<button type='submit'>Run code (or press 'Enter' twice)</button>"
-  "</form>"
+  "</section>"
 #ifdef USE_BERRY_DEBUG
-  "<p></p><form method='post' >"
-  "<button type='submit' name='rst' class='bred' onclick=\"if(confirm('Confirm removing endpoint')){clearTimeout(lt);return true;}else{return false;}\">Restart Berry VM (for devs only)</button>"
-  "</form>"
-#endif // USE_BERRY_DEBUG
+  "<section class='ts-card'>"
+    "<div class='ts-card-head'><h2>Developer actions</h2></div>"
+    "<div class='ts-card-body'>"
+      "<form method='post' action='bc' onsubmit=\"return confirm('Confirm Berry VM restart?');\">"
+        "<input type='hidden' name='rst' value='1'>"
+        "<button type='submit' class='bred'>Restart Berry VM</button>"
+      "</form>"
+    "</div>"
+  "</section>"
+#endif
   ;
 
 void HandleBerryConsoleRefresh(void)
@@ -740,7 +906,6 @@ void HandleBerryConsoleRefresh(void)
   if (svalue.length()) {
     berry.log.reset();          // clear all previous logs
     berry.repl_active = true;   // start recording
-    // AddLog(LOG_LEVEL_INFO, PSTR("BRY: received command %s"), svalue.c_str());
     berry.log.addString(svalue.c_str(), nullptr, BERRY_CONSOLE_CMD_DELIMITER);
 
     // Call berry
@@ -751,7 +916,6 @@ void HandleBerryConsoleRefresh(void)
   WSContentBegin(200, CT_PLAIN);
 
   if (!berry.log.isEmpty()) {
-
     WSContentFlush();
 
     for (auto & l: berry.log.log) {
@@ -760,6 +924,7 @@ void HandleBerryConsoleRefresh(void)
 
     berry.log.reset();
   }
+
   WSContentEnd();
 }
 
@@ -774,27 +939,30 @@ void HandleBerryConsole(void)
 
   if (Webserver->hasArg(F("rst"))) {      // restart VM
     BerryInit();
-    Webserver->sendHeader("Location", "/bc", true);
+    Webserver->sendHeader(F("Location"), F("/bc"), true);
     Webserver->send(302, "text/plain", "");
+    return;
   }
 
   AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP "Berry " D_CONSOLE));
 
   WSContentStart_P(PSTR("Berry " D_CONSOLE));
-  WSContentSendStyle();
+  WSContentSendStyle_P(HTTP_BERRY_STYLE_CMND);
+
   WSScriptStart();
   WSContentSend_P(HTTP_SCRIPT_BERRY_CONSOLE, Settings->web_refresh);
-  WSContentSend_P(HTTP_SCRIPT_BERRY_CONSOLE2);
   WSScriptStop();
-  
-  WSContentFlush();
-  _WSContentSend(HTTP_BERRY_STYLE_CMND);
-  _WSContentSend(HTTP_BERRY_FORM_CMND);
-//  WSContentSpaceButton(BUTTON_MANAGEMENT);
+
+  WSContentPageHeader(
+    PSTR("Berry Scripting " D_CONSOLE),
+    PSTR("Interactive Berry REPL with live background output. Documentation: <a href='https://tasmota.github.io/docs/Berry/' target='_blank' rel='noopener noreferrer'>Berry</a>.")
+  );
+
+  WSContentSend_P(HTTP_BERRY_FORM_CMND);
   WSContentStop();
 }
 
-
+  //  WSContentSpaceButton(BUTTON_MANAGEMENT);
 // const BeBECCode_t BECCode[] = {
 // struct BeBECCode_t {
 //   const char * display_name;      // display name in Web UI (must be URL encoded)
