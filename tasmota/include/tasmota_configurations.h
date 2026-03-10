@@ -41,7 +41,6 @@
 #define USE_BUZZER                               // Add support for a buzzer (+0k6 code)
 #define USE_DEEPSLEEP                            // Add support for deepsleep (+1k code)
 //#define USE_HOTPLUG                              // Add support for sensor HotPlug
-#undef USE_KEELOQ                               // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 
 
 #define USE_COUNTER                              // Enable counters
@@ -197,10 +196,6 @@
 //#define USE_TX20_WIND_SENSOR                     // Add support for La Crosse TX20 anemometer (+2k6/0k8 code)
 //#define USE_TX23_WIND_SENSOR                     // Add support for La Crosse TX23 anemometer (+2k7/1k code)
 //#define USE_WINDMETER                            // Add support for analog anemometer (+2k2 code)
-#define USE_RC_SWITCH                            // Add support for RF transceiver using library RcSwitch (+2k7 code, 460 iram)
-#define USE_RF_SENSOR                            // Add support for RF sensor receiver (434MHz or 868MHz) (+0k8 code)
-//  #define USE_THEO_V2                            // Add support for decoding Theo V2 sensors as documented on https://sidweb.nl using 434MHz RF sensor receiver (+1k4 code)
-  #define USE_ALECTO_V2                          // Add support for decoding Alecto V2 sensors like ACH2010, WS3000 and DKW2012 using 868MHz RF sensor receiver (+1k7 code)
 #define USE_HRE                                  // Add support for Badger HR-E Water Meter (+1k4 code)
 //#define USE_A4988_STEPPER                        // Add support for A4988/DRV8825 stepper-motor-driver-circuit (+10k5 code)
 //#define USE_THERMOSTAT                           // Add support for Thermostat
@@ -231,7 +226,6 @@
 #undef USE_BUZZER                                // Disable support for a buzzer (+0k6 code)
 #undef USE_DEEPSLEEP                             // Disable support for deepsleep (+1k code)
 #undef USE_HOTPLUG                               // Disable support for HotPlug
-#undef USE_KEELOQ                                // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 
 #undef USE_BLE_ESP32                             // (ESP32 only) Disable support for native BLE on ESP32 - use new driver
 #undef USE_MI_ESP32                              // (ESP32 only) Disable support for ESP32 as a BLE-bridge (+9k2 mem, +292k flash)
@@ -302,7 +296,6 @@
 #undef USE_BUZZER                                // Disable support for a buzzer (+0k6 code)
 #undef USE_DEEPSLEEP                             // Disable support for deepsleep (+1k code)
 #undef USE_HOTPLUG                               // Disable support for HotPlug
-#undef USE_KEELOQ                                // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 
 
 
@@ -348,8 +341,6 @@
 #undef USE_TX20_WIND_SENSOR                      // Disable support for La Crosse TX20 anemometer
 #undef USE_TX23_WIND_SENSOR                      // Disable support for La Crosse TX23 anemometer
 #undef USE_WINDMETER                             // Disable support for analog anemometer (+2k2 code)
-#undef USE_RC_SWITCH                             // Disable support for RF transceiver using library RcSwitch
-#undef USE_RF_SENSOR                             // Disable support for RF sensor receiver (434MHz or 868MHz) (+0k8 code)
 #undef USE_HRE                                   // Disable support for Badger HR-E Water Meter (+1k4 code)
 #undef USE_A4988_STEPPER                         // Disable support for A4988_Stepper
 #undef USE_THERMOSTAT                            // Disable support for Thermostat
@@ -396,7 +387,6 @@
 #undef USE_BUZZER                                // Disable support for a buzzer (+0k6 code)
 #undef USE_DEEPSLEEP                             // Disable support for deepsleep (+1k code)
 #undef USE_HOTPLUG                               // Disable support for HotPlug
-#undef USE_KEELOQ                                // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 
 
 
@@ -450,8 +440,6 @@
 #undef USE_TX23_WIND_SENSOR                      // Disable support for La Crosse TX23 anemometer
 #undef USE_WINDMETER                             // Disable support for analog anemometer (+2k2 code)
 #undef USE_FTC532                                // Disable support for FTC532 touch controller (+0k6 code)
-#undef USE_RC_SWITCH                             // Disable support for RF transceiver using library RcSwitch
-#undef USE_RF_SENSOR                             // Disable support for RF sensor receiver (434MHz or 868MHz) (+0k8 code)
 #undef USE_HRE                                   // Disable support for Badger HR-E Water Meter (+1k4 code)
 #undef USE_A4988_STEPPER                         // Disable support for A4988_Stepper
 #undef USE_PROMETHEUS                            // Disable support for https://prometheus.io/ metrics exporting over HTTP /metrics endpoint
@@ -503,7 +491,6 @@
 #undef USE_BUZZER                                // Disable support for a buzzer (+0k6 code)
 #undef USE_DEEPSLEEP                             // Disable support for deepsleep (+1k code)
 #undef USE_HOTPLUG                               // Disable support for HotPlug
-#undef USE_KEELOQ                                // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 
 // -- Optional light modules ----------------------
 
@@ -555,8 +542,6 @@
 #undef USE_TX20_WIND_SENSOR                      // Disable support for La Crosse TX20 anemometer
 #undef USE_TX23_WIND_SENSOR                      // Disable support for La Crosse TX23 anemometer
 #undef USE_WINDMETER                             // Disable support for analog anemometer (+2k2 code)
-#undef USE_RC_SWITCH                             // Disable support for RF transceiver using library RcSwitch
-#undef USE_RF_SENSOR                             // Disable support for RF sensor receiver (434MHz or 868MHz) (+0k8 code)
 #undef USE_HRE                                   // Disable support for Badger HR-E Water Meter (+1k4 code)
 #undef USE_A4988_STEPPER                         // Disable support for A4988_Stepper
 #undef USE_THERMOSTAT                            // Disable support for Thermostat

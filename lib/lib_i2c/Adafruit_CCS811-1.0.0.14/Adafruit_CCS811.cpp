@@ -7,7 +7,7 @@
     @returns True if device is set up, false on any failure
 */
 /**************************************************************************/
-sint8_t Adafruit_CCS811::begin(uint8_t addr)
+int8_t Adafruit_CCS811::begin(uint8_t addr)
 {
 	_i2caddr = addr;
 

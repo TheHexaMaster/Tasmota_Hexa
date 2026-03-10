@@ -71,7 +71,7 @@ class Adafruit_CCS811 {
 		Adafruit_CCS811(void) {};
 		~Adafruit_CCS811(void) {};
 
-		sint8_t begin(uint8_t addr = CCS811_ADDRESS);
+		int8_t begin(uint8_t addr = CCS811_ADDRESS);
 
 		void setEnvironmentalData(uint8_t humidity, double temperature);
 

@@ -488,8 +488,8 @@ struct SML_CRC_DATA {
   uint32_t crcfailcnt; //cnt bad-crc telegrams
   uint32_t crcfinecnt; //cnt good-crc telegrams
   uint32_t overflowcnt; //cnt good-crc telegrams
-  sint8_t telestartpos; //-1=still searching, 0=found
-  sint16_t teleendpos; //end of the telegram in the buffer or -1 when waiting for it
+  int8_t telestartpos; //-1=still searching, 0=found
+  int16_t teleendpos; //end of the telegram in the buffer or -1 when waiting for it
 };
 #endif // USE_SML_CRC
 

@@ -80,7 +80,6 @@
 
   using sint8_t  = int8_t;
   using sint16_t = int16_t;
-  using sint32_t = int32_t;
 #else
   typedef uint8_t  uint8;
   typedef uint16_t uint16;
@@ -88,7 +87,6 @@
 
   typedef int8_t   sint8_t;
   typedef int16_t  sint16_t;
-  typedef int32_t  sint32_t;
 #endif
 
 

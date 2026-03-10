@@ -75,7 +75,6 @@
 #undef USE_BUZZER                                // Disable support for a buzzer (+0k6 code)
 #undef USE_DEEPSLEEP                             // Disable support for deepsleep (+1k code)
 #undef USE_HOTPLUG                               // Disable support for HotPlug
-#undef USE_KEELOQ                                // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 
 // -- Optional light modules ----------------------
 
@@ -127,8 +126,6 @@
 #undef USE_TX20_WIND_SENSOR                      // Disable support for La Crosse TX20 anemometer
 #undef USE_TX23_WIND_SENSOR                      // Disable support for La Crosse TX23 anemometer
 #undef USE_WINDMETER                             // Disable support for analog anemometer (+2k2 code)
-#undef USE_RC_SWITCH                             // Disable support for RF transceiver using library RcSwitch
-#undef USE_RF_SENSOR                             // Disable support for RF sensor receiver (434MHz or 868MHz) (+0k8 code)
 #undef USE_HRE                                   // Disable support for Badger HR-E Water Meter (+1k4 code)
 #undef USE_A4988_STEPPER                         // Disable support for A4988_Stepper
 #undef USE_THERMOSTAT                            // Disable support for Thermostat
@@ -137,7 +134,6 @@
 #undef USE_DEBUG_DRIVER                          // Disable debug code
 #undef USE_AC_ZERO_CROSS_DIMMER                  // Disable support for AC_ZERO_CROSS_DIMMER
 
-#undef USE_ALPINEJS
 #undef USE_BUZZER
 
 #undef USE_BERRY_WEBCLIENT_ASYNC                // Enable ASYNC webclient mode as an additional mode to standary berry webclient.   
@@ -297,7 +293,6 @@
 #define USE_BUZZER                               // Add support for a buzzer (+0k6 code)
 //#define USE_DEEPSLEEP                            // Add support for deepsleep (+1k code)
 //#define USE_HOTPLUG                              // Add support for sensor HotPlug
-#undef USE_KEELOQ                               // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 
 
 #define USE_DS18x20                              // Add support for DS18x20 sensors with id sort, single scan and read retry (+1k3 code)
@@ -451,7 +446,6 @@
 
 //#define USE_BUZZER                               // Add support for a buzzer (+0k6 code)
 //#define USE_DEEPSLEEP                            // Add support for deepsleep (+1k code)
-#undef USE_KEELOQ                               // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 
 #define USE_I2C                                  // I2C using library wire (+10k code, 0k2 mem, 124 iram)
 #define USE_SPI                                // Hardware SPI using GPIO12(MISO), GPIO13(MOSI) and GPIO14(CLK) in addition to two user selectable GPIOs(CS and DC)
@@ -506,7 +500,6 @@
 #define USE_BUZZER                               // Add support for a buzzer (+0k6 code)
 #define USE_DEEPSLEEP                            // Add support for deepsleep (+1k code)
 //#define USE_HOTPLUG                              // Add support for sensor HotPlug
-#undef USE_KEELOQ                               // Disable support for Jarolift rollers by Keeloq algorithm (+4k5 code)
 
 #ifdef CONFIG_IDF_TARGET_ESP32C3
 #define USE_MAGIC_SWITCH                         // Add Sonoff MagicSwitch support as implemented in Sonoff Basic R4
@@ -668,10 +661,6 @@
 //#define USE_TX20_WIND_SENSOR                     // Add support for La Crosse TX20 anemometer (+2k6/0k8 code)
 //#define USE_TX23_WIND_SENSOR                     // Add support for La Crosse TX23 anemometer (+2k7/1k code)
 //#define USE_WINDMETER                            // Add support for analog anemometer (+2k2 code)
-#define USE_RC_SWITCH                            // Add support for RF transceiver using library RcSwitch (+2k7 code, 460 iram)
-#define USE_RF_SENSOR                            // Add support for RF sensor receiver (434MHz or 868MHz) (+0k8 code)
-//  #define USE_THEO_V2                            // Add support for decoding Theo V2 sensors as documented on https://sidweb.nl using 434MHz RF sensor receiver (+1k4 code)
-  #define USE_ALECTO_V2                          // Add support for decoding Alecto V2 sensors like ACH2010, WS3000 and DKW2012 using 868MHz RF sensor receiver (+1k7 code)
 #define USE_HRE                                  // Add support for Badger HR-E Water Meter (+1k4 code)
 //#define USE_A4988_STEPPER                        // Add support for A4988/DRV8825 stepper-motor-driver-circuit (+10k5 code)
 //#define USE_THERMOSTAT                           // Add support for Thermostat

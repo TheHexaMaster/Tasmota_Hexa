@@ -128,9 +128,7 @@ constexpr uint32_t feature[] = {
   0x00004000 |  // xdrv_15_pca9685.ino or xdrv_15_pca9685_v2.ino
 #endif
 //  0x00008000 |  // xdrv_16_tuyadimmer.ino - USE_TUYA_MCU - DELETED
-#ifdef USE_RC_SWITCH
-  0x00010000 |  // xdrv_17_rcswitch.ino
-#endif
+//  0x00010000 |  // xdrv_17_rcswitch.ino - USE_RC_SWITCH - DELETED
 //  0x00020000 |  // xdrv_18_armtronixdimmer.ino - USE_ARMTRONIX_DIMMERS - DELETED
 //  0x00040000 |  // xdrv_04_light.ino - USE_SM16716 - DELETED
 //  0x00080000 |  // xdrv_10_scripter.ino - USE_SCRIPT - DELETED
@@ -289,15 +287,9 @@ constexpr uint32_t feature[] = {
 #if defined(USE_I2C) && defined(USE_MGC3130)
   0x00004000 |  // xsns_36_mgc3130.ino
 #endif
-#ifdef USE_RF_SENSOR
-  0x00008000 |  // xsns_37_rfsensor.ino
-#endif
-#if defined(USE_RF_SENSOR) && defined(USE_THEO_V2)
-  0x00010000 |  // xsns_37_rfsensor.ino
-#endif
-#if defined(USE_RF_SENSOR) && defined(USE_ALECTO_V2)
-  0x00020000 |  // xsns_37_rfsensor.ino
-#endif
+//  0x00008000 |  // xsns_37_rfsensor.ino - USE_RF_SENSOR - DELETED
+//  0x00010000 |  // xsns_37_rfsensor.ino - USE_THEO_V2 - DELETED
+//  0x00020000 |  // xsns_37_rfsensor.ino - USE_ALECTO_V2 - DELETED
 #ifdef USE_AZ7798
   0x00040000 |  // xsns_38_az7798.ino
 #endif
@@ -412,9 +404,7 @@ constexpr uint32_t feature[] = {
 //  0x40000000 |  // support_device_groups.ino - USE_DEVICE_GROUPS - DELETED
 //  0x80000000 |  // xdrv_35_pwm_dimmer - USE_PWM_DIMMER - DELETED
   0,
-#ifdef USE_KEELOQ
-  0x00000001 |  // xdrv_36_keeloq.ino
-#endif
+//  0x00000001 |  // xdrv_36_keeloq.ino - USE_KEELOQ - DELETED
 #ifdef USE_HRXL
   0x00000002 |  // xsns_64_hrxl.ino
 #endif
