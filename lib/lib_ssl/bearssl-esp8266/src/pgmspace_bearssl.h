@@ -56,9 +56,6 @@
 #define pgm_read_float_far(addr)        pgm_read_float(addr)
 #define pgm_read_ptr_far(addr)          pgm_read_ptr(addr)
 
-#define memcpy_P memcpy
-#define memcmp_P memcmp
-
 #endif // !ESP8266
 
 #endif

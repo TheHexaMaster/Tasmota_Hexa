@@ -315,7 +315,7 @@ char* InfluxDbNumber(char* alternative, JsonParserToken value) {
 void InfluxDbProcessJsonValue(JsonParserKey key, JsonParserToken value, const char* sensor_name, String *data) {
   char type[64];         // 'temperature'
   LowerCase(type, key.getStr());
-  bool is_id = (!strcmp_P(type, PSTR("id")));  // Index for DS18B20
+  bool is_id = (!strcmp(type, PSTR("id")));  // Index for DS18B20
   bool is_array = value.isArray();
   if (is_id && !is_array) {
     IFDB.sensor_id = F(",id=");

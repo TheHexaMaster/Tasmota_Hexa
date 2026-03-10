@@ -655,8 +655,8 @@ point_decode(jacobian *P, const void *src, size_t len, const curve_params *cc)
 	 * Convert coordinates and check that the point is valid.
 	 */
 	zlen = ((pgm_read_word(&cc->p[0]) + 31) >> 4) * sizeof(uint16_t);
-	memcpy_P(Q.c[0], cc->R2, zlen);
-	memcpy_P(Q.c[1], cc->b, zlen);
+	memcpy(Q.c[0], cc->R2, zlen);
+	memcpy(Q.c[1], cc->b, zlen);
 	set_one(Q.c[2], cc->p);
 	r &= ~run_code(P, &Q, cc, code_check);
 	return r;
@@ -752,7 +752,7 @@ api_mulgen(unsigned char *R,
 	size_t Glen;
 
 	G = api_generator(curve, &Glen);
-	memcpy_P(R, G, Glen);
+	memcpy(R, G, Glen);
 	api_mul(R, Glen, x, xlen, curve);
 	return Glen;
 }

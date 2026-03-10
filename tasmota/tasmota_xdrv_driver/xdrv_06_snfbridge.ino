@@ -229,7 +229,7 @@ void SonoffBridgeReceived(void)
       if (!((received_id == SnfBridge.last_received_id) && (now - SnfBridge.last_time < Settings->rf_duplicate_time))) {
         SnfBridge.last_received_id = received_id;
         SnfBridge.last_time = now;
-        strncpy_P(rfkey, PSTR("\"" D_JSON_NONE "\""), sizeof(rfkey));
+        strncpy(rfkey, PSTR("\"" D_JSON_NONE "\""), sizeof(rfkey));
         for (uint32_t i = 1; i <= 16; i++) {
           if (Settings->rf_code[i][0]) {
             uint32_t send_id = Settings->rf_code[i][6] << 16 | Settings->rf_code[i][7] << 8 | Settings->rf_code[i][8];

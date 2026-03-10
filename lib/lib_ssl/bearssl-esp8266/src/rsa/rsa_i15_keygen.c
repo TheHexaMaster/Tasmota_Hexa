@@ -107,7 +107,7 @@ trial_divisions(const uint16_t *x, uint16_t *t)
 	uint16_t *y;
 	uint16_t x0i;
 	unsigned char small_primes_ram[sizeof SMALL_PRIMES];
-	memcpy_P(small_primes_ram, SMALL_PRIMES, sizeof SMALL_PRIMES);
+	memcpy(small_primes_ram, SMALL_PRIMES, sizeof SMALL_PRIMES);
 
 	y = t;
 	t += 1 + ((x[0] + 15) >> 4);

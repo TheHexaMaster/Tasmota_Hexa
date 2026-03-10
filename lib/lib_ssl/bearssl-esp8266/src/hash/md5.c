@@ -72,7 +72,7 @@ br_md5_round(const unsigned char *buf, uint32_t *val)
 	uint32_t a, b, c, d;
 	int i;
 	uint8_t MP[48];
-	memcpy_P(MP, MP_flash, 48);
+	memcpy(MP, MP_flash, 48);
 
 	a = val[0];
 	b = val[1];

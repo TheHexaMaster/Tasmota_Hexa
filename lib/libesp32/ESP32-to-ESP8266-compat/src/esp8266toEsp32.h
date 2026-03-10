@@ -140,21 +140,21 @@ uint32_t analogGetTimerFrequency(uint8_t timer);
 
 /*********************************************************************************************/
 
-#define INPUT_PULLDOWN_16 INPUT_PULLUP
+// #define INPUT_PULLDOWN_16 INPUT_PULLUP
 
 //
 // Time and Timer
 //
-#define ETS_UART_INTR_DISABLE()
-#define ETS_UART_INTR_ENABLE()
+// #define ETS_UART_INTR_DISABLE()
+// #define ETS_UART_INTR_ENABLE()
 
 #define ESPhttpUpdate httpUpdate
 
-#if ESP_IDF_VERSION_MAJOR >= 5
-#include "rom/ets_sys.h"
-#else
-#define os_delay_us ets_delay_us
-#endif
+// #if ESP_IDF_VERSION_MAJOR >= 5
+// #include "rom/ets_sys.h"
+// #else
+// #define os_delay_us ets_delay_us
+// #endif
 
 // Serial minimal type to hold the config
 typedef int SerConfu8;
@@ -175,11 +175,6 @@ typedef int SerConfu8;
 #define REASON_EXT_SYS_RST      6  // "External System"         external system reset
 
 // memmove ...
-#define memcpy_P memcpy
-#define memmove_P memmove
-#define strncpy_P strncpy
-#define strcmp_P strcmp
-#define memccpy_P memccpy
 #define snprintf_P snprintf
 #define sprintf_P sprintf
 #define strncmp_P strncmp

@@ -437,7 +437,7 @@ void CmndTmFingerprint(void) {
   char fingerprint[60];
   if ((XdrvMailbox.data_len > 0) && (XdrvMailbox.data_len < sizeof(fingerprint))) {
     if (SC_DEFAULT == Shortcut()) {
-      memcpy_P(Telegram->fingerprint, Telegram_Fingerprint, sizeof(Telegram->fingerprint)); 
+      memcpy(Telegram->fingerprint, Telegram_Fingerprint, sizeof(Telegram->fingerprint)); 
     } else {
       strlcpy(fingerprint, (SC_CLEAR == Shortcut()) ? "" : XdrvMailbox.data, sizeof(fingerprint));
       char *p = fingerprint;

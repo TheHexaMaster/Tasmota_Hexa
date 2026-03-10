@@ -350,7 +350,7 @@ size_t BSSL_SSL_Client::write(uint8_t b)
 size_t BSSL_SSL_Client::write_P(PGM_P buf, size_t size)
 {
     char dest[size];
-    memcpy_P((void *)dest, buf, size);
+    memcpy((void *)dest, buf, size);
     return write((const uint8_t *)dest, size);
 }
 
@@ -581,7 +581,7 @@ bool BSSL_SSL_Client::setFingerprint(const uint8_t fingerprint[20])
 {
     mClearAuthenticationSettings();
     _use_fingerprint = true;
-    memcpy_P(_fingerprint, fingerprint, 20);
+    memcpy(_fingerprint, fingerprint, 20);
     return true;
 }
 
@@ -939,7 +939,7 @@ bool BSSL_SSL_Client::setCiphers(const uint16_t *cipherAry, int cipherCount)
 #endif
         return false;
     }
-    memcpy_P(_cipher_list, cipherAry, cipherCount * sizeof(uint16_t));
+    memcpy(_cipher_list, cipherAry, cipherCount * sizeof(uint16_t));
     _cipher_cnt = cipherCount;
     return true;
 }
@@ -1192,7 +1192,7 @@ bool BSSL_SSL_Client::mProbeMaxFragmentLength(Client *probe, uint16_t len)
 #endif
         return false;
     }
-    memcpy_P(clientHello, clientHelloHead_P, sizeof(clientHelloHead_P));
+    memcpy(clientHello, clientHelloHead_P, sizeof(clientHelloHead_P));
     clientHello[sizeof(clientHelloHead_P) + 0] = sizeof(suites_P) >> 8;   // MSB byte len
     clientHello[sizeof(clientHelloHead_P) + 1] = sizeof(suites_P) & 0xff; // LSB byte len
     for (size_t i = 0; i < sizeof(suites_P) / sizeof(suites_P[0]); i++)
@@ -1202,7 +1202,7 @@ bool BSSL_SSL_Client::mProbeMaxFragmentLength(Client *probe, uint16_t len)
         flip = ((flip >> 8) & 0xff) | ((flip & 0xff) << 8);
         memcpy(clientHello + sizeof(clientHelloHead_P) + 2 + 2 * i, &flip, 2);
     }
-    memcpy_P(clientHello + sizeof(clientHelloHead_P) + 2 + sizeof(suites_P), clientHelloTail_P, sizeof(clientHelloTail_P));
+    memcpy(clientHello + sizeof(clientHelloHead_P) + 2 + sizeof(suites_P), clientHelloTail_P, sizeof(clientHelloTail_P));
     clientHello[sizeof(clientHelloHead_P) + 2 + sizeof(suites_P) + sizeof(clientHelloTail_P)] = mfl;
 
     // Fix up TLS fragment length

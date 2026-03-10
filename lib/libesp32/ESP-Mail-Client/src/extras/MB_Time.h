@@ -226,7 +226,7 @@ public:
       day = atoi(tk[tkindex + 1].c_str());
       for (size_t i = 0; i < 12; i++)
       {
-        if (strcmp_P(mb_months[i], tk[tkindex + 2].c_str()) == 0)
+        if (strcmp(mb_months[i], tk[tkindex + 2].c_str()) == 0)
           mon = i;
       }
 

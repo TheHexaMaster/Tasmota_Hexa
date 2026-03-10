@@ -286,7 +286,7 @@ struct HtmlColor
             if (pgm_read_dword(&colorPair->Color) == Color)
             {
                 PGM_P name = (PGM_P)pgm_read_ptr(&colorPair->Name);
-                strncpy_P(buf, name, bufSize);
+                strncpy(buf, name, bufSize);
                 return strlen_P(name);
             }
         }

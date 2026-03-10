@@ -304,7 +304,7 @@ const char HTTP_HEAD_STYLE_SSI[] PROGMEM =
   ".si .b2{height:75%}"
   ".si .b3{height:100%}"
   ".o30{opacity:.3}";
-
+/*
 const char HTTP_MSG_SLIDER_SHUTTER[] PROGMEM =
   "<td style='width:70%%'>"
   "<div style='padding:0px 2px;text-align:center;font-size:12px;'><span>%s</span>"
@@ -318,7 +318,7 @@ const char HTTP_MSG_SLIDER_GRADIENT[] PROGMEM =
   "<input id='sl%d' type='range' min='%d' max='%d' value='%d' onchange='lc(\"%c\",%d,value)'>"
   "</div>"
   "</td>";
-
+*/
 const char HTTP_MSG_RSTRT[] PROGMEM =
   "<br><div style='text-align:center;'>" D_DEVICE_WILL_RESTART "</div><br>";
 
@@ -452,7 +452,7 @@ const char HTTP_END[] PROGMEM =
   "</body>"
   "</html>";
 
-const char HTTP_DEVICE_CONTROL[] PROGMEM = "<td style='width:%d%%'><button id='o%d' onclick='la(\"&o=%d\");'>%s%s</button></td>";  // ?o is related to WebGetArg(PSTR("o"), tmp, sizeof(tmp))
+// const char HTTP_DEVICE_CONTROL[] PROGMEM = "<td style='width:%d%%'><button id='o%d' onclick='la(\"&o=%d\");'>%s%s</button></td>";  // ?o is related to WebGetArg(PSTR("o"), tmp, sizeof(tmp))
 const char HTTP_DEVICE_STATE[] PROGMEM = "<td style='width:%d%%;text-align:center;font-weight:%s;font-size:%dpx'>%s</td>";
 
 const char HTTP_STATUS_STICKER[] PROGMEM =

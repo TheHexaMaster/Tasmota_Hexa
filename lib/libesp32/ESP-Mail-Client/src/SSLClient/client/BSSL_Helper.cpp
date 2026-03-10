@@ -419,7 +419,7 @@ namespace key_bssl
         free(xcs);
         return nullptr;
       }
-      memcpy_P(xcs[0].data, buff, len);
+      memcpy(xcs[0].data, buff, len);
       xcs[0].data_len = len;
       xcs[1].data = nullptr;
       xcs[1].data_len = 0;
@@ -434,7 +434,7 @@ namespace key_bssl
     }
     for (u = 0; u < num_pos; u++)
     {
-      if (!strcmp_P(pos[u].name, PSTR("CERTIFICATE")) || !strcmp_P(pos[u].name, PSTR("X509 CERTIFICATE")))
+      if (!strcmp(pos[u].name, PSTR("CERTIFICATE")) || !strcmp(pos[u].name, PSTR("X509 CERTIFICATE")))
       {
         br_x509_certificate xc;
         xc.data = pos[u].data;
@@ -703,7 +703,7 @@ namespace key_bssl
     for (size_t u = 0; pos[u].name; u++)
     {
       const char *name = pos[u].name;
-      if (!strcmp_P(name, PSTR("RSA PRIVATE KEY")) || !strcmp_P(name, PSTR("EC PRIVATE KEY")) || !strcmp_P(name, PSTR("PRIVATE KEY")))
+      if (!strcmp(name, PSTR("RSA PRIVATE KEY")) || !strcmp(name, PSTR("EC PRIVATE KEY")) || !strcmp(name, PSTR("PRIVATE KEY")))
       {
         sk = decode_private_key(pos[u].data, pos[u].data_len);
         free_pem_object(pos);
@@ -734,7 +734,7 @@ namespace key_bssl
     for (size_t u = 0; pos[u].name; u++)
     {
       const char *name = pos[u].name;
-      if (!strcmp_P(name, PSTR("RSA PUBLIC KEY")) || !strcmp_P(name, PSTR("EC PUBLIC KEY")) || !strcmp_P(name, PSTR("PUBLIC KEY")))
+      if (!strcmp(name, PSTR("RSA PUBLIC KEY")) || !strcmp(name, PSTR("EC PUBLIC KEY")) || !strcmp(name, PSTR("PUBLIC KEY")))
       {
         pk = decode_public_key(pos[u].data, pos[u].data_len);
         free_pem_object(pos);

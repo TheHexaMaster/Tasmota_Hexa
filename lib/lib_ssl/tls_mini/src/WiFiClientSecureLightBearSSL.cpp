@@ -407,7 +407,7 @@ size_t WiFiClientSecure_light::_write(const uint8_t *buf, size_t size, bool pmem
       unsigned char *sendapp_buf = br_ssl_engine_sendapp_buf(_eng, &sendapp_len);
       int to_send = size > sendapp_len ? sendapp_len : size;
       if (pmem) {
-        memcpy_P(sendapp_buf, buf, to_send);
+        memcpy(sendapp_buf, buf, to_send);
       } else {
         memcpy(sendapp_buf, buf, to_send);
       }
@@ -837,10 +837,10 @@ extern "C" {
     br_x509_pubkeyfingerprint_context *xc = (br_x509_pubkeyfingerprint_context *)ctx;
     pubkeyfingerprint_pubkey_fingerprint(xc);
     if (!xc->fingerprint_all) {
-      if (0 == memcmp_P(xc->pubkey_recv_fingerprint, xc->fingerprint1, 20)) {
+      if (0 == memcmp(xc->pubkey_recv_fingerprint, xc->fingerprint1, 20)) {
         return 0;
       }
-      if (0 == memcmp_P(xc->pubkey_recv_fingerprint, xc->fingerprint2, 20)) {
+      if (0 == memcmp(xc->pubkey_recv_fingerprint, xc->fingerprint2, 20)) {
         return 0;
       }
       return 1;   // no match, error

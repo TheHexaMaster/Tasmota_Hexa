@@ -618,7 +618,7 @@ bool CLLFlashFirmware(uint8_t* data, uint32_t size)
 
         while((block*512)<size)
         {
-            memcpy_P(rxBuf,data+(block*512),512);
+            memcpy(rxBuf,data+(block*512),512);
             CCLwrite_flash_memory_block(rxBuf, addr, 512); // src, address, count
 
             unsigned char bank = addr / (512 * 16);

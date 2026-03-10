@@ -33,7 +33,7 @@ WiFiClient EspClient;                     // Wifi Client - non-TLS
 #undef  MQTT_PORT
 #define MQTT_PORT         8883
 #if defined(USE_MQTT_AZURE_DPS_SCOPEID) && defined(USE_MQTT_AZURE_DPS_PRESHAREDKEY)
-  #include <ESP8266HTTPClient.h>
+  #include <HTTPClient.h>
   // dedicated tlsHttpsClient for DPS as the 'tlsClient' above causes error '-1' in httpsClient after it is associated with PubSub.  It cost ~5K of heap
   BearSSL::WiFiClientSecure_light *tlsHttpsClient = new BearSSL::WiFiClientSecure_light(1024,1024);
   HTTPClient httpsClient;
@@ -1434,7 +1434,7 @@ void CmndMqttFingerprint(void) {
     char fingerprint[60];
     if ((XdrvMailbox.data_len > 0) && (XdrvMailbox.data_len < sizeof(fingerprint))) {
       if (SC_DEFAULT == Shortcut()) {
-        memcpy_P(Settings->mqtt_fingerprint[XdrvMailbox.index -1], (1 == XdrvMailbox.index) ? default_fingerprint1 : default_fingerprint2, sizeof(default_fingerprint1));
+        memcpy(Settings->mqtt_fingerprint[XdrvMailbox.index -1], (1 == XdrvMailbox.index) ? default_fingerprint1 : default_fingerprint2, sizeof(default_fingerprint1));
       } else {
         strlcpy(fingerprint, (SC_CLEAR == Shortcut()) ? "" : XdrvMailbox.data, sizeof(fingerprint));
         char *p = fingerprint;
@@ -1843,7 +1843,7 @@ void loadTlsDir(void) {
     return;   // file does not exist, do nothing
   }
 #endif
-  memcpy_P(&tls_dir, tls_spi_start + tls_block_offset, sizeof(tls_dir));
+  memcpy(&tls_dir, tls_spi_start + tls_block_offset, sizeof(tls_dir));
 
   // calculate the addresses for Key and Cert in Flash
   if ((TLS_NAME_SKEY == tls_dir.entry[0].name) && (tls_dir.entry[0].len > 0)) {
@@ -1882,7 +1882,7 @@ void CmndTlsKey(void) {
         return;
       }
       if (tls_spi_start != nullptr) {  // safeguard for ESP32
-        memcpy_P(spi_buffer, tls_spi_start, tls_spi_len);
+        memcpy(spi_buffer, tls_spi_start, tls_spi_len);
       } else {
         memset(spi_buffer, 0, tls_spi_len);   // safeguard for ESP32, removed by compiler for ESP8266
       }

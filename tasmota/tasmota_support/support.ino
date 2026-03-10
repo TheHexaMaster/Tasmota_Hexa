@@ -84,7 +84,7 @@ bool ResetReasonPowerOn(void) {
 String GetResetReason(void) {
   if (OsWatchBlockedLoop()) {
     char buff[32];
-    strncpy_P(buff, PSTR(D_JSON_BLOCKED_LOOP), sizeof(buff));
+    strncpy(buff, PSTR(D_JSON_BLOCKED_LOOP), sizeof(buff));
     return String(buff);
   } else {
     return ESP_getResetReason();
@@ -798,7 +798,7 @@ void DevicesPresentNonDisplayOrLight(uint32_t &devices_claimed) {
 
 char* GetPowerDevice(char* dest, uint32_t idx, size_t size, uint32_t option)
 {
-  strncpy_P(dest, S_RSLT_POWER, size);                // POWER
+  strncpy(dest, S_RSLT_POWER, size);                // POWER
   if ((TasmotaGlobal.devices_present + option) > 1) {
     char sidx[8];
     snprintf_P(sidx, sizeof(sidx), PSTR("%d"), idx);  // x
@@ -1523,7 +1523,7 @@ void TemplateGpios(myio *gp)
   memset(dest, GPIO_NONE, sizeof(myio));
 
   // Jediný zdroj template je compile-time MODULE
-  memcpy_P(&src, &kModules[ModuleTemplate(MODULE)].gp, sizeof(mycfgio));
+  memcpy(&src, &kModules[ModuleTemplate(MODULE)].gp, sizeof(mycfgio));
 
   // Expand template to physical GPIO array, j=phy_GPIO, i=template_GPIO
   uint32_t j = 0;
@@ -1551,7 +1551,7 @@ void TemplateGpios(myio *gp)
   if (USER_MODULE == Settings->module) {
     memcpy(&src, &Settings->user_template.gp, sizeof(mycfgio));
   } else {
-    memcpy_P(&src, &kModules[ModuleTemplate(Settings->module)].gp, sizeof(mycfgio));
+    memcpy(&src, &kModules[ModuleTemplate(Settings->module)].gp, sizeof(mycfgio));
   }
   // 11 85 00 85 85 00 00 00 15 38 85 00 00 81
 
@@ -1585,7 +1585,7 @@ gpio_flag ModuleFlag(void)
   if (USER_MODULE == Settings->module) {
     flag = Settings->user_template.flag;
   } else {
-    memcpy_P(&flag, &kModules[ModuleTemplate(Settings->module)].flag, sizeof(gpio_flag));
+    memcpy(&flag, &kModules[ModuleTemplate(Settings->module)].flag, sizeof(gpio_flag));
   }
 
   return flag;
@@ -1600,7 +1600,7 @@ void ModuleDefault(uint32_t module)
 
   char name[TOPSZ];
   SettingsUpdateText(SET_TEMPLATE_NAME, GetTextIndexed(name, sizeof(name), module, kModuleNames));
-  memcpy_P(&Settings->user_template, &kModules[module], sizeof(mytmplt));
+  memcpy(&Settings->user_template, &kModules[module], sizeof(mytmplt));
 }
 
 void SetModuleType(void)

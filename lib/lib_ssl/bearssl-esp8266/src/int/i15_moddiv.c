@@ -310,8 +310,8 @@ br_i15_moddiv(uint16_t *x, const uint16_t *y, const uint16_t *m, uint16_t m0i,
 	b = a + len;
 	u = x + 1;
 	v = b + len;
-	memcpy_P(a, y + 1, len * sizeof *y);
-	memcpy_P(b, m + 1, len * sizeof *m);
+	memcpy(a, y + 1, len * sizeof *y);
+	memcpy(b, m + 1, len * sizeof *m);
 	memset(v, 0, len * sizeof *v);
 
 	/*

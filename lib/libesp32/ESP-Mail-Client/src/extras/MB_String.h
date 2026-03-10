@@ -832,7 +832,7 @@ public:
             reserve(newlen);
 
             if (bufLen > 0)
-                memcpy_P(buf + length(), (PGM_P)pstr, len + 1);
+                memcpy(buf + length(), (PGM_P)pstr, len + 1);
         }
 
         return (*this);
@@ -1769,7 +1769,7 @@ private:
             return *this;
         }
 
-        memcpy_P(buf, (PGM_P)cstr, length);
+        memcpy(buf, (PGM_P)cstr, length);
         buf[length] = '\0';
 
         return *this;

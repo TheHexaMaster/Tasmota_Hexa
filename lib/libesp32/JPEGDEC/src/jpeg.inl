@@ -763,7 +763,7 @@ static int32_t readFLASH(JPEGFILE *pFile, uint8_t *pBuf, int32_t iLen)
        iBytesRead = pFile->iSize - pFile->iPos;
     if (iBytesRead <= 0)
        return 0;
-    memcpy_P(pBuf, &pFile->pData[pFile->iPos], iBytesRead);
+    memcpy(pBuf, &pFile->pData[pFile->iPos], iBytesRead);
     pFile->iPos += iBytesRead;
     return iBytesRead;
 } /* readFLASH() */

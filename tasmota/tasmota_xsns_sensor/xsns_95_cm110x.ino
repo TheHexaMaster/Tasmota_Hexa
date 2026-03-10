@@ -134,7 +134,7 @@ size_t CM11SendCmd(uint8_t command_id)
 
   cm11_send[0] = 0x11;  // Start byte, fixed
 
-  memcpy_P(&cm11_send[1], kCM11Commands[command_id], (len+1) * sizeof(uint8_t));
+  memcpy(&cm11_send[1], kCM11Commands[command_id], (len+1) * sizeof(uint8_t));
 
   cm11_send[len+2] = CM11CalculateChecksum(cm11_send,0, len+2);
 
@@ -280,7 +280,7 @@ void CM11EverySecond(void)
     }
 
     if (cm11_response[2]==cmd_sw_version[1]){  //0x1E - read SW version
-      memcpy_P(cm11_sw_version, &cm11_response[3], cm11_response[1] * sizeof(uint8_t));
+      memcpy(cm11_sw_version, &cm11_response[3], cm11_response[1] * sizeof(uint8_t));
       AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_DEBUG "SW version: %s"),cm11_sw_version);
     }
 

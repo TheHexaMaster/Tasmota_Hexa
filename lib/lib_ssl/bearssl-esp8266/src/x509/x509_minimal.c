@@ -382,7 +382,7 @@ eqbigint(const unsigned char *b1, size_t len1,
 	if (len1 != len2) {
 		return 0;
 	}
-	return memcmp_P(b1, b2, len1) == 0;
+	return memcmp(b1, b2, len1) == 0;
 }
 
 /*
@@ -454,7 +454,7 @@ static int check_single_direct_trust(br_x509_minimal_context *ctx,
 	case BR_KEYTYPE_EC:
 		if (ctx->pkey.key.ec.curve != ta->pkey.key.ec.curve
 			|| ctx->pkey.key.ec.qlen != ta->pkey.key.ec.qlen
-			|| memcmp_P(ctx->pkey.key.ec.q,
+			|| memcmp(ctx->pkey.key.ec.q,
 				ta->pkey.key.ec.q,
 				ta->pkey.key.ec.qlen) != 0)
 		{
@@ -1469,7 +1469,7 @@ br_x509_minimal_run(void *t0ctx)
 	size_t len = a1[0];
 	int x;
 	if (len == pgm_read_byte(&a2[0])) {
-		x = -(memcmp_P(a1 + 1, a2 + 1, len) == 0);
+		x = -(memcmp(a1 + 1, a2 + 1, len) == 0);
 	} else {
 		x = 0;
 	}
@@ -1747,7 +1747,7 @@ verify_signature(br_x509_minimal_context *ctx, const br_x509_pkey *pk)
 		if (ctx->irsa == 0) {
 			return BR_ERR_X509_UNSUPPORTED;
 		}
-		memcpy_P(tmp2, &t0_datablock[ctx->cert_sig_hash_oid], ctx->cert_sig_hash_len);
+		memcpy(tmp2, &t0_datablock[ctx->cert_sig_hash_oid], ctx->cert_sig_hash_len);
 		if (!ctx->irsa(ctx->cert_sig, ctx->cert_sig_len,
 			tmp2, //&t0_datablock[ctx->cert_sig_hash_oid],
 			ctx->cert_sig_hash_len, &pk->key.rsa, tmp))

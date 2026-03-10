@@ -198,7 +198,7 @@ void ImprovReceived(void) {
       char image_name[33];
       snprintf_P(image_name, sizeof(image_name), PSTR(D_HTML_LANGUAGE));
       UpperCase(image_name, image_name);                       // Language id
-      if (!strcmp_P(image_name, PSTR("EN")) &&                 // English
+      if (!strcmp(image_name, PSTR("EN")) &&                 // English
            strcasecmp_P("Tasmota", PSTR(CODE_IMAGE_STR))) {    // Not Tasmota
         snprintf_P(image_name, sizeof(image_name), PSTR(CODE_IMAGE_STR));  // English image name
         image_name[0] &= 0xDF;                                 // Make first character uppercase

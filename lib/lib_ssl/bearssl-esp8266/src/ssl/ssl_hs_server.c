@@ -400,7 +400,7 @@ verify_CV_sig(br_ssl_server_context *ctx, size_t sig_len)
 		if (id == 0) {
 			hash_oid = NULL;
 		} else {
-			memcpy_P(hash_oid_ram, HASH_OID[id - 2], sizeof(HASH_OID[0]));
+			memcpy(hash_oid_ram, HASH_OID[id - 2], sizeof(HASH_OID[0]));
 			hash_oid = hash_oid_ram;
 		}
 		if (ctx->eng.irsavrfy == 0) {
@@ -1286,7 +1286,7 @@ br_ssl_hs_server_run(void *t0ctx)
 	if (clen > sizeof ENG->pad) {
 		clen = sizeof ENG->pad;
 	}
-	memcpy_P(ENG->pad, ENG->cert_cur, clen);
+	memcpy(ENG->pad, ENG->cert_cur, clen);
 	ENG->cert_cur += clen;
 	ENG->cert_len -= clen;
 	T0_PUSH(clen);
@@ -1564,7 +1564,7 @@ br_ssl_hs_server_run(void *t0ctx)
 		if ((size_t)len < clen) {
 			clen = (size_t)len;
 		}
-		memcpy_P((unsigned char *)ENG + addr, ENG->hbuf_in, clen);
+		memcpy((unsigned char *)ENG + addr, ENG->hbuf_in, clen);
 		if (ENG->record_type_in == BR_SSL_HANDSHAKE) {
 			br_multihash_update(&ENG->mhash, ENG->hbuf_in, clen);
 		}

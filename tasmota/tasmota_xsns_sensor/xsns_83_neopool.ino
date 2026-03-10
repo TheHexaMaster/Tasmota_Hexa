@@ -2476,28 +2476,28 @@ void NeoPoolShow(bool json)
       memset(sdesc, 0, nitems(sdesc));
       memset(stemp, 0, nitems(stemp));
       if        (0 != NeoPoolGetData(MBF_PAR_PH_ACID_RELAY_GPIO) && i == NeoPoolGetData(MBF_PAR_PH_ACID_RELAY_GPIO)-1) {
-        strncpy_P(sdesc, PSTR(D_NEOPOOL_RELAY_PH_ACID), sizeof(sdesc));
+        strncpy(sdesc, PSTR(D_NEOPOOL_RELAY_PH_ACID), sizeof(sdesc));
       } else if (0 != NeoPoolGetData(MBF_PAR_PH_BASE_RELAY_GPIO) && i == NeoPoolGetData(MBF_PAR_PH_BASE_RELAY_GPIO)-1) {
-        strncpy_P(sdesc, PSTR(D_NEOPOOL_RELAY_PH_BASE), sizeof(sdesc));
+        strncpy(sdesc, PSTR(D_NEOPOOL_RELAY_PH_BASE), sizeof(sdesc));
       } else if (0 != NeoPoolGetData(MBF_PAR_RX_RELAY_GPIO)      && i == NeoPoolGetData(MBF_PAR_RX_RELAY_GPIO)-1) {
-        strncpy_P(sdesc, PSTR(D_NEOPOOL_RELAY_RX), sizeof(sdesc));
+        strncpy(sdesc, PSTR(D_NEOPOOL_RELAY_RX), sizeof(sdesc));
       } else if (0 != NeoPoolGetData(MBF_PAR_CL_RELAY_GPIO)      && i == NeoPoolGetData(MBF_PAR_CL_RELAY_GPIO)-1) {
-        strncpy_P(sdesc, PSTR(D_NEOPOOL_RELAY_CL), sizeof(sdesc));
+        strncpy(sdesc, PSTR(D_NEOPOOL_RELAY_CL), sizeof(sdesc));
       } else if (0 != NeoPoolGetData(MBF_PAR_CD_RELAY_GPIO)      && i == NeoPoolGetData(MBF_PAR_CD_RELAY_GPIO)-1) {
-        strncpy_P(sdesc, PSTR(D_NEOPOOL_RELAY_CD), sizeof(sdesc));
+        strncpy(sdesc, PSTR(D_NEOPOOL_RELAY_CD), sizeof(sdesc));
       } else if (0 != NeoPoolGetData(MBF_PAR_FILT_GPIO)          && i == NeoPoolGetData(MBF_PAR_FILT_GPIO)-1) {
           char smotorspeed[32];
-          strncpy_P(sdesc, PSTR(D_NEOPOOL_RELAY_FILTRATION), sizeof(sdesc));
+          strncpy(sdesc, PSTR(D_NEOPOOL_RELAY_FILTRATION), sizeof(sdesc));
           GetTextIndexed(smotorspeed, sizeof(smotorspeed), NeoPoolGetFiltrationSpeed(), kNeoPoolFiltrationSpeed);
           snprintf_P(stemp, sizeof(stemp), PSTR("%s%s%s%s"), ((NeoPoolGetData(MBF_RELAY_STATE) & (1<<i))?D_ON:D_OFF), *smotorspeed ? PSTR(" (") : PSTR(""), smotorspeed,  *smotorspeed ? PSTR(")") : PSTR(""));
       } else if (0 != NeoPoolGetData(MBF_PAR_LIGHTING_GPIO) && i == NeoPoolGetData(MBF_PAR_LIGHTING_GPIO)-1) {
-          strncpy_P(sdesc, PSTR(D_NEOPOOL_RELAY_LIGHT), sizeof(sdesc));
+          strncpy(sdesc, PSTR(D_NEOPOOL_RELAY_LIGHT), sizeof(sdesc));
       } else if (0 != NeoPoolGetData(MBF_PAR_HEATING_GPIO) && i == NeoPoolGetData(MBF_PAR_HEATING_GPIO)-1) {
-          strncpy_P(sdesc, PSTR(D_NEOPOOL_RELAY_HEATING), sizeof(sdesc));
+          strncpy(sdesc, PSTR(D_NEOPOOL_RELAY_HEATING), sizeof(sdesc));
       } else if (0 != NeoPoolGetData(MBF_PAR_UV_RELAY_GPIO) && i == NeoPoolGetData(MBF_PAR_UV_RELAY_GPIO)-1) {
-          strncpy_P(sdesc, PSTR(D_NEOPOOL_RELAY_UV), sizeof(sdesc));
+          strncpy(sdesc, PSTR(D_NEOPOOL_RELAY_UV), sizeof(sdesc));
       } else if (0 != NeoPoolGetData(MBF_PAR_FILTVALVE_GPIO) && i == NeoPoolGetData(MBF_PAR_FILTVALVE_GPIO)-1) {
-          strncpy_P(sdesc, PSTR(D_NEOPOOL_RELAY_VALVE), sizeof(sdesc));
+          strncpy(sdesc, PSTR(D_NEOPOOL_RELAY_VALVE), sizeof(sdesc));
       } else if (i > 2) {
           // Aux
           char sname[(MBF_PAR_UICFG_MACH_NAME_AUX2 - MBF_PAR_UICFG_MACH_NAME_AUX1) * 2 + 1];

@@ -123,9 +123,9 @@ static bool send_abort(Client *probe, bool supportsLen)
     if (probe->connected())
     {
         uint8_t msg[sizeof(clientAbort_P)];
-        memcpy_P(msg, clientAbort_P, sizeof(clientAbort_P));
+        memcpy(msg, clientAbort_P, sizeof(clientAbort_P));
         probe->write(msg, sizeof(clientAbort_P));
-        memcpy_P(msg, clientClose_P, sizeof(clientClose_P));
+        memcpy(msg, clientClose_P, sizeof(clientClose_P));
         probe->write(msg, sizeof(clientClose_P));
     }
     return supportsLen;

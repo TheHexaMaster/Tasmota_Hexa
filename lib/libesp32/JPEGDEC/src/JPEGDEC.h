@@ -25,7 +25,6 @@
 #endif
 #endif
 #ifndef PROGMEM
-#define memcpy_P memcpy
 #define PROGMEM
 #endif
 #ifdef _M_X64 //MSVC

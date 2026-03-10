@@ -472,7 +472,7 @@ br_pkey_decoder_run(void *t0ctx)
 	size_t len = a1[0];
 	int x;
 	if (len == pgm_read_byte(&a2[0])) {
-		x = -(memcmp_P(a1 + 1, a2 + 1, len) == 0);
+		x = -(memcmp(a1 + 1, a2 + 1, len) == 0);
 	} else {
 		x = 0;
 	}
@@ -511,7 +511,7 @@ br_pkey_decoder_run(void *t0ctx)
 		clen = (size_t)len;
 	}
 	if (addr != 0) {
-		memcpy_P((unsigned char *)CTX + addr, CTX->hbuf, clen);
+		memcpy((unsigned char *)CTX + addr, CTX->hbuf, clen);
 	}
 	CTX->hbuf += clen;
 	CTX->hlen -= clen;

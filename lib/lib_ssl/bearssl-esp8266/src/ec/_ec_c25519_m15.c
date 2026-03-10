@@ -333,7 +333,7 @@ api_mulgen(unsigned char *R,
     size_t Glen;
 
     G0 = api_generator(curve, &Glen);
-    memcpy_P(R, G0, Glen);
+    memcpy(R, G0, Glen);
     api_mul(R, Glen, x, xlen, curve);
     return Glen;
 }

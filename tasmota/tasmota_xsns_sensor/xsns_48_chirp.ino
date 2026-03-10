@@ -425,7 +425,7 @@ void ChirpShow(bool json)
       dtostrfd(chirp_sensor[i].light, 0, str_light);
       char str_version[7];
       if(chirp_sensor[i].version == 0xff){
-        strncpy_P(str_version, PSTR("Chirp!"), sizeof(str_version));
+        strncpy(str_version, PSTR("Chirp!"), sizeof(str_version));
       }
       else{
         sprintf(str_version, "%x", chirp_sensor[i].version);

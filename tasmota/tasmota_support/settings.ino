@@ -519,7 +519,7 @@ bool SettingsUpdateText(uint32_t index, const char* replace_me) {
   // Make a copy first in case we use source from Settings->text
   uint32_t replace_len = strlen_P(replace_me);
   char replace[replace_len +1];
-  memcpy_P(replace, replace_me, sizeof(replace));
+  memcpy(replace, replace_me, sizeof(replace));
   uint32_t index_save = index;
 
   uint32_t start_pos = 0;
@@ -960,8 +960,8 @@ void SettingsDefaultSet2(void) {
   SettingsUpdateText(SET_STATE_TXT2, PSTR(MQTT_STATUS_ON));
   SettingsUpdateText(SET_STATE_TXT3, PSTR(MQTT_CMND_TOGGLE));
   SettingsUpdateText(SET_STATE_TXT4, PSTR(MQTT_CMND_HOLD));
-  memcpy_P(Settings->mqtt_fingerprint[0], default_fingerprint1, sizeof(default_fingerprint1));
-  memcpy_P(Settings->mqtt_fingerprint[1], default_fingerprint2, sizeof(default_fingerprint2));
+  memcpy(Settings->mqtt_fingerprint[0], default_fingerprint1, sizeof(default_fingerprint1));
+  memcpy(Settings->mqtt_fingerprint[1], default_fingerprint2, sizeof(default_fingerprint2));
   Settings->tele_period = TELE_PERIOD;
   Settings->mqttlog_level = MQTT_LOG_LEVEL;
   Settings->mqtt_keepalive = MQTT_KEEPALIVE;
@@ -1031,7 +1031,7 @@ void SettingsDefaultSet2(void) {
   // RF Bridge
 #ifndef FIRMWARE_MINIMAL    // not needed in minimal/safeboot because of disabled feature and Settings are not saved anyways
 //  for (uint32_t i = 0; i < 17; i++) { Settings->rf_code[i][0] = 0; }
-  memcpy_P(Settings->rf_code[0], kDefaultRfCode, 9);
+  memcpy(Settings->rf_code[0], kDefaultRfCode, 9);
 #endif // FIRMWARE_MINIMAL
 
   // Domoticz

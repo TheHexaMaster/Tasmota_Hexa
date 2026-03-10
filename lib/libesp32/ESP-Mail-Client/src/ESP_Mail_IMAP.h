@@ -4202,7 +4202,7 @@ void ESP_Mail_Client::downloadReport(IMAPSession *imap, int progress)
 void ESP_Mail_Client::fetchReport(IMAPSession *imap, int progress, bool download)
 {
 #if !defined(SILENT_MODE)
-    if (imap->_debug && imap->_lastProgress == -1 && strcmp_P(cPart(imap)->filename.c_str(), esp_mail_str_84 /* "message" */) != 0)
+    if (imap->_debug && imap->_lastProgress == -1 && strcmp(cPart(imap)->filename.c_str(), esp_mail_str_84 /* "message" */) != 0)
         esp_mail_debug_print_tag(cPart(imap)->filename.c_str(), esp_mail_debug_tag_type_client, true);
     printProgress(progress, imap->_lastProgress);
 #endif

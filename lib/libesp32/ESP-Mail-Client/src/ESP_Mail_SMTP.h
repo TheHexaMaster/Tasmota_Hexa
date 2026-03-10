@@ -58,7 +58,7 @@ void ESP_Mail_Client::getMIME(const char *ext, MB_String &mime)
     mime.clear();
     for (int i = 0; i < esp_mail_file_extension_maxType; i++)
     {
-        if (strcmp_P(ext, mimeinfo[i].endsWith) == 0)
+        if (strcmp(ext, mimeinfo[i].endsWith) == 0)
         {
             mime = mimeinfo[i].mimeType;
             break;
@@ -1184,7 +1184,7 @@ bool ESP_Mail_Client::sendBlobAttachment(SMTPSession *smtp, SMTP_Message *msg, S
 
                     if (!sendBDAT(smtp, msg, chunkSize, false))
                         break;
-                    memcpy_P(buf, att->blob.data, chunkSize);
+                    memcpy(buf, att->blob.data, chunkSize);
 
                     if (!altSendData(buf, chunkSize, smtp, msg, false, false, esp_mail_smtp_cmd_undefined, esp_mail_smtp_status_code_0, SMTP_STATUS_UNDEFINED))
                         break;
@@ -1952,7 +1952,7 @@ bool ESP_Mail_Client::sendBlobBody(SMTPSession *smtp, SMTP_Message *msg, uint8_t
         if (available > bufLen)
             available = bufLen;
 
-        memcpy_P(buf, raw + pos, available);
+        memcpy(buf, raw + pos, available);
 
         if (!sendBDAT(smtp, msg, available, false))
         {
@@ -2969,7 +2969,7 @@ int ESP_Mail_Client::getChunk(SMTPSession *smtp, esp_mail_smtp_send_base64_data_
     }
 
     if (data_info.flashMem)
-        memcpy_P(rawChunk, data_info.rawPtr + data_info.dataIndex, size);
+        memcpy(rawChunk, data_info.rawPtr + data_info.dataIndex, size);
     else
         memcpy(rawChunk, data_info.rawPtr + data_info.dataIndex, size);
 

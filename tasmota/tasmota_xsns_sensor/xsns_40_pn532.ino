@@ -461,8 +461,8 @@ uint8_t PN532_ntag21x_probe (void) {
   }
 
   for (uint8_t i=0; i<NTAG_CNT; i++) {
-    if (0 == memcmp_P(&Pn532.packetbuffer[3],&NTAG[i].version[0],6)) {
-      memcpy_P(&result,&NTAG[i].confPage,sizeof(result));
+    if (0 == memcmp(&Pn532.packetbuffer[3],&NTAG[i].version[0],6)) {
+      memcpy(&result,&NTAG[i].confPage,sizeof(result));
     }
   }
   return result; //Return configuration page address
@@ -691,13 +691,13 @@ bool PN532_Command(void) {
   ArgV(argument, 1);
   strncpy(command,UpperCase(argument,argument),sizeof(command));
 
-  if (!strcmp_P(argument,PSTR("ERASE"))) {
+  if (!strcmp(argument,PSTR("ERASE"))) {
     memset(Pn532.newdata,0,sizeof(Pn532.newdata));
     Pn532.function = 1; // Block 1 of next card/tag will be reset to 0x00...
     snprintf_P(log, sizeof(log), PSTR("data block 1 (4-7 for NTAG) will be erased"));
     serviced = true;
   }
-  if (!strcmp_P(argument,PSTR("WRITE"))) {
+  if (!strcmp(argument,PSTR("WRITE"))) {
     if (ArgC() > 1) {
       ArgV(argument, 2);
       memset(Pn532.newdata,0,sizeof(Pn532.newdata));
@@ -708,7 +708,7 @@ bool PN532_Command(void) {
     serviced = true;
     }
   }
-  if (!strcmp_P(argument,PSTR("AUTH"))) {
+  if (!strcmp(argument,PSTR("AUTH"))) {
     if (ArgC() > 1) {
       Pn532.pwd_auth=strtoul(ArgV(argument,2),nullptr,0);
     }
@@ -720,7 +720,7 @@ bool PN532_Command(void) {
 
     serviced = true;
   }
-  if (!strcmp_P(argument,PSTR("SET_PWD"))) {
+  if (!strcmp(argument,PSTR("SET_PWD"))) {
     snprintf_P(log, sizeof(log), PSTR("will be protected"));
     Pn532.pwd_auth_new=Pn532.pwd_auth;
     Pn532.pwd_pack_new=Pn532.pwd_pack;
@@ -733,12 +733,12 @@ bool PN532_Command(void) {
       Pn532.function = 3;
     serviced = true;
   }
-  if (!strcmp_P(argument,PSTR("UNSET_PWD"))) {
+  if (!strcmp(argument,PSTR("UNSET_PWD"))) {
     snprintf_P(log, sizeof(log), PSTR("will be unprotected"));
     Pn532.function = 4;
     serviced = true;
   }
-  if (!strcmp_P(argument,PSTR("CANCEL"))) {
+  if (!strcmp(argument,PSTR("CANCEL"))) {
     AddLog(LOG_LEVEL_INFO, PSTR("NFC: PN532 - Job canceled"));
     Pn532.function = 0;
     serviced = true;

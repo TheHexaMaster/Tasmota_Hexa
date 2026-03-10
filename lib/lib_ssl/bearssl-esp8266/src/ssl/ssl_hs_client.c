@@ -312,7 +312,7 @@ make_pms_ecdh(br_ssl_client_context *ctx, unsigned ecdhe, int prf_id)
 		return -BR_ERR_INVALID_ALGORITHM;
 	}
 
-	memcpy_P(point, point_src, glen);
+	memcpy(point, point_src, glen);
 	if (!ctx->eng.iec->mul(point, glen, key, olen, curve)) {
 		return -BR_ERR_INVALID_ALGORITHM;
 	}
@@ -1235,7 +1235,7 @@ br_ssl_hs_client_run(void *t0ctx)
 	if (clen > sizeof ENG->pad) {
 		clen = sizeof ENG->pad;
 	}
-	memcpy_P(ENG->pad, ENG->cert_cur, clen);
+	memcpy(ENG->pad, ENG->cert_cur, clen);
 	ENG->cert_cur += clen;
 	ENG->cert_len -= clen;
 	T0_PUSH(clen);
@@ -1523,7 +1523,7 @@ br_ssl_hs_client_run(void *t0ctx)
 		if ((size_t)len < clen) {
 			clen = (size_t)len;
 		}
-		memcpy_P((unsigned char *)ENG + addr, ENG->hbuf_in, clen);
+		memcpy((unsigned char *)ENG + addr, ENG->hbuf_in, clen);
 		if (ENG->record_type_in == BR_SSL_HANDSHAKE) {
 			br_multihash_update(&ENG->mhash, ENG->hbuf_in, clen);
 		}

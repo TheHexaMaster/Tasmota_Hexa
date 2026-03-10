@@ -249,14 +249,14 @@ mul20(uint32_t *d, const uint32_t *a, const uint32_t *b)
 		(dw)[(d_off) + 9] = cprcc; \
 	} while (0)
 
-	memcpy_P(u, a, 20 * sizeof *a);
+	memcpy(u, a, 20 * sizeof *a);
 	ZADD(u, 4, a, 0, a, 1);
 	ZADD(u, 5, a, 2, a, 3);
 	ZADD(u, 6, a, 0, a, 2);
 	ZADD(u, 7, a, 1, a, 3);
 	ZADD(u, 8, u, 6, u, 7);
 
-	memcpy_P(v, b, 20 * sizeof *b);
+	memcpy(v, b, 20 * sizeof *b);
 	ZADD(v, 4, b, 0, b, 1);
 	ZADD(v, 5, b, 2, b, 3);
 	ZADD(v, 6, b, 0, b, 2);
@@ -1440,7 +1440,7 @@ api_mulgen(unsigned char *R,
 	size_t Glen;
 
 	G = api_generator(curve, &Glen);
-	memcpy_P(R, G, Glen);
+	memcpy(R, G, Glen);
 	api_mul(R, Glen, x, xlen, curve);
 	return Glen;
 }

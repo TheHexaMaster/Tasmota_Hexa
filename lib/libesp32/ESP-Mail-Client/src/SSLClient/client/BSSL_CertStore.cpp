@@ -117,8 +117,8 @@ namespace bssl
       free(_dataName);
       return 0;
     }
-    memcpy_P(_indexName, indexFileName, strlen_P(indexFileName) + 1);
-    memcpy_P(_dataName, dataFileName, strlen_P(dataFileName) + 1);
+    memcpy(_indexName, indexFileName, strlen_P(indexFileName) + 1);
+    memcpy(_dataName, dataFileName, strlen_P(dataFileName) + 1);
 
     File index = _fs->open(_indexName, FILE_WRITE);
     if (!index)

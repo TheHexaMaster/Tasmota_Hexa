@@ -481,7 +481,7 @@ JsonParserToken JsonParserObject::operator[](const char * needle) const {
     return JsonParserToken(&token_bad);
   }
   // if needle == "?" then we return the first valid key
-  bool wildcard = (strcmp_P("?", needle) == 0);
+  bool wildcard = (strcmp("?", needle) == 0);
 
   for (const auto key : *this) {
     if (wildcard) { return key.getValue(); }
@@ -521,26 +521,6 @@ const char * JsonParserObject::findConstCharNull(const char * needle) const {
   if (*r == 0) { r = nullptr; }   // if empty string
   return r;
 }
-
-// JsonParserToken JsonParser::find(JsonParserObject obj, const char *needle, bool case_sensitive) const {
-//   // key can be in PROGMEM
-//   if ((!obj.isValid()) || (nullptr == needle) || (0 == pgm_read_byte(needle))) {
-//     return JsonParserToken(&token_bad);
-//   }
-//   // if needle == "?" then we return the first valid key
-//   bool wildcard = (strcmp_P("?", needle) == 0);
-
-//   for (const auto key : obj) {
-//     if (wildcard) { return key.getValue(); }
-//     if (case_sensitive) {
-//       if (0 == strcmp_P(this->getStr(key), needle)) { return key.getValue(); }
-//     } else {
-//       if (0 == strcasecmp_P(this->getStr(key), needle)) { return key.getValue(); }
-//     }
-//   }
-//   // if not found
-//   return JsonParserToken(&token_bad);
-// }
 
 void JsonParser::free(void) {
   if (nullptr != _tokens) {

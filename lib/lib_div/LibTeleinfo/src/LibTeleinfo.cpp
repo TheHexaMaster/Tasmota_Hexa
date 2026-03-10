@@ -507,7 +507,7 @@ char * TInfo::valueGet_P(const char * name, char * value)
       me = me->next;
 
       // Check if we match this LABEL
-      if (lgname==strlen(me->name) && strcmp_P(me->name, name)==0) {
+      if (lgname==strlen(me->name) && strcmp(me->name, name)==0) {
         // this one has a value ?
         if (me->value) {
           // Check back checksum

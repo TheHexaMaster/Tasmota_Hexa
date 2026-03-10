@@ -78,7 +78,7 @@ Renderer *Init_uDisplay(const char *desc) {
 
     char *ddesc = nullptr;
     if (desc) {
-      memcpy_P(fbuff, desc, DISPDESC_SIZE - 1);
+      memcpy(fbuff, desc, DISPDESC_SIZE - 1);
       ddesc = fbuff;
       AddLog(LOG_LEVEL_DEBUG, PSTR("DSP: Const char descriptor used"));
     }
@@ -105,7 +105,7 @@ Renderer *Init_uDisplay(const char *desc) {
 
 #ifdef DSP_ROM_DESC
     if (!ddesc) {
-      memcpy_P(fbuff, DSP_SAMPLE_DESC, sizeof(DSP_SAMPLE_DESC));
+      memcpy(fbuff, DSP_SAMPLE_DESC, sizeof(DSP_SAMPLE_DESC));
       ddesc = fbuff;
       AddLog(LOG_LEVEL_DEBUG, PSTR("DSP: Flash descriptor used"));
     }

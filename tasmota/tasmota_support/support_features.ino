@@ -564,9 +564,7 @@ constexpr uint32_t feature[] = {
 #ifdef USE_PID
   0x00800000 |  // xdrv_49_pid.ino
 #endif
-#ifdef USE_BS814A2
-  0x01000000 |  // xdrv_51_bs814a2.ino
-#endif
+//  0x01000000 |  // xdrv_51_bs814a2.ino - USE_BS814A2 - REMOVED
 #if defined(USE_I2C) && defined(USE_SEESAW_SOIL)
   0x02000000 |  // xsns_81_seesaw_soil.ino
 #endif

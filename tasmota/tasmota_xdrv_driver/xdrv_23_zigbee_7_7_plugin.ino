@@ -144,7 +144,7 @@ bool ZbLoad_inner(const char *filename, File &fp) {
     buf_line[i+1] = 0;
   }
   if (!invalid_header) {
-    if (strcmp_P(buf_line, Z2T_HEADER_V1) != 0) {
+    if (strcmp(buf_line, Z2T_HEADER_V1) != 0) {
       invalid_header = true;
     }
   }

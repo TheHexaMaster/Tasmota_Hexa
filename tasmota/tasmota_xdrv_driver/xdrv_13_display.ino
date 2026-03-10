@@ -1480,7 +1480,7 @@ void DisplayJsonValue(const char* topic, const char* mkey, const char* value) {
 
   char temp[TOPSZ];
   int quantity_code = GetCommandCode(temp, sizeof(temp), mkey, kSensorQuantity);
-  if ((-1 == quantity_code) || !strcmp_P(mkey, S_RSLT_POWER)) {           // Ok: Power, Not ok: POWER
+  if ((-1 == quantity_code) || !strcmp(mkey, S_RSLT_POWER)) {           // Ok: Power, Not ok: POWER
     return;                                                               // Display value not supported
   }
 
@@ -1650,7 +1650,7 @@ void DisplayMqttSubscribe(void) {
   char ntopic[TOPSZ];
   ntopic[0] = '\0';
   while (tp != nullptr) {
-    if (!strcmp_P(tp, MQTT_TOKEN_PREFIX)) {
+    if (!strcmp(tp, MQTT_TOKEN_PREFIX)) {
       break;
     }
     strncat_P(ntopic, PSTR("+/"), sizeof(ntopic) - strlen(ntopic) -1);           // Add single-level wildcards

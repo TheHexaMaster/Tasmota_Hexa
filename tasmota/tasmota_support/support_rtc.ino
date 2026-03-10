@@ -115,7 +115,7 @@ String GetSyslogDate(char* mxtime) {
   // Assuming the day hasn't changed yet ;-)
   uint32_t month_idx = (RtcTime.month -1) * 3;
   char month[4] = { 0 };
-  strncpy_P(month, kMonthNamesEnglish + month_idx, 3);
+  strncpy(month, kMonthNamesEnglish + month_idx, 3);
   char dt[16];
   snprintf_P(dt, sizeof(dt), PSTR("%s %2d %s"), month, RtcTime.day_of_month, mxtime);
   return String(dt);

@@ -1532,10 +1532,8 @@ void WifiShutdown(bool option) {
     // Re-enabled from 6.3.0.7 with ESP.restart replaced by ESP.reset
     // Courtesy of EspEasy
     // WiFi.persistent(true);    // use SDK storage of SSID/WPA parameters
-    ETS_UART_INTR_DISABLE();
 
     WiFi.disconnect(true, true);
-    ETS_UART_INTR_ENABLE();
     // WiFi.persistent(false);   // Do not use SDK storage of SSID/WPA parameters
   }
   delay(100);                 // Flush anything in the network buffers.

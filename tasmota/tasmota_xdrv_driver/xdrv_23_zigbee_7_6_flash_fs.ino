@@ -60,7 +60,7 @@ public:
       if (size + _seek > _len) {
         size = _len - _seek;  // always > 0 because of guarding test
       }
-      memcpy_P(buf, _buf + _seek, size);
+      memcpy(buf, _buf + _seek, size);
       _seek += size;
       return size;
     }

@@ -959,7 +959,7 @@ void ESP_Mail_Client::getExtfromMIME(const char *mime, MB_String &ext)
   ext.clear();
   for (int i = 0; i < esp_mail_file_extension_maxType; i++)
   {
-    if (strcmp_P(mime, mimeinfo[i].mimeType) == 0)
+    if (strcmp(mime, mimeinfo[i].mimeType) == 0)
     {
       ext = mimeinfo[i].endsWith;
       break;

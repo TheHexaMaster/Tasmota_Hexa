@@ -659,7 +659,7 @@ void setup(void) {
     }
   }
 
-  memcpy_P(TasmotaGlobal.version, VERSION_MARKER, 1);  // Dummy for compiler saving VERSION_MARKER
+  memcpy(TasmotaGlobal.version, VERSION_MARKER, 1);  // Dummy for compiler saving VERSION_MARKER
 
   snprintf_P(TasmotaGlobal.version, sizeof(TasmotaGlobal.version), PSTR("%d.%d.%d"), TASMOTA_VERSION >> 24 & 0xff, TASMOTA_VERSION >> 16 & 0xff, TASMOTA_VERSION >> 8 & 0xff);  // Release version 6.3.0
   if (TASMOTA_VERSION & 0xff) {  // Development or patched version 6.3.0.10

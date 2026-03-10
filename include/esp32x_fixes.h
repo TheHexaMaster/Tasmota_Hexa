@@ -91,13 +91,6 @@
   typedef int32_t  sint32_t;
 #endif
 
-// ---- legacy PROGMEM helpers (ESP8266 style) ----
-#ifndef memcpy_P
-  #define memcpy_P memcpy
-#endif
-#ifndef memcmp_P
-  #define memcmp_P memcmp
-#endif
 
 // ---- commonly used buffer sizes ----
 #ifndef BUFFER_LENGTH
