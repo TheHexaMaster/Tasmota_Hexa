@@ -37,7 +37,8 @@
   #define LV_STREAM_FORMAT LV_STREAM_FMT_RLE8_RGB332
 #endif
 
-#define CHUNK_SIZE_BYTES 1024
+// Need to resize for <ESP32P4
+#define CHUNK_SIZE_BYTES 6144
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
