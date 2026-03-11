@@ -649,7 +649,7 @@ void wireguardif_network_rx(void *arg, struct udp_pcb *pcb, struct pbuf *p, cons
 			// AddLog(LOG_LEVEL_DEBUG, "");
 			msg_data = (struct message_transport_data *)data;
 			peer = wireguard_peer_lookup_by_receiver(device, msg_data->receiver);
-			AddLog(LOG_LEVEL_DEBUG, PSTR("WG : RX MESSAGE_TRANSPORT_DATA from %s"), IPAddress(addr).toString().c_str());
+//			AddLog(LOG_LEVEL_DEBUG, PSTR("WG : RX MESSAGE_TRANSPORT_DATA from %s"), IPAddress(addr).toString().c_str());
 			if (peer) {
 				// header is 16 bytes long so take that off the length
 				wireguardif_process_data_message(device, peer, msg_data, len - 16, addr, port);

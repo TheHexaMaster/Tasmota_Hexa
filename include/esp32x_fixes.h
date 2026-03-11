@@ -73,6 +73,12 @@
 
 #endif // TARGET
 
+#ifdef CONFIG_IDF_TARGET_ESP32P4
+#ifdef CONFIG_ESP_WIFI_REMOTE_ENABLED
+  #undef CONFIG_ESP_HOSTED_IDF_SLAVE_TARGET
+  #define CONFIG_ESP_HOSTED_IDF_SLAVE_TARGET "esp32c6"
+#endif
+#endif
 
 // ---- commonly used buffer sizes ----
 #ifndef BUFFER_LENGTH
