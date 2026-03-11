@@ -56,7 +56,9 @@ void yield(void) {
 \*********************************************************************************************/
 
 void OsWatchInit(void) {}
-void OsWatchLoop(void) {}
+void OsWatchLoop(void) {
+  yield();
+}
 bool OsWatchBlockedLoop(void) {
   return false;
 }
