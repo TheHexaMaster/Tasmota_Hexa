@@ -27,8 +27,17 @@
 
 #define XDRV_54             54
 
-#define LV_MAGIC    0x564C //LV
-#define CHUNK_SIZE  1024
+#define LV_MAGIC_RLE16_RGB565  0x564C // "LV" - pôvodný bezstratový stream
+#define LV_MAGIC_RLE8_RGB332   0x384C // "L8" - nový stratový stream pre web panel
+
+#define LV_STREAM_FMT_RLE16_RGB565 0
+#define LV_STREAM_FMT_RLE8_RGB332  1
+
+#ifndef LV_STREAM_FORMAT
+  #define LV_STREAM_FORMAT LV_STREAM_FMT_RLE8_RGB332
+#endif
+
+#define CHUNK_SIZE_BYTES 1024
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -140,47 +149,167 @@ void * lv_get_stream_cb(void) {
   return (void*) lvgl_glue->stream_cb;
 }
 
-void lv_process_stream(int32_t x, int32_t y, int32_t width, int32_t height, const uint16_t *pixels, uint32_t len) {
-  static uint16_t chunk[CHUNK_SIZE];
+static inline uint8_t lv_rgb565_to_rgb332(uint16_t c) {
+  // RGB565 -> RGB332
+  // R: top 3 bits, G: top 3 bits, B: top 2 bits
+  return ((c >> 8) & 0xE0) | ((c >> 6) & 0x1C) | ((c >> 3) & 0x03);
+}
+
+static void lv_process_stream_rle16_rgb565(int32_t x, int32_t y, int32_t width, int32_t height,
+                                           const uint16_t *pixels, uint32_t len) {
+  static uint16_t chunk[CHUNK_SIZE_BYTES / 2];
   size_t chunk_pos = 0;
 
-  auto emit = [&](uint16_t val) {
-      chunk[chunk_pos++] = val;
-      if (chunk_pos >= CHUNK_SIZE) {
-          chunk_pos = 0;
-          lvgl_glue->stream_cb((const uint8_t *)chunk, CHUNK_SIZE * 2);
-      }
+  auto emit16 = [&](uint16_t val) {
+    chunk[chunk_pos++] = val;
+    if (chunk_pos >= (CHUNK_SIZE_BYTES / 2)) {
+      lvgl_glue->stream_cb((const uint8_t *)chunk, CHUNK_SIZE_BYTES);
+      chunk_pos = 0;
+    }
   };
 
-  emit(LV_MAGIC);
-  emit((uint16_t)x);
-  emit((uint16_t)y);
-  emit((uint16_t)width);
-  emit((uint16_t)height);
+  emit16(LV_MAGIC_RLE16_RGB565);
+  emit16((uint16_t)x);
+  emit16((uint16_t)y);
+  emit16((uint16_t)width);
+  emit16((uint16_t)height);
 
   const uint16_t *p = pixels;
   const uint16_t *end = pixels + len;
+
   while (p < end) {
-    uint16_t run = 1;
-    uint16_t limit = min(p + 0x7FFF + 2, end) - p;
-    while (run < limit && p[run] == *p) run++;
+    size_t remaining = (size_t)(end - p);
+    size_t run_limit = remaining;
+    if (run_limit > (0x7FFF + 2)) run_limit = (0x7FFF + 2);
+
+    size_t run = 1;
+    while (run < run_limit && p[run] == *p) {
+      run++;
+    }
+
     if (run >= 2) {
-      emit(0x8000 | (run - 2));
-      emit(*p);
+      emit16(0x8000 | (uint16_t)(run - 2));
+      emit16(*p);
       p += run;
     } else {
-      uint16_t rlen = 0;
-      while (p + rlen + 1 < end && p[rlen] != p[rlen + 1]) rlen++;
-      if (rlen == 0) rlen++;
-      emit(rlen - 1);
-      for (uint16_t j = 0; j < rlen; j++)
-        emit(*p++);
+      size_t lit = 1;
+      size_t lit_limit = remaining;
+      if (lit_limit > (0x7FFF + 1)) lit_limit = (0x7FFF + 1);
+
+      while (lit < lit_limit) {
+        if ((p + lit) < end && (p + lit + 1) < end && p[lit] == p[lit + 1]) {
+          break;
+        }
+        lit++;
+      }
+
+      emit16((uint16_t)(lit - 1));
+      for (size_t j = 0; j < lit; j++) {
+        emit16(*p++);
+      }
     }
   }
-  if (chunk_pos > 0)
-    lvgl_glue->stream_cb((const uint8_t *)chunk, chunk_pos * 2);
+
+  if (chunk_pos > 0) {
+    lvgl_glue->stream_cb((const uint8_t *)chunk, chunk_pos * sizeof(uint16_t));
+  }
 }
 
+static void lv_process_stream_rle8_rgb332(int32_t x, int32_t y, int32_t width, int32_t height,
+                                          const uint16_t *pixels, uint32_t len) {
+  static uint8_t chunk[CHUNK_SIZE_BYTES];
+  size_t chunk_pos = 0;
+
+  auto flush_chunk = [&]() {
+    if (chunk_pos > 0) {
+      lvgl_glue->stream_cb((const uint8_t *)chunk, chunk_pos);
+      chunk_pos = 0;
+    }
+  };
+
+  auto emit8 = [&](uint8_t val) {
+    if (chunk_pos >= CHUNK_SIZE_BYTES) {
+      flush_chunk();
+    }
+    chunk[chunk_pos++] = val;
+  };
+
+  auto emit16 = [&](uint16_t val) {
+    if ((chunk_pos + 2) > CHUNK_SIZE_BYTES) {
+      flush_chunk();
+    }
+    chunk[chunk_pos++] = (uint8_t)(val & 0xFF);
+    chunk[chunk_pos++] = (uint8_t)(val >> 8);
+  };
+
+  // header ostáva 5x uint16_t, len payload sa mení na byte-oriented RLE8
+  emit16(LV_MAGIC_RLE8_RGB332);
+  emit16((uint16_t)x);
+  emit16((uint16_t)y);
+  emit16((uint16_t)width);
+  emit16((uint16_t)height);
+
+  const uint16_t *p = pixels;
+  const uint16_t *end = pixels + len;
+
+  while (p < end) {
+    const uint8_t first = lv_rgb565_to_rgb332(*p);
+
+    size_t remaining = (size_t)(end - p);
+    size_t run_limit = remaining;
+    if (run_limit > 129) run_limit = 129;   // 7-bit count + 2
+
+    size_t run = 1;
+    while (run < run_limit && lv_rgb565_to_rgb332(p[run]) == first) {
+      run++;
+    }
+
+    if (run >= 2) {
+      // 1-byte header:
+      // bit7=1 => run
+      // count = (header & 0x7F) + 2
+      // next byte = repeated RGB332 value
+      emit8(0x80 | (uint8_t)(run - 2));
+      emit8(first);
+      p += run;
+    } else {
+      size_t lit = 1;
+      size_t lit_limit = remaining;
+      if (lit_limit > 128) lit_limit = 128; // 7-bit count + 1
+
+      // literal blok končí tesne pred začiatkom runu >= 2
+      while (lit < lit_limit) {
+        if ((p + lit) < end && (p + lit + 1) < end) {
+          uint8_t a = lv_rgb565_to_rgb332(p[lit]);
+          uint8_t b = lv_rgb565_to_rgb332(p[lit + 1]);
+          if (a == b) {
+            break;
+          }
+        }
+        lit++;
+      }
+
+      // 1-byte header:
+      // bit7=0 => literal
+      // count = header + 1
+      emit8((uint8_t)(lit - 1));
+      for (size_t j = 0; j < lit; j++) {
+        emit8(lv_rgb565_to_rgb332(*p++));
+      }
+    }
+  }
+
+  flush_chunk();
+}
+
+void lv_process_stream(int32_t x, int32_t y, int32_t width, int32_t height,
+                       const uint16_t *pixels, uint32_t len) {
+#if LV_STREAM_FORMAT == LV_STREAM_FMT_RLE8_RGB332
+  lv_process_stream_rle8_rgb332(x, y, width, height, pixels, len);
+#else
+  lv_process_stream_rle16_rgb565(x, y, width, height, pixels, len);
+#endif
+}
 /************************************************************
  * Emulation of stdio for FreeType
  *
