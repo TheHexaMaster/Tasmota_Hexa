@@ -60,6 +60,9 @@ const uint16_t HTTP_OTA_RESTART_RECONNECT_TIME = 15000;  // milliseconds - Allow
 #define WS_COREUI_JS_PATH   "/static/coreui.js"
 #define WS_ALPINE_JS_PATH   "/static/alpine-3.15.8.js"
 
+
+
+
 const char HTTP_HEADER1[] PROGMEM =
   "<!DOCTYPE html><html lang=\"%s\" class=\"\">"
   "<head>"
@@ -734,6 +737,11 @@ void WSContentSendJsImports(void) {
 
 // Always listens to all interfaces, so we don't need an IP address anymore
 void StartWebserver(int type) {
+
+#ifdef USE_WEB_CPU_LOAD_SAFE
+  CpuLoadSamplerStart();
+#endif
+
   if (!Settings->web_refresh) { Settings->web_refresh = HTTP_REFRESH_TIME; }
   if (!Web.state) {
 
@@ -969,7 +977,21 @@ void WSContentSendToolbarStatusInner(void) {
   if (UsePSRAM()) {
     WSContentSend_P(PSTR("<span class='ts-status'>📟 %ik</span>"), ESP.getFreePsram() / 1024);
   }
+
 #endif // USE_WEB_STATUS_LINE_HEAP
+
+#ifdef USE_WEB_CPU_LOAD_SAFE
+  if (g_cpu_load[0].valid) {
+    WSContentSend_P(PSTR("<span class='ts-status'>CPU0 %u%%</span>"), g_cpu_load[0].load_pct);
+  }
+
+  #if configNUMBER_OF_CORES > 1
+  if (g_cpu_load[1].valid) {
+    WSContentSend_P(PSTR("<span class='ts-status'>CPU1 %u%%</span>"), g_cpu_load[1].load_pct);
+  }
+  #endif
+#endif
+
 
   WSContentSend_P(PSTR("<span class='ts-status'>"));
   XsnsXdrvCall(FUNC_WEB_STATUS_RIGHT);
