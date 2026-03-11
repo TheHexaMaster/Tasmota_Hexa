@@ -517,12 +517,6 @@ enum WebCmndStatus { WEBCMND_DONE, WEBCMND_WRONG_PARAMETERS, WEBCMND_CONNECT_FAI
 #endif // USE_WEBGETCONFIG
                    };
 
-// NEW ENUMS
-
-static const char WS_SECTION_TOPBAR_STATUS[] = "ts-topbar-status";
-static const char WS_SECTION_ROOT_LIVE[]     = "ts-root-live";
-static const char WS_SECTION_SENSOR_LIVE[]   = "ts-sensor-live";
-
 void WSContentSendToolbarStatusInner(void);
 void WSContentSendRootLive(void);
 void WSContentSendSensorLive(void);
@@ -1022,9 +1016,10 @@ static String WSBuildRootLiveHtml(void) {
 
 
 void WSContentSendToolbarStatus(void) {
-  WSContentSend_P(PSTR("<div id='%s' class='ts-topbar-right'>"), WS_SECTION_TOPBAR_STATUS);
+  WSContentSend_P(PSTR("<div x-data='tsToolbarLive(%u)' x-init='start()'>"), Settings->web_refresh);
+  WSContentSend_P(PSTR("<div class='ts-topbar-right' x-ref='live'>"));
   WSContentSendToolbarStatusInner();
-  WSContentSend_P(PSTR("</div>"));
+  WSContentSend_P(PSTR("</div></div>"));
 }
 
 void WSContentSendToolbarMenu(void) {
@@ -1830,10 +1825,10 @@ void HandleRoot(void) {
 
 */
 
-  WSContentSend_P(PSTR("<div x-data='tsLivePage(\"root\",%u)' x-init='start()'>"), Settings->web_refresh);
-  WSContentSend_P(PSTR("<div id='%s' x-ref='live'>"), WS_SECTION_ROOT_LIVE);
-  WSContentSendRootLive();
-  WSContentSend_P(PSTR("</div></div>"));
+WSContentSend_P(PSTR("<div data-ts-live-target='root' x-data='tsLiveRegion(\"lv?p=root\",%u)' x-init='start()'>"), Settings->web_refresh);
+WSContentSend_P(PSTR("<div x-ref='live'>"));
+WSContentSendRootLive();
+WSContentSend_P(PSTR("</div></div>"));
 
 
   XdrvXsnsCall(FUNC_WEB_ADD_MAIN_BUTTON);
@@ -1927,38 +1922,39 @@ void HandleLiveData(void) {
     return;
   }
 
-  char page[12];
+  if (Webserver->hasArg(F("tb"))) {
+    WSHeaderSend();
+    WSSend(200, CT_HTML, WSBuildTopbarStatusHtml());
+    return;
+  }
+
+  char page[16];
   WebGetArg(PSTR("p"), page, sizeof(page));
 
-  char tmp[8];
-  WebGetArg(PSTR("o"), tmp, sizeof(tmp));
-  if (strlen(tmp)) {
-    ShowWebSource(SRC_WEBGUI);
-    uint32_t device = atoi(tmp);
-    ExecuteCommandPower(device, POWER_TOGGLE, SRC_IGNORE);
-  }
-
-  XsnsXdrvCall(FUNC_WEB_GET_ARG);
-
-  String topbar = WSBuildTopbarStatusHtml();
-  String body;
-
   if (0 == strcmp(page, "sensor")) {
-    body = WSBuildSensorLiveHtml();
-  } else {
-    body = WSBuildRootLiveHtml();
+    XsnsXdrvCall(FUNC_WEB_GET_ARG);
+    WSHeaderSend();
+    WSSend(200, CT_HTML, WSBuildSensorLiveHtml());
+    return;
   }
 
-  String payload = F("{\"topbar\":\"");
-  payload += EscapeJSONString(topbar.c_str());
-  payload += F("\",\"body\":\"");
-  payload += EscapeJSONString(body.c_str());
-  payload += F("\"}");
+  if (0 == strcmp(page, "root")) {
+    char tmp[8];
+    WebGetArg(PSTR("o"), tmp, sizeof(tmp));
+    if (strlen(tmp)) {
+      ShowWebSource(SRC_WEBGUI);
+      uint32_t device = atoi(tmp);
+      ExecuteCommandPower(device, POWER_TOGGLE, SRC_IGNORE);
+    }
+
+    WSHeaderSend();
+    WSSend(200, CT_HTML, WSBuildRootLiveHtml());
+    return;
+  }
 
   WSHeaderSend();
-  WSSend(200, CT_APP_JSON, payload);
+  WSSend(404, CT_PLAIN, "Live section not found");
 }
-
 /*-------------------------------------------------------------------------------------------*/
 
 
@@ -2662,8 +2658,8 @@ void HandleInformationSensors(void) {
 
   WSContentCardStart(PSTR("Sensors"), nullptr);
 
-  WSContentSend_P(PSTR("<div x-data='tsLivePage(\"sensor\",%u)' x-init='start()'>"), Settings->web_refresh);
-  WSContentSend_P(PSTR("<div id='%s' x-ref='live'>"), WS_SECTION_SENSOR_LIVE);
+  WSContentSend_P(PSTR("<div data-ts-live-target='sensor' x-data='tsLiveRegion(\"lv?p=sensor\",%u)' x-init='start()'>"), Settings->web_refresh);
+  WSContentSend_P(PSTR("<div x-ref='live'>"));
   WSContentSendSensorLive();
   WSContentSend_P(PSTR("</div></div>"));
 

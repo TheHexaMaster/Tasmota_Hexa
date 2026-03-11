@@ -251,37 +251,29 @@ const char HTTP_COREUI_JS[] PROGMEM = R"TSCOREUI(
   }
 
 
-function tsLivePatch(id, html) {
-  var el = eb(id);
+function tsPatchElement(el, html) {
   if (el && typeof html === 'string') {
     el.innerHTML = html;
   }
 }
 
-function tsLiveRequest(page, extra, onDone) {
+function tsFragmentRequest(url, onDone) {
   var xhr = new XMLHttpRequest();
-  var u = 'lv?p=' + encodeURIComponent(page);
-
-  if (extra) {
-    u += (extra.charAt(0) === '&') ? extra : ('&' + extra);
-  }
 
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4 && xhr.status === 200) {
-      try {
-        onDone(JSON.parse(xhr.responseText || '{}'));
-      } catch (e) {}
+      onDone(xhr.responseText || '');
     }
   };
 
-  xhr.open('GET', u, true);
+  xhr.open('GET', url, true);
   xhr.send();
   return xhr;
 }
 
-function tsLivePage(page, refreshMs) {
+function tsLiveRegion(url, refreshMs) {
   return {
-    page: page,
+    url: url,
     refreshMs: (typeof refreshMs === 'number' && refreshMs > 0) ? refreshMs : TS.rootRefreshMs,
     xhr: null,
     loopTimer: null,
@@ -296,17 +288,13 @@ function tsLivePage(page, refreshMs) {
       }
     },
 
-    apply: function (data) {
-      if (typeof data.topbar === 'string') {
-        tsLivePatch('ts-topbar-status', data.topbar);
-      }
-      if (this.$refs.live && typeof data.body === 'string') {
-        this.$refs.live.innerHTML = data.body;
-      }
+    apply: function (html) {
+      tsPatchElement(this.$refs ? this.$refs.live : null, html);
     },
 
     tick: function (extra) {
       var self = this;
+      var req = this.url;
 
       clearTimeout(this.loopTimer);
       clearTimeout(this.failTimer);
@@ -315,21 +303,25 @@ function tsLivePage(page, refreshMs) {
         this.xhr.abort();
       }
 
-      this.xhr = tsLiveRequest(this.page, extra || '', function (data) {
-        self.apply(data);
+      if (extra) {
+        req += (req.indexOf('?') === -1 ? '?' : '&') + String(extra).replace(/^&/, '');
+      }
+
+      this.xhr = tsFragmentRequest(req, function (html) {
+        self.apply(html);
         clearTimeout(self.failTimer);
         self.loopTimer = setTimeout(function () {
-          self.tick();
+          self.tick('');
         }, self.refreshMs);
       });
 
       this.failTimer = setTimeout(function () {
-        self.tick();
+        self.tick(extra || '');
       }, 20000);
     },
 
     start: function () {
-      this.tick();
+      this.tick('');
     },
 
     action: function (extra) {
@@ -338,58 +330,23 @@ function tsLivePage(page, refreshMs) {
   };
 }
 
+function tsToolbarLive(refreshMs) {
+  return tsLiveRegion('lv?tb=1', refreshMs);
+}
+
 /*
-  compatibility wrapper for legacy root widgets/buttons
+  optional compatibility alias
 */
-function la(extra) {
-  clearTimeout(TS.root.failTimer);
-  clearTimeout(TS.root.loopTimer);
-
-  if (TS.root.xhr !== null) {
-    TS.root.xhr.abort();
-  }
-
-  TS.root.xhr = tsLiveRequest('root', extra || '', function (data) {
-    if (typeof data.topbar === 'string') {
-      tsLivePatch('ts-topbar-status', data.topbar);
-    }
-    if (typeof data.body === 'string') {
-      tsLivePatch('ts-root-live', data.body);
-    }
-
-    clearTimeout(TS.root.failTimer);
-    clearTimeout(TS.root.loopTimer);
-    TS.root.loopTimer = setTimeout(function () {
-      la();
-    }, TS.rootRefreshMs);
-  });
-
-  TS.root.failTimer = setTimeout(function () {
-    la();
-  }, 20000);
+function tsLivePage(page, refreshMs) {
+  return tsLiveRegion('lv?p=' + encodeURIComponent(page), refreshMs);
 }
 
-function lc(v, i, p) {
-  if (eb('s')) {
-    if (v === 'h' || v === 'd') {
-      var sl = eb('sl4') ? eb('sl4').value : 0;
-      var s = eb('s');
-      var sl2 = eb('sl2');
-      if (s && sl2) {
-        s.style.background =
-          'linear-gradient(to right,rgb(' + sl + '%,' + sl + '%,' + sl + '%),hsl(' +
-          sl2.value + ',100%,50%))';
-      }
-    }
-  }
-  la('&' + v + i + '=' + p);
-}
-
-function tsRootStart(refreshMs) {
-  if (typeof refreshMs === 'number' && refreshMs > 0) {
-    TS.rootRefreshMs = refreshMs;
-  }
-  la();
+/*
+  compatibility wrapper pre legacy root widgety
+*/
+function tsFindRootLiveEl() {
+  var host = d.querySelector('[data-ts-live-target="root"]');
+  return host ? host.querySelector('[x-ref="live"]') : null;
 }
 
 
@@ -407,9 +364,8 @@ function tsRootStart(refreshMs) {
   w.tsCounterStart = tsCounterStart;
 
   w.tsLivePage = tsLivePage;
-  w.la = la;
-  w.lc = lc;
-  w.tsRootStart = tsRootStart;
+  w.tsToolbarLive = tsToolbarLive;
+  w.tsLiveRegion = tsLiveRegion;
 
   w.tsSetReload = tsSetReload;
 
