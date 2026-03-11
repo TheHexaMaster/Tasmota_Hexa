@@ -787,14 +787,14 @@ void MqttPublishPayloadPrefixTopic_P(uint32_t prefix, const char* subtopic, cons
 */
   // Reduce important stack usage by 200 bytes but adding 52 bytes code
   char *romram = (char*)malloc(64);     // Claim 64 bytes from 20k heap
-  strcpy_P(romram, ((prefix > 3) && !Settings->flag.mqtt_response) ? S_RSLT_RESULT : subtopic);
+  strcpy(romram, ((prefix > 3) && !Settings->flag.mqtt_response) ? S_RSLT_RESULT : subtopic);
   UpperCase(romram, romram);
 
   prefix &= 3;
   char *htopic = (char*)malloc(TOPSZ);  // Claim TOPSZ bytes from 16k heap
   GetTopic_P(htopic, prefix, TasmotaGlobal.mqtt_topic, romram);
   char stopic[strlen(htopic) +1];     // Claim only strlen bytes from 4k stack
-  strcpy_P(stopic, htopic);
+  strcpy(stopic, htopic);
   free(htopic);                         // Free 16k heap from TOPSZ bytes
   free(romram);                         // Free 16k heap from 64 bytes
   MqttPublishPayload(stopic, payload, binary_length, retained);
@@ -2002,26 +2002,63 @@ void CmndTlsDump(void) {
 #endif  // DEBUG_DUMP_TLS
 #endif
 
-/*********************************************************************************************\
- * Presentation
-\*********************************************************************************************/
-
+//***********************************PRESENTATION**********************************************************\
+ 
 #ifdef USE_WEBSERVER
 
 #define WEB_HANDLE_MQTT "mq"
 
-const char HTTP_FORM_MQTT1[] PROGMEM =
-  "<p><b>" D_HOST "</b> (" MQTT_HOST ")<br><input id='mh' placeholder=\"" MQTT_HOST "\" value=\"%s\"></p>"
-  "<p><b>" D_PORT "</b> (" STR(MQTT_PORT) ")<br><input id='ml' placeholder='" STR(MQTT_PORT) "' value='%d'></p>"
+const char HTTP_FORM_MQTT_TS[] PROGMEM =
+  "<div x-data='{showMp:false}'>"
+
+    "<div class='ts-field'>"
+      "<label>" D_HOST " <span class='ts-field-note'>(" MQTT_HOST ")</span></label>"
+      "<input id='mh' name='mh' autocomplete='off' spellcheck='false' placeholder=\"" MQTT_HOST "\" value=\"%s\">"
+    "</div>"
+
+    "<div class='ts-field'>"
+      "<label>" D_PORT " <span class='ts-field-note'>(" STR(MQTT_PORT) ")</span></label>"
+      "<input id='ml' name='ml' type='number' min='1' max='65535' placeholder='" STR(MQTT_PORT) "' value='%d'>"
+    "</div>"
+
 #ifdef USE_MQTT_TLS
-  "<p><label><input id='b3' type='checkbox'%s><b>" D_MQTT_TLS_ENABLE "</b></label><br>"
-#endif // USE_MQTT_TLS
-  "<p><b>" D_CLIENT "</b> (%s)<br><input id='mc' placeholder=\"%s\" value=\"%s\"></p>";
-const char HTTP_FORM_MQTT2[] PROGMEM =
-  "<p><b>" D_USER "</b> (" MQTT_USER ")<br><input id='mu' placeholder=\"" MQTT_USER "\" value=\"%s\"></p>"
-  "<p><label><b>" D_PASSWORD "</b><input type='checkbox' onclick='sp(\"mp\")'></label><br><input id='mp' type='password' minlength='5' placeholder=\"" D_PASSWORD "\" value=\"" D_ASTERISK_PWD "\"></p>"
-  "<p><b>" D_TOPIC "</b> = %%topic%% (%s)<br><input id='mt' placeholder=\"%s\" value=\"%s\"></p>"
-  "<p><b>" D_FULL_TOPIC "</b> (%s)<br><input id='mf' placeholder=\"%s\" value=\"%s\"></p>";
+    "<div class='ts-check-row'>"
+      "<label class='ts-check-item'>"
+        "<input id='b3' name='b3' type='checkbox'%s>"
+        "<span>" D_MQTT_TLS_ENABLE "</span>"
+      "</label>"
+    "</div>"
+#endif
+
+    "<div class='ts-field'>"
+      "<label>" D_CLIENT " <span class='ts-field-note'>(%s)</span></label>"
+      "<input id='mc' name='mc' autocomplete='off' spellcheck='false' placeholder=\"%s\" value=\"%s\">"
+    "</div>"
+
+    "<div class='ts-field'>"
+      "<label>" D_USER " <span class='ts-field-note'>(" MQTT_USER ")</span></label>"
+      "<input id='mu' name='mu' autocomplete='off' spellcheck='false' placeholder=\"" MQTT_USER "\" value=\"%s\">"
+    "</div>"
+
+    "<div class='ts-field'>"
+      "<label class='ts-inline-check'>"
+        "<span>" D_PASSWORD "</span>"
+        "<input type='checkbox' @click='showMp=!showMp'>"
+      "</label>"
+      "<input id='mp' name='mp' :type='showMp ? \"text\" : \"password\"' minlength='5' placeholder=\"" D_PASSWORD "\" value=\"" D_ASTERISK_PWD "\">"
+    "</div>"
+
+    "<div class='ts-field'>"
+      "<label>" D_TOPIC " <span class='ts-field-note'>(%%topic%% / %s)</span></label>"
+      "<input id='mt' name='mt' autocomplete='off' spellcheck='false' placeholder=\"%s\" value=\"%s\">"
+    "</div>"
+
+    "<div class='ts-field'>"
+      "<label>" D_FULL_TOPIC " <span class='ts-field-note'>(%s)</span></label>"
+      "<input id='mf' name='mf' autocomplete='off' spellcheck='false' placeholder=\"%s\" value=\"%s\">"
+    "</div>"
+
+  "</div>";
 
 void HandleMqttConfiguration(void)
 {
@@ -2035,37 +2072,80 @@ void HandleMqttConfiguration(void)
     return;
   }
 
-  char str[TOPSZ];
+  char client_default[TOPSZ];
+  char topic_default[TOPSZ];
+  char fulltopic_default[TOPSZ];
+
+  Format(client_default, PSTR(MQTT_CLIENT_ID), sizeof(client_default));
+  Format(topic_default, PSTR(MQTT_TOPIC), sizeof(topic_default));
+  strlcpy(fulltopic_default, PSTR(MQTT_FULLTOPIC), sizeof(fulltopic_default));
+
+  String mqtt_host       = SettingsTextEscaped(SET_MQTT_HOST);
+  String mqtt_client     = SettingsTextEscaped(SET_MQTT_CLIENT);
+  String mqtt_user       = SettingsTextEscaped(SET_MQTT_USER);
+  String mqtt_topic      = SettingsTextEscaped(SET_MQTT_TOPIC);
+  String mqtt_fulltopic  = SettingsTextEscaped(SET_MQTT_FULLTOPIC);
+
+  String client_def_html    = HtmlEscape(client_default);
+  String topic_def_html     = HtmlEscape(topic_default);
+  String fulltopic_def_html = HtmlEscape(fulltopic_default);
+
+  const char *conn_class = Mqtt.connected ? "ts-success" : "ts-danger";
+  const char *conn_text  = Mqtt.connected ? "Connected" : "Disconnected";
+  const char *transport  = Settings->flag4.mqtt_tls ? "TLS" : "TCP";
 
   WSContentStart_P(PSTR(D_CONFIGURE_MQTT));
   WSContentSendStyle();
-  WSContentSend_P(HTTP_FIELDSET_LEGEND, PSTR(D_MQTT_PARAMETERS));
-  WSContentSend_P(HTTP_FORM_GET_ACTION, PSTR(WEB_HANDLE_MQTT));
-  WSContentSend_P(HTTP_FORM_MQTT1,
-    SettingsTextEscaped(SET_MQTT_HOST).c_str(),
+
+  WSContentPageHeader(
+    PSTR(D_CONFIGURE_MQTT),
+    PSTR("Broker connection, client identity and topic layout.")
+  );
+
+  WSContentCardStart(PSTR("Connection status"), nullptr);
+  WSContentSend_P(PSTR("<table class='ts-table'>"));
+  WSContentSend_P(PSTR("<tr><th>Status</th><td class='%s'>%s</td></tr>"), conn_class, conn_text);
+  WSContentSend_P(PSTR("<tr><th>Transport</th><td>%s</td></tr>"), transport);
+  WSContentSend_P(PSTR("<tr><th>" D_HOST "</th><td>%s:%d</td></tr>"),
+    mqtt_host.c_str(),
+    Settings->mqtt_port);
+  WSContentSend_P(PSTR("<tr><th>" D_CLIENT "</th><td>%s</td></tr>"),
+    mqtt_client.c_str());
+  WSContentSend_P(PSTR("</table>"));
+  WSContentCardEnd();
+
+  WSContentFormStart(PSTR(D_MQTT_PARAMETERS), PSTR(WEB_HANDLE_MQTT));
+  WSContentSend_P(HTTP_FORM_MQTT_TS,
+    mqtt_host.c_str(),
     Settings->mqtt_port,
 #ifdef USE_MQTT_TLS
-    Mqtt.mqtt_tls ? PSTR(" checked") : "",      // SetOption103 - Enable MQTT TLS
-#endif // USE_MQTT_TLS
-    Format(str, PSTR(MQTT_CLIENT_ID), sizeof(str)), PSTR(MQTT_CLIENT_ID), SettingsTextEscaped(SET_MQTT_CLIENT).c_str());
-  WSContentSend_P(HTTP_FORM_MQTT2,
-    (!strlen(SettingsText(SET_MQTT_USER))) ? "0" : SettingsTextEscaped(SET_MQTT_USER).c_str(),
-    Format(str, PSTR(MQTT_TOPIC), sizeof(str)), PSTR(MQTT_TOPIC), SettingsTextEscaped(SET_MQTT_TOPIC).c_str(),
-    PSTR(MQTT_FULLTOPIC), PSTR(MQTT_FULLTOPIC), SettingsTextEscaped(SET_MQTT_FULLTOPIC).c_str());
-  WSContentSend_P(HTTP_FORM_END);
-  WSContentSpaceButton(BUTTON_CONFIGURATION);
+    Settings->flag4.mqtt_tls ? PSTR(" checked") : PSTR(""),
+#endif
+    client_def_html.c_str(),
+    client_def_html.c_str(),
+    mqtt_client.c_str(),
+    mqtt_user.c_str(),
+    topic_def_html.c_str(),
+    topic_def_html.c_str(),
+    mqtt_topic.c_str(),
+    fulltopic_def_html.c_str(),
+    fulltopic_def_html.c_str(),
+    mqtt_fulltopic.c_str()
+  );
+  WSContentFormEnd();
+
   WSContentStop();
 }
 
 void MqttSaveSettings(void) {
   String cmnd = F(D_CMND_BACKLOG "0 ");
-  cmnd += AddWebCommand(PSTR(D_CMND_MQTTHOST), PSTR("mh"), PSTR("1"));
-  cmnd += AddWebCommand(PSTR(D_CMND_MQTTPORT), PSTR("ml"), PSTR("1"));
-  cmnd += AddWebCommand(PSTR(D_CMND_MQTTCLIENT), PSTR("mc"), PSTR("1"));
-  cmnd += AddWebCommand(PSTR(D_CMND_MQTTUSER), PSTR("mu"), PSTR("1"));
+  cmnd += AddWebCommand(PSTR(D_CMND_MQTTHOST),     PSTR("mh"), PSTR("1"));
+  cmnd += AddWebCommand(PSTR(D_CMND_MQTTPORT),     PSTR("ml"), PSTR("1"));
+  cmnd += AddWebCommand(PSTR(D_CMND_MQTTCLIENT),   PSTR("mc"), PSTR("1"));
+  cmnd += AddWebCommand(PSTR(D_CMND_MQTTUSER),     PSTR("mu"), PSTR("\""));
   cmnd += AddWebCommand(PSTR(D_CMND_MQTTPASSWORD "2"), PSTR("mp"), PSTR("\""));
-  cmnd += AddWebCommand(PSTR(D_CMND_TOPIC), PSTR("mt"), PSTR("1"));
-  cmnd += AddWebCommand(PSTR(D_CMND_FULLTOPIC), PSTR("mf"), PSTR("1"));
+  cmnd += AddWebCommand(PSTR(D_CMND_TOPIC),        PSTR("mt"), PSTR("1"));
+  cmnd += AddWebCommand(PSTR(D_CMND_FULLTOPIC),    PSTR("mf"), PSTR("1"));
 #ifdef USE_MQTT_TLS
   cmnd += F(";" D_CMND_SO "103 ");
   cmnd += Webserver->hasArg(F("b3"));  // SetOption103 - Enable MQTT TLS

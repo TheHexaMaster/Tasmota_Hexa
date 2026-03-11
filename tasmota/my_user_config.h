@@ -1041,9 +1041,9 @@
 #define USE_BERRY                                // Enable Berry scripting language
   #define USE_BERRY_WEBCLIENT_ASYNC              // Enable ASYNC webclient mode as an additional mode to standary berry webclient.   
   #define USE_BERRY_PYTHON_COMPAT                // Enable by default `import python_compat`
-  #define USE_BERRY_TIMEOUT             8000     // Timeout in ms, will raise an exception if running time exceeds this timeout
+  #define USE_BERRY_TIMEOUT             10000     // Timeout in ms, will raise an exception if running time exceeds this timeout
   #define USE_BERRY_PSRAM                        // Allocate Berry memory in PSRAM if PSRAM is connected - this might be slightly slower but leaves main memory intact
-  #define USE_BERRY_IRAM                         // Allocate some data structures in IRAM (which is usually unused) when possible and if no PSRAM is available
+//  #define USE_BERRY_IRAM                         // Allocate some data structures in IRAM (which is usually unused) when possible and if no PSRAM is available
   #define USE_BERRY_FAST_LOOP_SLEEP_MS  5        // Minimum time in milliseconds to before calling again `tasmota.fast_loop()`, a smaller value will consume more CPU (min 1ms)
   #define USE_BERRY_DEBUG                        // Compile Berry bytecode with line number information, makes exceptions easier to debug. Adds +8% of memory consumption for compiled code
   #define UBE_BERRY_DEBUG_GC                   // Print low-level GC metrics
@@ -1051,7 +1051,7 @@
   #define USE_WEBCLIENT_HTTPS                    // Enable HTTPS outgoing requests based on BearSSL (much ligher then mbedTLS, 42KB vs 150KB) in insecure mode (no verification of server's certificate)
                                                  // Note that only two ciphers are enabled: ECDHE_RSA_WITH_AES_128_GCM_SHA256, ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
     #define USE_BERRY_WEBCLIENT_USERAGENT  "HexaOSClient" // default user-agent used, can be changed with `wc.set_useragent()`
-    #define USE_BERRY_WEBCLIENT_TIMEOUT  5000    // Default timeout in milliseconds
+    #define USE_BERRY_WEBCLIENT_TIMEOUT  6000    // Default timeout in milliseconds
     // #define USE_BERRY_LEDS_PANEL                 // Add button to dynamically load the Leds Panel from a bec file online
     #define USE_BERRY_LEDS_PANEL_URL             "http://ota.tasmota.com/tapp/leds_panel.bec"
    // #define USE_BERRY_LVGL_PANEL                 // Add button to dynamically load the LVGL Panel from a bec file online
