@@ -981,15 +981,30 @@ void WSContentSendToolbarStatusInner(void) {
 #endif // USE_WEB_STATUS_LINE_HEAP
 
 #ifdef USE_WEB_CPU_LOAD_SAFE
-  if (g_cpu_load[0].valid) {
-    WSContentSend_P(PSTR("<span class='ts-status'>CPU0 %u%%</span>"), g_cpu_load[0].load_pct);
-  }
+  char cpu_text[32] = { 0 };
 
   #if configNUMBER_OF_CORES > 1
-  if (g_cpu_load[1].valid) {
-    WSContentSend_P(PSTR("<span class='ts-status'>CPU1 %u%%</span>"), g_cpu_load[1].load_pct);
-  }
+    if (g_cpu_load[0].valid && g_cpu_load[1].valid) {
+      snprintf(cpu_text, sizeof(cpu_text), PSTR("%u%% | %u%%"),
+        g_cpu_load[0].load_pct,
+        g_cpu_load[1].load_pct);
+    } else if (g_cpu_load[0].valid) {
+      snprintf(cpu_text, sizeof(cpu_text), PSTR("%u%%"),
+        g_cpu_load[0].load_pct);
+    } else if (g_cpu_load[1].valid) {
+      snprintf(cpu_text, sizeof(cpu_text), PSTR("%u%%"),
+        g_cpu_load[1].load_pct);
+    }
+  #else
+    if (g_cpu_load[0].valid) {
+      snprintf(cpu_text, sizeof(cpu_text), PSTR("%u%%"),
+        g_cpu_load[0].load_pct);
+    }
   #endif
+
+  if (cpu_text[0] != '\0') {
+    WSContentSend_P(PSTR("<span class='ts-status'>🖥 %s</span>"), cpu_text);
+  }
 #endif
 
 

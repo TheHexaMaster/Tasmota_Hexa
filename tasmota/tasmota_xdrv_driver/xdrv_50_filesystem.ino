@@ -1226,112 +1226,175 @@ void UFSRun(void) {
 
 #ifdef USE_WEBSERVER
 
-const char UFS_WEB_DIR[] PROGMEM =
-  "<p></p><form action='ufsd' method='get'><input type='hidden' name='download' value='%s' /> <button>%s</button></form>";
-
-const char UFS_CURRDIR[] PROGMEM = 
-  "<p>%s: %s</p>";
-
-#ifndef D_CURR_DIR
-  #define D_CURR_DIR "Folder"
+#ifndef D_CURR_DIR 
+  #define D_CURR_DIR "Folder" 
 #endif
 
-const char UFS_FORM_FILE_UPGc[] PROGMEM =
-  "<div style='text-align:left;color:#%06x;'>" D_FS_SIZE " %s MB - " D_FS_FREE " %s MB";
+const char HTTP_UFS_STYLE[] PROGMEM =
+  ".ts-ufs-toolbar{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px;}"
+  ".ts-ufs-meta{font-size:.92rem;line-height:1.45;opacity:.82;}"
+  ".ts-ufs-switch{display:flex;flex-wrap:wrap;gap:8px;}"
+  ".ts-ufs-switch a{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 14px;border-radius:12px;"
+    "background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:var(--c_txt);text-decoration:none;font-weight:700;}"
+  ".ts-ufs-switch a:hover{background:rgba(255,255,255,.09);}"
+  ".ts-ufs-switch a.active{background:var(--c_btn);color:var(--c_btntxt);border-color:transparent;}"
+  ".ts-ufs-path{margin-top:8px;font-family:Consolas,Monaco,monospace;font-size:.92rem;word-break:break-all;opacity:.86;}"
+  ".ts-ufs-upload{display:grid;gap:14px;}"
+  ".ts-ufs-list{display:grid;gap:10px;}"
+  ".ts-ufs-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;"
+    "padding:12px 14px;border-radius:16px;border:1px solid rgba(255,255,255,.08);"
+    "background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(0,0,0,.04));}"
+  ".ts-ufs-row.dir{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(0,0,0,.05));}"
+  ".ts-ufs-main{min-width:0;}"
+  ".ts-ufs-name{display:block;font-weight:700;color:var(--c_ttl);word-break:break-word;line-height:1.35;}"
+  ".ts-ufs-name a{color:inherit;text-decoration:none;}"
+  ".ts-ufs-sub{margin-top:4px;font-size:.83rem;opacity:.72;line-height:1.35;word-break:break-word;}"
+  ".ts-ufs-size{font-size:.84rem;opacity:.82;white-space:nowrap;}"
+  ".ts-ufs-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;}"
+  ".ts-ufs-icon{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:12px;"
+    "background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:var(--c_txt);"
+    "text-decoration:none;font-size:18px;line-height:1;}"
+  ".ts-ufs-icon:hover{background:rgba(255,255,255,.12);}"
+  ".ts-ufs-empty{padding:14px 16px;border-radius:14px;border:1px dashed rgba(255,255,255,.12);opacity:.78;}"
+  ".ts-ufs-inline-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;}"
+  ".ts-ufs-toggle{display:inline-flex;align-items:center;gap:8px;font-weight:700;color:var(--c_ttl);}"
+  ".ts-ufs-editor-form{display:grid;gap:14px;}"
+  ".ts-ufs-editor-input{font-family:Consolas,Monaco,monospace;}"
+  ".ts-ufs-editor-textarea{min-height:60vh;height:60vh;resize:vertical;font-family:Consolas,Monaco,monospace;"
+    "font-size:.95rem;line-height:1.35;white-space:pre;}"
+  "@media (max-width:720px){"
+    ".ts-ufs-row{grid-template-columns:minmax(0,1fr) auto;}"
+    ".ts-ufs-size{grid-column:1 / 2;}"
+    ".ts-ufs-actions{grid-column:2 / 3;grid-row:1 / span 2;align-self:center;}"
+    ".ts-ufs-toolbar{flex-direction:column;}"
+  "}";
 
-const char UFS_FORM_FILE_UPGc1[] PROGMEM =
-    " &nbsp;&nbsp;<a href='/ufsd?dir=%d'>%s</a>";
+static const char* UfsWebFsLabel(uint8_t dir_sel) {
+  if ((dir_sel == 1) || ((dir_sel == 0) && (ufs_type == UFS_TSDC))) {
+    return PSTR("SDCard");
+  }
+  return PSTR("FlashFS");
+}
 
-const char UFS_FORM_FILE_UPGc2[] PROGMEM =
-  "</div>";
+static void UfsWebJoinPath(char *out, size_t out_size, const char *base, const char *name) {
+  if ((nullptr == base) || !base[0] || ((base[0] == '/') && (base[1] == '\0'))) {
+    snprintf(out, out_size, PSTR("/%s"), name);
+  } else {
+    snprintf(out, out_size, PSTR("%s/%s"), base, name);
+  }
+}
 
-const char UFS_FORM_FILE_UPG[] PROGMEM =
-  "<form method='post' action='ufsu?fsz=' enctype='multipart/form-data'>"
-  "<br><input type='file' name='ufsu'><br>"
-  "<br><button type='submit' "
-  "onclick='eb(\"f1\").style.display=\"none\";eb(\"but6\").style.display=\"none\";eb(\"f2\").style.display=\"block\";this.form.action+=this.form[\"ufsu\"].files[0].size;this.form.submit();'"
-  ">" D_UPLOAD "</button></form>"
-  "<br><hr>";
-const char UFS_FORM_SDC_DIRa[] PROGMEM =
-  "<div style='text-align:left;overflow:auto;height:250px;'>";
-const char UFS_FORM_SDC_DIRc[] PROGMEM =
-  "</div>";
-const char UFS_FORM_FILE_UPGb[] PROGMEM =
-  "<input type='hidden' name='file' value='%s/" D_NEW_FILE "'>"
-  "<button type='submit'>" D_CREATE_NEW_FILE "</button></form>";
-const char UFS_FORM_FILE_UPGb1[] PROGMEM =
-  "<label><input type='checkbox' id='shf' onclick='sf(eb(\"shf\").checked);' name='shf'>" D_SHOW_HIDDEN_FILES "</label>";
+static void UfsWebParentPath(const char *path, char *out, size_t out_size) {
+  strlcpy(out, path, out_size);
+  folderOnly(out);
+  if (!out[0]) {
+    strlcpy(out, "/", out_size);
+  }
+}
 
-const char UFS_FORM_FILE_UPGb2[] PROGMEM =
-  "</fieldset>"
-  "</div>"
-  "<div id='f2' name='f2' style='display:none;text-align:center;'><b>" D_UPLOAD_STARTED " ...</b></div>";
-const char UFS_FORM_SDC_DIR_NORMAL[] PROGMEM =
-  "";
-const char UFS_FORM_SDC_DIR_HIDDABLE[] PROGMEM =
-  " class='hf'";
-const char UFS_FORM_SDC_DIRd[] PROGMEM =
-  "<pre><a href='%s' file='%s'>%s</a></pre>";
-const char UFS_FORM_SDC_DIRb[] PROGMEM =
-  "<pre%s><a href='%s' file='%s'>%s</a> %19s %8d %s %s</pre>";
-const char UFS_FORM_SDC_HREF[] PROGMEM =
-  "ufsd?download=%s/%s";
+static String UfsWebBaseQuery(bool show_hidden) {
+  String query;
+  if (ufs_dir) {
+    query += F("dir=");
+    query += String(ufs_dir);
+  }
+  if (show_hidden) {
+    if (query.length()) { query += '&'; }
+    query += F("shf=1");
+  }
+  return query;
+}
 
-#ifdef GUI_TRASH_FILE
-const char UFS_FORM_SDC_HREFdel[] PROGMEM =
-  //"<a href=ufsd?delete=%s/%s>&#128465;</a>"; // 🗑️
-  "<a href='ufsd?delete=%s/%s&download=%s' onclick=\"return confirm('" D_CONFIRM_FILE_DEL "')\">&#128293;</a>"; // 🔥
-#endif // GUI_TRASH_FILE
+static String UfsWebBrowseUrl(const char *target, bool show_hidden) {
+  String url = F("ufsd?");
+  String query = UfsWebBaseQuery(show_hidden);
+  if (query.length()) {
+    url += query;
+    url += '&';
+  }
+  url += F("download=");
+  url += UrlEscape(target);
+  return url;
+}
+
+static String UfsWebDeleteUrl(const char *target, const char *return_dir, bool show_hidden) {
+  String url = F("ufsd?");
+  String query = UfsWebBaseQuery(show_hidden);
+  if (query.length()) {
+    url += query;
+    url += '&';
+  }
+  url += F("delete=");
+  url += UrlEscape(target);
+  url += F("&download=");
+  url += UrlEscape(return_dir);
+  return url;
+}
 
 #ifdef GUI_EDIT_FILE
+static String UfsWebEditUrl(const char *target, bool show_hidden) {
+  String url = F("ufse?file=");
+  url += UrlEscape(target);
+  if (ufs_dir) {
+    url += F("&dir=");
+    url += String(ufs_dir);
+  }
+  if (show_hidden) {
+    url += F("&shf=1");
+  }
+  return url;
+}
+#endif
 
-#define FILE_BUFFER_SIZE  1024
-
-const char UFS_FORM_SDC_HREFedit[] PROGMEM =
-  "<a href='ufse?file=%s/%s'>&#x1F4DD;</a>"; // 📝
-
-const char HTTP_EDITOR_FORM_START[] PROGMEM =
-  "<form>"
-  "<label for='name'>" D_FILE ":</label><input type='text' id='name' name='name' value='%s'><br><hr width='98%%'>"
-  "<textarea id='content' name='content' wrap='off' rows='8' cols='80' style='font-size: 12pt'>";
-
-const char HTTP_EDITOR_FORM_END[] PROGMEM =
-  "</textarea>"
-  "<button name='save' type='submit' formmethod='post' formenctype='multipart/form-data' formaction='/ufse' class='button bgrn'>" D_SAVE "</button>"
-  "</form></fieldset>";
-
-#endif  // #ifdef GUI_EDIT_FILE
+static void UfsWebSendBackToManagerButton(const char *path) {
+  String target = UrlEscape(path);
+  WSContentSend_P(PSTR(
+    "<form method='get' action='ufsd' class='ts-form'>"
+      "<input type='hidden' name='download' value='%s'>"
+      "%s"
+      "<div class='ts-form-actions'><button>%s</button></div>"
+    "</form>"
+  ),
+    target.c_str(),
+    (ufs_dir == 1) ? "<input type='hidden' name='dir' value='1'>" :
+    (ufs_dir == 2) ? "<input type='hidden' name='dir' value='2'>" : "",
+    PSTR(D_MANAGE_FILE_SYSTEM)
+  );
+}
 
 void HandleUploadUFSDone(void) {
   if (!HttpCheckPriviledgedAccess()) { return; }
-
-  HTTPUpload& upload = Webserver->upload();
 
   AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP D_UPLOAD_DONE));
 
   WifiConfigCounter();
   UploadServices(1);
 
-  WSContentStart_P(PSTR(D_INFORMATION));
+  WSContentStart_P(PSTR(D_MANAGE_FILE_SYSTEM));
+  WSContentSendStyle_P(HTTP_UFS_STYLE);
+  WSContentPageHeader(PSTR(D_MANAGE_FILE_SYSTEM), PSTR("Upload result for the file system operation."));
 
-  WSContentSendStyle();
-  WSContentSend_P(PSTR("<div style='text-align:center;'><b>" D_UPLOAD " <font color='#"));
+  WSContentCardStart(PSTR(D_UPLOAD), nullptr);
+
   if (Web.upload_error) {
-    WSContentSend_P(PSTR("%06x'>" D_FAILED "</font></b><br><br>"), WebColor(COL_TEXT_WARNING));
     char error[100];
     if (Web.upload_error < 10) {
-      GetTextIndexed(error, sizeof(error), Web.upload_error -1, kUploadErrors);
+      GetTextIndexed(error, sizeof(error), Web.upload_error - 1, kUploadErrors);
     } else {
       snprintf(error, sizeof(error), PSTR(D_UPLOAD_ERROR_CODE " %d"), Web.upload_error);
     }
-    WSContentSend_P(error);
+
+    WSContentSend_P(PSTR("<div class='ts-danger ts-center'><b>" D_UPLOAD " " D_FAILED "</b><br><br>%s</div>"), error);
     Web.upload_error = 0;
   } else {
-    WSContentSend_P(PSTR("%06x'>" D_SUCCESSFUL "</font></b><br>"), WebColor(COL_TEXT_SUCCESS));
+    WSContentSend_P(PSTR("<div class='ts-success ts-center'><b>" D_UPLOAD " " D_SUCCESSFUL "</b></div>"));
   }
-  WSContentSend_P(PSTR("</div><br>"));
 
-  XdrvCall(FUNC_WEB_ADD_MANAGEMENT_BUTTON);
+  WSContentCardEnd();
+
+  WSContentCardStart(PSTR("Actions"), nullptr);
+  UfsWebSendBackToManagerButton(ufs_path[0] ? ufs_path : "/");
+  WSContentCardEnd();
 
   WSContentStop();
 }
@@ -1341,14 +1404,18 @@ void UfsDirectory(void) {
 
   AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_HTTP D_MANAGE_FILE_SYSTEM));
 
-  uint8_t depth = 0;
-  uint8_t isdir = 0;
+  bool isdir = false;
+  bool show_hidden = false;
 
-  strcpy(ufs_path, "/");
+  strlcpy(ufs_path, "/", sizeof(ufs_path));
 
   if (Webserver->hasArg(F("dir"))) {
     String stmp = Webserver->arg(F("dir"));
     ufs_dir = atoi(stmp.c_str());
+  }
+
+  if (Webserver->hasArg(F("shf"))) {
+    show_hidden = true;
   }
 
   if (ufs_dir == 1) {
@@ -1378,88 +1445,181 @@ void UfsDirectory(void) {
     String stmp = Webserver->arg(F("download"));
     char *cp = (char*)stmp.c_str();
     if (UfsDownloadFile(cp)) {
-      // is directory
-      strcpy(ufs_path, cp);
-      isdir = 1;
+      strlcpy(ufs_path, cp, sizeof(ufs_path));
+      isdir = true;
     } else {
       return;
     }
   }
 
-  WSContentStart_P(PSTR(D_MANAGE_FILE_SYSTEM));
-  WSContentSendStyle();
-  WSContentSend_P(HTTP_DIV_F1_BLOCK);
-  WSContentSend_P(HTTP_FIELDSET_LEGEND, PSTR(D_MANAGE_FILE_SYSTEM));
-
   char ts[FLOATSZ];
-  dtostrfd((float)UfsInfo(0, ufs_dir == 2 ? 1:0) / 1000, 3, ts);
+  dtostrfd((float)UfsInfo(0, ufs_dir == 2 ? 1 : 0) / 1000, 3, ts);
+
   char fs[FLOATSZ];
-  dtostrfd((float)UfsInfo(1, ufs_dir == 2 ? 1:0) / 1000, 3, fs);
-  WSContentSend_PD(UFS_FORM_FILE_UPGc, WebColor(COL_TEXT), ts, fs);
+  dtostrfd((float)UfsInfo(1, ufs_dir == 2 ? 1 : 0) / 1000, 3, fs);
+
+  WSContentStart_P(PSTR(D_MANAGE_FILE_SYSTEM));
+  WSContentSendStyle_P(HTTP_UFS_STYLE);
+  WSContentPageHeader(PSTR(D_MANAGE_FILE_SYSTEM), PSTR("Browse, upload, download, edit and delete files from the active storage."));
+
+  WSContentCardStart(PSTR("Storage"), nullptr);
+  WSContentSend_P(PSTR("<div class='ts-ufs-toolbar'>"));
+
+  WSContentSend_P(PSTR(
+    "<div class='ts-ufs-meta'>"
+      "<b>%s</b><br>"
+      D_FS_SIZE " %s MB<br>"
+      D_FS_FREE " %s MB"
+    "</div>"
+  ),
+    UfsWebFsLabel(ufs_dir),
+    ts,
+    fs
+  );
 
   if (ufs_dir) {
-    WSContentSend_P(UFS_FORM_FILE_UPGc1, (ufs_dir == 1)?2:1, (ufs_dir == 1)?PSTR("SDCard"):PSTR("FlashFS"));
+    uint8_t alt_dir = (ufs_dir == 1) ? 2 : 1;
+    WSContentSend_P(PSTR("<div class='ts-ufs-switch'>"));
+    WSContentSend_P(PSTR("<a class='active' href='%s?dir=%d%s'>%s</a>"),
+      PSTR("ufsd"),
+      ufs_dir,
+      show_hidden ? "&shf=1" : "",
+      UfsWebFsLabel(ufs_dir));
+    WSContentSend_P(PSTR("<a href='%s?dir=%d%s'>%s</a>"),
+      PSTR("ufsd"),
+      alt_dir,
+      show_hidden ? "&shf=1" : "",
+      UfsWebFsLabel(alt_dir));
+    WSContentSend_P(PSTR("</div>"));
   }
-  WSContentSend_P(UFS_FORM_FILE_UPGc2);
 
-  WSContentSend_P(UFS_FORM_FILE_UPG);
+  WSContentSend_P(PSTR("</div>"));
 
-  if (isdir){
-    // if a folder, show 'folder: xxx' if not '/'
-    if (ufs_path[0] != '/' || strlen(ufs_path) != 1){
-      WSContentSend_P(UFS_CURRDIR, PSTR(D_CURR_DIR), ufs_path);
-    }
+  if (isdir) {
+    WSContentSend_P(PSTR("<div class='ts-ufs-path'>%s: %s</div>"),
+      PSTR(D_CURR_DIR),
+      HtmlEscape(ufs_path).c_str());
+  } else {
+    WSContentSend_P(PSTR("<div class='ts-ufs-path'>%s: /</div>"), PSTR(D_CURR_DIR));
   }
 
-  WSContentSend_P(UFS_FORM_SDC_DIRa);
-  if (ufs_type) {
-    UfsListDir(ufs_path, depth);
-  }
-  WSContentSend_P(UFS_FORM_SDC_DIRc);
+  WSContentCardEnd();
+
+  WSContentCardStart(PSTR(D_UPLOAD), nullptr);
+  WSContentSend_P(PSTR(
+    "<form method='post' action='ufsu?fsz=' enctype='multipart/form-data' class='ts-form ts-ufs-upload'>"
+      "<input type='hidden' name='dir' value='%s'>"
+      "<input type='hidden' name='drv' value='%d'>"
+      "<div class='ts-field'>"
+        "<label>" D_FILE "</label>"
+        "<input type='file' name='ufsu' required>"
+      "</div>"
+      "<div class='ts-form-actions'>"
+        "<button type='submit' onclick='"
+          "if(!this.form[\"ufsu\"].files.length){return false;}"
+          "eb(\"f2\").style.display=\"block\";"
+          "this.form.action+=this.form[\"ufsu\"].files[0].size;"
+        "'>" D_UPLOAD "</button>"
+      "</div>"
+    "</form>"
+    "<div id='f2' class='ts-note ts-center' style='display:none;'><b>" D_UPLOAD_STARTED " ...</b></div>"
+  ),
+    HtmlEscape(ufs_path).c_str(),
+    ufs_dir
+  );
+
 #ifdef GUI_EDIT_FILE
-  WSContentSend_P(HTTP_FORM_GET_ACTION, PSTR("ufse"));
-  WSContentSend_P(UFS_FORM_FILE_UPGb, ufs_path);
-#endif
-  if (!UfsIsSDC()) {
-    WSContentSend_P(UFS_FORM_FILE_UPGb1);
+  String new_file_url = F("ufse?file=");
+  if ((ufs_path[0] == '/') && (ufs_path[1] == '\0')) {
+    new_file_url += UrlEscape(PSTR(D_NEW_FILE));
+  } else {
+    char newf[UFS_FILENAME_SIZE];
+    snprintf(newf, sizeof(newf), PSTR("%s/" D_NEW_FILE), ufs_path);
+    new_file_url += UrlEscape(newf);
   }
-  WSContentSend_P(UFS_FORM_FILE_UPGb2);
+  if (ufs_dir) {
+    new_file_url += F("&dir=");
+    new_file_url += String(ufs_dir);
+  }
+  if (show_hidden) {
+    new_file_url += F("&shf=1");
+  }
 
-  WSContentSpaceButton(BUTTON_MANAGEMENT);
+  WSContentSend_P(PSTR(
+    "<div class='ts-ufs-inline-actions'>"
+      "<a class='ts-sub-link' href='%s'>✏️ " D_CREATE_NEW_FILE "</a>"
+      "<a class='ts-sub-link' href='ufsd%s'>%s</a>"
+    "</div>"
+  ),
+    new_file_url.c_str(),
+    show_hidden ? "" : "?shf=1",
+    show_hidden ? PSTR("Hide hidden files") : PSTR(D_SHOW_HIDDEN_FILES)
+  );
+#else
+  WSContentSend_P(PSTR(
+    "<div class='ts-ufs-inline-actions'>"
+      "<a class='ts-sub-link' href='ufsd%s'>%s</a>"
+    "</div>"
+  ),
+    show_hidden ? "" : "?shf=1",
+    show_hidden ? PSTR("Hide hidden files") : PSTR(D_SHOW_HIDDEN_FILES)
+  );
+#endif
+
+  WSContentCardEnd();
+
+  WSContentCardStart(PSTR("Directory"), nullptr);
+  WSContentSend_P(PSTR("<div class='ts-ufs-list'>"));
+  if (ufs_type) {
+    UfsListDir(ufs_path, 0, show_hidden);
+  } else {
+    WSContentSend_P(PSTR("<div class='ts-ufs-empty'>No file system is available.</div>"));
+  }
+  WSContentSend_P(PSTR("</div>"));
+  WSContentCardEnd();
+
+  WSContentCardStart(PSTR("Actions"), nullptr);
+  WSContentActionsStart();
+  WSContentActionButton(PSTR("mn"), PSTR(D_MANAGEMENT));
+  WSContentActionsEnd();
+  WSContentCardEnd();
+
   WSContentStop();
 
   Web.upload_file_type = UPL_UFSFILE;
 }
 
-void UfsListDir(char *path, uint8_t depth) {
-  char name[UFS_FILENAME_SIZE];
-  char npath[128];
-  char format[12];
-  sprintf(format, PSTR("%%-%ds"), 24 - depth);
+void UfsListDir(char *path, uint8_t depth, bool show_hidden) {
+  (void)depth;
 
   File dir = dfsp->open(path, UFS_FILE_READ);
+  bool rendered = false;
+
   if (dir) {
     dir.rewindDirectory();
-    if (strlen(path)>1) {
-      ext_snprintf(npath, sizeof(npath), PSTR("ufsd?download=%s"), path);
-      for (uint32_t cnt = strlen(npath) - 1; cnt > 0; cnt--) {
-        if (npath[cnt] == '/') {
-          if (npath[cnt - 1] == '=') {
-            npath[cnt + 1] = 0;
-          } else {
-            npath[cnt] = 0;
-          }
-          break;
-        }
-      }
-      WSContentSend_P(UFS_FORM_SDC_DIRd, npath, path, PSTR(".."));
+
+    if (strlen(path) > 1) {
+      char parent[UFS_FILENAME_SIZE];
+      UfsWebParentPath(path, parent, sizeof(parent));
+      String up_url = UfsWebBrowseUrl(parent, show_hidden);
+
+      WSContentSend_P(PSTR(
+        "<div class='ts-ufs-row dir'>"
+          "<div class='ts-ufs-main'>"
+            "<span class='ts-ufs-name'><a href='%s'>📁 ..</a></span>"
+            "<div class='ts-ufs-sub'>Parent folder</div>"
+          "</div>"
+          "<div class='ts-ufs-size'></div>"
+          "<div class='ts-ufs-actions'></div>"
+        "</div>"
+      ), up_url.c_str());
+
+      rendered = true;
     }
-    char *ep;
+
     while (true) {
       WiFiClient client = Webserver->client();
-      // abort if the client disconnected
-      // if there is a huge folder, then this gives a way out by refresh of browser
-      if (!client.connected()){
+      if (!client.connected()) {
         break;
       }
 
@@ -1467,81 +1627,103 @@ void UfsListDir(char *path, uint8_t depth) {
       if (!entry) {
         break;
       }
-      // esp32 returns path here, shorten to filename
-      ep = (char*)entry.name();
+
+      char *ep = (char*)entry.name();
       if (*ep == '/') { ep++; }
-      char *lcp = strrchr(ep,'/');
+      char *lcp = strrchr(ep, '/');
       if (lcp) {
         ep = lcp + 1;
       }
 
-      uint32_t tm = entry.getLastWrite();
-      String tstr = GetDT(tm);
-
-      char *pp = path;
-      if (!*(pp + 1)) { pp++; }
-      char *cp = name;
-      // osx formatted disks contain a lot of stuff we dont want
-      bool hiddable = UfsReject((char*)ep);
-
-      if (!hiddable || !UfsIsSDC() ) {
-
-        for (uint8_t cnt = 0; cnt<depth; cnt++) {
-          *cp++ = '-';
-        }
-
-        String pp_escaped_string = UrlEscape(pp);
-        String ep_escaped_string = UrlEscape(ep);
-        const char* ppe = pp_escaped_string.c_str();    // this can't be merged on a single line otherwise the String object can be freed
-        const char* epe = ep_escaped_string.c_str();
-        sprintf(cp, format, ep);
-#ifdef GUI_TRASH_FILE
-        char delpath[128+UFS_FILENAME_SIZE];
-        ext_snprintf(delpath, sizeof(delpath), UFS_FORM_SDC_HREFdel, ppe, epe, ppe[0]?ppe:"/");
-#else
-        char delpath[2] = " ";
-#endif // GUI_TRASH_FILE
-        if (entry.isDirectory()) {
-          ext_snprintf(npath, sizeof(npath), UFS_FORM_SDC_HREF, ppe, epe);
-
-          WSContentSend_P(UFS_FORM_SDC_DIRb, hiddable ? UFS_FORM_SDC_DIR_HIDDABLE : UFS_FORM_SDC_DIR_NORMAL, npath, epe,
-                          HtmlEscape(name).c_str(), "", 0, delpath, " ");
-          //WSContentSend_P(UFS_FORM_SDC_DIRd, npath, ep, name);
-#ifdef UFILESYS_RECURSEFOLDERS_GUI
-          uint8_t plen = strlen(path);
-          if (plen > 1) {
-            strcat(path, "/");
-          }
-          strcat(path, ep);
-          UfsListDir(path, depth + 4);
-          path[plen] = 0;
-#endif          
-        } else {
-  #ifdef GUI_EDIT_FILE
-          char editpath[128];
-          ext_snprintf(editpath, sizeof(editpath), UFS_FORM_SDC_HREFedit, ppe, epe);
-  #else
-          char editpath[2];
-          editpath[0]=0;
-  #endif // GUI_TRASH_FILE
-          ext_snprintf(npath, sizeof(npath), UFS_FORM_SDC_HREF, ppe, epe);
-          WSContentSend_P(UFS_FORM_SDC_DIRb, hiddable ? UFS_FORM_SDC_DIR_HIDDABLE : UFS_FORM_SDC_DIR_NORMAL, npath, epe,
-                          HtmlEscape(name).c_str(), tstr.c_str(), entry.size(), delpath, editpath);
-        }
+      bool hidden = UfsReject((char*)ep);
+      if (hidden && !show_hidden && UfsIsSDC()) {
         entry.close();
-
-        yield(); // trigger watchdog reset
+        yield();
+        continue;
       }
+
+      char full_path[UFS_FILENAME_SIZE];
+      UfsWebJoinPath(full_path, sizeof(full_path), path, ep);
+
+      String open_url = UfsWebBrowseUrl(full_path, show_hidden);
+      String delete_url = UfsWebDeleteUrl(full_path, path, show_hidden);
+
+#ifdef GUI_EDIT_FILE
+      String edit_url = UfsWebEditUrl(full_path, show_hidden);
+#endif
+
+      String name_html = HtmlEscape(ep);
+      String time_str = entry.isDirectory() ? String("") : GetDT(entry.getLastWrite());
+      uint32_t file_size = entry.size();
+
+      if (entry.isDirectory()) {
+        WSContentSend_P(PSTR(
+          "<div class='ts-ufs-row dir'>"
+            "<div class='ts-ufs-main'>"
+              "<span class='ts-ufs-name'><a href='%s'>📁 %s</a></span>"
+              "<div class='ts-ufs-sub'>Folder</div>"
+            "</div>"
+            "<div class='ts-ufs-size'>—</div>"
+            "<div class='ts-ufs-actions'>"
+              "<a class='ts-ufs-icon' href='%s' title='Open'>📂</a>"
+#ifdef GUI_TRASH_FILE
+              "<a class='ts-ufs-icon' href='%s' title='Delete' onclick=\"return confirm('" D_CONFIRM_FILE_DEL "');\">🗑</a>"
+#endif
+            "</div>"
+          "</div>"
+        ),
+          open_url.c_str(),
+          name_html.c_str(),
+          open_url.c_str()
+#ifdef GUI_TRASH_FILE
+          , delete_url.c_str()
+#endif
+        );
+      } else {
+        WSContentSend_P(PSTR(
+          "<div class='ts-ufs-row'>"
+            "<div class='ts-ufs-main'>"
+              "<span class='ts-ufs-name'><a href='%s'>📄 %s</a></span>"
+              "<div class='ts-ufs-sub'>%s</div>"
+            "</div>"
+            "<div class='ts-ufs-size'>%u B</div>"
+            "<div class='ts-ufs-actions'>"
+              "<a class='ts-ufs-icon' href='%s' title='Download'>⬇️</a>"
+#ifdef GUI_EDIT_FILE
+              "<a class='ts-ufs-icon' href='%s' title='Edit'>✏️</a>"
+#endif
+#ifdef GUI_TRASH_FILE
+              "<a class='ts-ufs-icon' href='%s' title='Delete' onclick=\"return confirm('" D_CONFIRM_FILE_DEL "');\">🗑</a>"
+#endif
+            "</div>"
+          "</div>"
+        ),
+          open_url.c_str(),
+          name_html.c_str(),
+          HtmlEscape(time_str).c_str(),
+          file_size,
+          open_url.c_str()
+#ifdef GUI_EDIT_FILE
+          , edit_url.c_str()
+#endif
+#ifdef GUI_TRASH_FILE
+          , delete_url.c_str()
+#endif
+        );
+      }
+
+      entry.close();
+      rendered = true;
+      yield();
     }
+
     dir.close();
   }
-}
 
-#ifdef ESP32
-// this actually does not work reliably, as the 
-// webserver can close the connection before the download task completes
-//#define ESP32_DOWNLOAD_TASK
-#endif // ESP32
+  if (!rendered) {
+    WSContentSend_P(PSTR("<div class='ts-ufs-empty'>This folder is empty.</div>"));
+  }
+}
 
 uint8_t UfsDownloadFile(char *file) {
   File download_file;
@@ -1580,7 +1762,6 @@ uint8_t UfsDownloadFile(char *file) {
 
   uint8_t buff[512];
   uint32_t bread;
-  // transfer is about 150kb/s
   uint32_t cnt = 0;
   while (download_file.available()) {
     bread = download_file.read(buff, sizeof(buff));
@@ -1589,23 +1770,14 @@ uint8_t UfsDownloadFile(char *file) {
     cnt++;
     if (cnt > 7) {
       cnt = 0;
-      //if (glob_script_mem.script_loglevel & 0x80) {
-        // this indeed multitasks, but is slower 50 kB/s
-      //  loop();
-      //}
     }
     delay(0);
     OsWatchLoop();
   }
   download_file.close();
   download_Client.stop();
-#endif // ESP32_DOWNLOAD_TASK
+#endif
 
-
-
-// to make this work I thing you wouold need to duplicate the client 
-// BEFORE starting the task, so that the webserver does not close it's
-// copy of the client.
 #ifdef ESP32_DOWNLOAD_TASK
   download_file.close();
 
@@ -1616,67 +1788,51 @@ uint8_t UfsDownloadFile(char *file) {
 
   UfsData.download_busy = true;
   char *path = (char*)malloc(128);
-  strcpy(path,file);
+  strcpy(path, file);
   BaseType_t ret = xTaskCreatePinnedToCore(download_task, "DT", 6000, (void*)path, 3, nullptr, 1);
-  if (ret != pdPASS)
+  if (ret != pdPASS) {
     AddLog(LOG_LEVEL_INFO, PSTR(D_LOG_UFS "Download task failed with %d"), ret);
+  }
   yield();
-#endif // ESP32_DOWNLOAD_TASK
+#endif
 
   return 0;
 }
 
 
-#ifdef ESP32_DOWNLOAD_TASK
-#ifndef DOWNLOAD_SIZE
-#define DOWNLOAD_SIZE 4096
-#endif // DOWNLOAD_SIZE
-void download_task(void *path) {
-  File download_file;
-  WiFiClient download_Client;
-  char *file = (char*) path;
-
-  AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_UFS "ESP32 File '%s' to download"), file);
-
-  download_file = dfsp->open(file, UFS_FILE_READ);
-  uint32_t flen = download_file.size();
-
-  AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_UFS "len %d to download"), flen);
-
-  download_Client = Webserver->client();
-  Webserver->setContentLength(flen);
-
-  char attachment[100];
-  char *cp = fileOnly(file);
-  //snprintf(attachment, sizeof(attachment), PSTR("download file '%s' as '%s'"), file, cp);
-  //Webserver->sendHeader(F("X-Tasmota-Debug"), attachment);
-  snprintf(attachment, sizeof(attachment), PSTR("attachment; filename=%s"), cp);
-  Webserver->sendHeader(F("Content-Disposition"), attachment);
-  WSSend(200, CT_APP_STREAM, "");
-
-  uint8_t *buff = (uint8_t*)malloc(DOWNLOAD_SIZE);
-  if (buff) {
-    uint32_t bread;
-    while (download_file.available()) {
-      bread = download_file.read(buff, DOWNLOAD_SIZE);
-      uint32_t bw = download_Client.write((const char*)buff, bread);
-      if (!bw) { break; }
-    }
-    free(buff);
-  }
-  download_file.close();
-  download_Client.stop();
-  UfsData.download_busy = false;
-  vTaskDelete( NULL );
-  free(path);
-  AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_UFS "esp32 sent file"));
-}
-#endif //  ESP32_DOWNLOAD_TASK
-
 
 bool UfsUploadFileOpen(const char* upload_filename) {
+  char base_path[UFS_FILENAME_SIZE];
+  strlcpy(base_path, ufs_path, sizeof(base_path));
+
+#ifdef USE_WEBSERVER
+  if (Webserver) {
+    if (Webserver->hasArg(F("dir"))) {
+      String dir_arg = Webserver->arg(F("dir"));
+      strlcpy(base_path, dir_arg.c_str(), sizeof(base_path));
+      strlcpy(ufs_path, base_path, sizeof(ufs_path));
+    }
+
+    if (Webserver->hasArg(F("drv"))) {
+      String drv_arg = Webserver->arg(F("drv"));
+      ufs_dir = atoi(drv_arg.c_str());
+
+      if (ufs_dir == 1) {
+        dfsp = ufsp;
+      } else if (ffsp) {
+        dfsp = ffsp;
+      }
+    }
+  }
+#endif
+
   char npath[UFS_FILENAME_SIZE];
-  snprintf(npath, sizeof(npath), PSTR("%s/%s"), ufs_path, upload_filename);
+  if ((base_path[0] == '/') && (base_path[1] == '\0')) {
+    snprintf(npath, sizeof(npath), PSTR("/%s"), upload_filename);
+  } else {
+    snprintf(npath, sizeof(npath), PSTR("%s/%s"), base_path, upload_filename);
+  }
+
   dfsp->remove(npath);
   ufs_upload_file = dfsp->open(npath, UFS_FILE_WRITE);
   return (ufs_upload_file);
@@ -1701,10 +1857,22 @@ void UfsUploadFileClose(void) {
 
 #ifdef GUI_EDIT_FILE
 
+#define FILE_BUFFER_SIZE 1024
+
 void UfsEditor(void) {
   if (!HttpCheckPriviledgedAccess()) { return; }
 
   AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_UFS "UfsEditor GET"));
+
+  if (Webserver->hasArg(F("dir"))) {
+    String stmp = Webserver->arg(F("dir"));
+    ufs_dir = atoi(stmp.c_str());
+    if (ufs_dir == 1) {
+      dfsp = ufsp;
+    } else if (ffsp) {
+      dfsp = ffsp;
+    }
+  }
 
   char fname_input[UFS_FILENAME_SIZE];
   if (Webserver->hasArg(F("file"))) {
@@ -1712,45 +1880,69 @@ void UfsEditor(void) {
   } else {
     snprintf(fname_input, sizeof(fname_input), PSTR(D_NEW_FILE));
   }
-  char fname[UFS_FILENAME_SIZE];
-  UfsFilename(fname, fname_input);                  // Trim spaces and add slash
 
-  AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_UFS "UfsEditor: file=%s, ffs_type=%d, TfsFileExist=%d"), fname, ffs_type, dfsp->exists(fname));
+  char fname[UFS_FILENAME_SIZE];
+  UfsFilename(fname, fname_input);
 
   WSContentStart_P(PSTR(D_EDIT_FILE));
-  WSContentSendStyle();
-  WSContentSend_P(HTTP_FIELDSET_LEGEND, PSTR(D_EDIT_FILE));
-  char *bfname = fname +1;
-  WSContentSend_P(HTTP_EDITOR_FORM_START, bfname);  // Skip leading slash
+  WSContentSendStyle_P(HTTP_UFS_STYLE);
+  WSContentPageHeader(PSTR(D_EDIT_FILE), PSTR("Create or modify a file stored in the active file system."));
+
+  WSContentCardStart(PSTR(D_EDIT_FILE), nullptr);
+
+  WSContentSend_P(PSTR(
+    "<form method='post' action='/ufse' class='ts-ufs-editor-form'>"
+      "<input type='hidden' name='dir' value='%d'>"
+      "<div class='ts-field'>"
+        "<label for='name'>" D_FILE "</label>"
+        "<input id='name' name='name' class='ts-ufs-editor-input' value='%s'>"
+      "</div>"
+      "<div class='ts-field'>"
+        "<label for='content'>Content</label>"
+        "<textarea id='content' name='content' wrap='off' class='ts-ufs-editor-textarea'>"
+  ),
+    ufs_dir,
+    fname + 1
+  );
 
   if (ffs_type && dfsp->exists(fname)) {
     File fp = dfsp->open(fname, "r");
-    if (!fp) {
-      AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_UFS "UfsEditor: file open failed"));
-      WSContentSend_P(D_NEW_FILE);
-    } else {
-      uint8_t *buf = (uint8_t*)malloc(FILE_BUFFER_SIZE+1);
+    if (fp) {
+      uint8_t *buf = (uint8_t*)malloc(FILE_BUFFER_SIZE + 1);
       size_t filelen = fp.size();
-      AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_UFS "UfsEditor: file len=%d"), filelen);
       while (filelen > 0) {
         size_t l = fp.read(buf, FILE_BUFFER_SIZE);
-        AddLog(LOG_LEVEL_DEBUG_MORE, PSTR(D_LOG_UFS "UfsEditor: read=%d"), l);
-        if (l < 0) { break; }
+        if ((int32_t)l < 0) { break; }
         buf[l] = '\0';
-        WSContentSendRaw_P( HtmlEscape((char*)buf).c_str());
+        WSContentSendRaw_P(HtmlEscape((char*)buf).c_str());
         filelen -= l;
       }
       fp.close();
       free(buf);
-      AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_UFS "UfsEditor: read done"));
+    } else {
+      WSContentSend_P(D_NEW_FILE);
     }
   } else {
     WSContentSend_P(D_NEW_FILE);
   }
 
-  WSContentSend_P(HTTP_EDITOR_FORM_END);
+  WSContentSend_P(PSTR(
+        "</textarea>"
+      "</div>"
+      "<div class='ts-form-actions'>"
+        "<button name='save' type='submit' class='bgrn'>" D_SAVE "</button>"
+      "</div>"
+    "</form>"
+  ));
+
+  WSContentCardEnd();
+
   folderOnly(fname);
-  WSContentSend_P(UFS_WEB_DIR, fname, PSTR(D_MANAGE_FILE_SYSTEM));
+
+  WSContentCardStart(PSTR("Actions"), nullptr);
+  UfsWebSendBackToManagerButton(fname);
+  WSContentCardEnd();
+
   WSContentStop();
 }
 
@@ -1758,6 +1950,16 @@ void UfsEditorUpload(void) {
   AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_UFS "UfsEditor: file upload"));
 
   if (!HttpCheckPriviledgedAccess()) { return; }
+
+  if (Webserver->hasArg(F("dir"))) {
+    String stmp = Webserver->arg(F("dir"));
+    ufs_dir = atoi(stmp.c_str());
+    if (ufs_dir == 1) {
+      dfsp = ufsp;
+    } else if (ffsp) {
+      dfsp = ffsp;
+    }
+  }
 
   if (!Webserver->hasArg("name")) {
     AddLog(LOG_LEVEL_ERROR, PSTR(D_LOG_UFS "UfsEditor: file upload - no filename"));
@@ -1767,15 +1969,16 @@ void UfsEditorUpload(void) {
 
   char fname_input[UFS_FILENAME_SIZE];
   WebGetArg(PSTR("name"), fname_input, sizeof(fname_input));
+
   char fname[UFS_FILENAME_SIZE];
-  UfsFilename(fname, fname_input);                  // Trim spaces and add slash
-  AddLog(LOG_LEVEL_DEBUG, PSTR(D_LOG_UFS "UfsEditor: file '%s'"), fname);
+  UfsFilename(fname, fname_input);
 
   if (!Webserver->hasArg("content")) {
     AddLog(LOG_LEVEL_ERROR, PSTR(D_LOG_UFS "UfsEditor: file upload - no content"));
     WSSend(400, CT_PLAIN, F("400: Bad request - no content"));
     return;
   }
+
   String content = Webserver->arg("content");
 
   if (!dfsp) {
@@ -1785,19 +1988,17 @@ void UfsEditorUpload(void) {
     return;
   }
 
-  // recursively create folder(s)
   char tmp[UFS_FILENAME_SIZE];
   char folder[UFS_FILENAME_SIZE] = "";
   strcpy(tmp, fname);
-  // zap file name off the end
   folderOnly(tmp);
+
   char *tf = strtok(tmp, "/");
-  while(tf){
-    if (*tf){
+  while (tf) {
+    if (*tf) {
       strcat(folder, "/");
       strcat(folder, tf);
     }
-    // we don;t care if it fails - it may already exist.
     dfsp->mkdir(folder);
     tf = strtok(nullptr, "/");
   }
@@ -1821,11 +2022,16 @@ void UfsEditorUpload(void) {
 
   fp.close();
 
-  // zap file name off the end
   folderOnly(fname);
-  char t[20+UFS_FILENAME_SIZE] = "/ufsu?download=";
-  strcat(t, fname);
-  Webserver->sendHeader(F("Location"), t);
+
+  String location = F("/ufsd?download=");
+  location += UrlEscape(fname);
+  if (ufs_dir) {
+    location += F("&dir=");
+    location += String(ufs_dir);
+  }
+
+  Webserver->sendHeader(F("Location"), location, true);
   Webserver->send(303);
 }
 
@@ -1918,7 +2124,7 @@ bool Xdrv50(uint32_t function) {
         if (XdrvMailbox.index) {
           XdrvMailbox.index++;
         } else {
-          WSContentSend_PD(UFS_WEB_DIR, "/", PSTR(D_MANAGE_FILE_SYSTEM));
+          WSContentSend_P(HTTP_FORM_BUTTON, PSTR("ufsd"), PSTR(D_MANAGE_FILE_SYSTEM));
         }
       }
       break;
