@@ -52,6 +52,7 @@ extern void lvgl_reset_screenshot_file(void);
 File * lvgl_get_screenshot_file(void);
 extern void lv_set_paint_cb(void* cb);
 extern void* lv_get_paint_cb(void);
+extern void lv_set_stream_cb(void* cb);
 
 /********************************************************************
  * Structures used by LVGL_Berry
@@ -673,6 +674,16 @@ extern "C" {
     int32_t argc = be_top(vm); // Get the number of arguments
     if (argc >= 1 && be_iscomptr(vm, 1)) {
       lv_set_paint_cb(be_tocomptr(vm, 1));
+    }
+    be_pushcomptr(vm, lv_get_paint_cb());
+    be_return(vm);
+  }
+  int lv0_set_stream_cb(bvm *vm);
+  int lv0_set_stream_cb(bvm *vm) {
+    int32_t argc = be_top(vm); // Get the number of arguments
+    if (argc >= 1 && be_iscomptr(vm, 1)) {
+      lv_set_stream_cb(be_tocomptr(vm, 1));
+      be_return_nil(vm);
     }
     be_pushcomptr(vm, lv_get_paint_cb());
     be_return(vm);
