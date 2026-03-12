@@ -61,7 +61,7 @@ void I2sStreamLoop(void) {
 void I2sServerInit(uint32_t on) {
   if (on) {
     if (!audio_i2s_mp3.StreamServer) {
-      audio_i2s_mp3.StreamServer = new ESP8266WebServer(MP3_STREAM_PORT);
+      audio_i2s_mp3.StreamServer = new WebServer(MP3_STREAM_PORT);
       audio_i2s_mp3.StreamServer->on(PSTR("/stream.mp3"), I2SMP3StreamInit);
       audio_i2s_mp3.StreamServer->on(PSTR("/stream.m3a"), I2SMP3StreamInit);
       audio_i2s_mp3.StreamServer->on(PSTR("/stream.webm"), I2SOpusStreamInit);
