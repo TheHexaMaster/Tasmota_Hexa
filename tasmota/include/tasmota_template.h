@@ -634,7 +634,7 @@ const uint16_t kGpioNiceList[] PROGMEM = {
   AGPIO(GPIO_I2C_SER_TX) + AGMAX(MAX_I2C),       // I2C via Serial TX
   AGPIO(GPIO_I2C_SER_RX) + AGMAX(MAX_I2C),       // I2C via Serial RX
 #endif // USE_I2C_SERIAL
-#endif
+#endif 
 
 #if defined(USE_I2S_AUDIO) || defined (USE_I2S)
   AGPIO(GPIO_I2S_MCLK) + AGMAX(MAX_I2S),         // I2S master clock
@@ -1868,11 +1868,11 @@ const mytmplt kModules[] PROGMEM = {
     AGPIO(GPIO_USER),            // 6       IO                  GPIO6, TOUCH4, LP_GPIO6
     AGPIO(GPIO_I2C_SDA),         // 7       IO                  GPIO7, TOUCH5, LP_GPIO7
     AGPIO(GPIO_I2C_SCL),         // 8       IO                  GPIO8, TOUCH6, LP_GPIO8
-    AGPIO(GPIO_USER),            // 9       IO                  GPIO9, TOUCH7, LP_GPIO9
-    AGPIO(GPIO_USER),            // 10      IO                  GPIO10, TOUCH8, LP_GPIO10
-    AGPIO(GPIO_USER),            // 11      IO                  GPIO11, TOUCH9, LP_GPIO11
-    AGPIO(GPIO_USER),            // 12      IO                  GPIO12, TOUCH10, LP_GPIO12
-    AGPIO(GPIO_USER),            // 13      IO                  GPIO13, TOUCH11, LP_GPIO13
+    AGPIO(GPIO_I2S_DOUT),         // 9       IO                  GPIO9, TOUCH7, LP_GPIO9
+    AGPIO(GPIO_I2S_WS),          // 10      IO                  GPIO10, TOUCH8, LP_GPIO10
+    AGPIO(GPIO_I2S_DIN),            // 11      IO                  GPIO11, TOUCH9, LP_GPIO11
+    AGPIO(GPIO_I2S_BCLK),        // 12      IO                  GPIO12, TOUCH10, LP_GPIO12
+    AGPIO(GPIO_I2S_MCLK),        // 13      IO                  GPIO13, TOUCH11, LP_GPIO13
     AGPIO(GPIO_USER),            // 14      IO                  GPIO14, TOUCH12, LP_GPIO14, SDIO2_D0 ESPHosted (ESP32C6 GPIO20)
     AGPIO(GPIO_USER),            // 15      IO                  GPIO15, TOUCH13, LP_GPIO15, SDIO2_D1 ESPHosted (ESP32C6 GPIO21)
     AGPIO(GPIO_USER),            // 16      IO                  GPIO16, ADC1_CH0, SDIO2_D2 ESPHosted (ESP32C6 GPIO22)
@@ -1907,7 +1907,7 @@ const mytmplt kModules[] PROGMEM = {
     AGPIO(GPIO_SDCARD_CS),       // 45      IO                  GPIO45
     AGPIO(GPIO_USER),            // 46      IO                  GPIO46
     AGPIO(GPIO_USER),            // 47      IO                  GPIO47
-    AGPIO(GPIO_USER),            // 48      IO                  GPIO48
+    AGPIO(GPIO_USER),           // 48      IO                  GPIO48
     AGPIO(GPIO_USER),            // 49      IO                  GPIO49, ADC1_CH8
     AGPIO(GPIO_USER),            // 50      IO                  GPIO50, ADC1_CH9
     AGPIO(GPIO_ETH_PHY_POWER),   // 51      IO                  GPIO51, ADC1_CH10, ANA_CMPR_CH0 reference voltage
