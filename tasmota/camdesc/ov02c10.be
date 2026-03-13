@@ -297,9 +297,9 @@ class OV02C10 : CSI_Sensor
           req_w = b.get(0, 2); req_h = b.get(2, 2)
           req_fmt = b[8]; req_bin = b[16]; req_fps = b[17]
           req_x = b.get(12, 2); req_y = b.get(14, 2)
-        elif res_idx == 0
-          req_w=640; req_h=480; req_bin=1; req_fmt=1
         elif res_idx == 1
+          req_w=640; req_h=480; req_bin=1; req_fmt=1
+        elif res_idx == 0
           req_w=1280; req_h=720; req_bin=1; req_fmt=1
         elif res_idx == 2
           req_w=1920; req_h=1080; req_bin=1; req_fmt=1
@@ -336,3 +336,5 @@ end
 
 var ov02c10 = OV02C10()
 tasmota.add_driver(ov02c10)
+# wcwindow 0,0,1920,1080,1,30,1
+# wcwindow 0,0,1280,720,1,30,1

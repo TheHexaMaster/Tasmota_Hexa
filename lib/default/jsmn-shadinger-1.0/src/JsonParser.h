@@ -244,8 +244,8 @@ public:
   // ptrdiff_t index(JsonParserToken token) const;
 
 protected:
-  uint16_t    _size;          // size of tokens buffer
-  int16_t    _token_len;      // how many tokens have been parsed
+  uint32_t    _size;          // size of tokens buffer
+  int32_t     _token_len;     // how many tokens have been parsed
   jsmntok_t * _tokens;        // pointer to token buffer
   jsmn_parser _parser;        // jmsn_parser structure
   char      * _json;          // json buffer

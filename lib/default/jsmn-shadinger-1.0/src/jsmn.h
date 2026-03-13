@@ -73,16 +73,19 @@ enum jsmnerr {
  * end		end position in JSON data string
  */
 // size of bitfield, sum is 32
-#define JSMN_TYPE_B    4
-#define JSMN_SIZE_B    6    // max 63 items per level (ex: max 63 keys per object)
-#define JSMN_START_B  11    // max 2KB input buffer
-#define JSMN_LEN_B    11    // max 2KB per item
-
+// Unpacked token layout.
+// This removes the old hard limits caused by bitfields:
+// - size was limited to 63 items
+// - start/len were limited to ~2047 bytes
+//
+// New practical limits:
+// - start/len up to 65535
+// - size up to 65535 children per object/array
 typedef struct jsmntok {
-  jsmntype_t type : JSMN_TYPE_B;
-  unsigned int size : JSMN_SIZE_B;
-  unsigned int start : JSMN_START_B;
-  unsigned int len : JSMN_LEN_B;
+  uint8_t  type;    // jsmntype_t stored as plain byte
+  uint16_t size;    // number of children / items
+  uint16_t start;   // start offset in JSON buffer
+  uint16_t len;     // token length
 } jsmntok_t;
 
 /**

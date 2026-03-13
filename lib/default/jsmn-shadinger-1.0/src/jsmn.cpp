@@ -26,8 +26,8 @@
 
 #define JSMN_STRICT     // force strict mode
 
-const uint32_t JSMN_START_MAX = (1U << JSMN_START_B) - 1;
-const uint32_t JSMN_LEN_MAX   = (1U << JSMN_LEN_B) - 1;
+const uint16_t JSMN_START_MAX = 0xFFFF;
+const uint16_t JSMN_LEN_MAX   = 0xFFFF;
 
 /**
  * Allocates a fresh unused token from the token pool.

@@ -401,9 +401,9 @@ void JsonParser::parse(char * json_in) {
   if (_size == 0) {
     // first run is used to count tokens before allocation
     jsmn_init(&this->_parser);
-    int32_t _token_len = jsmn_parse(&this->_parser, json_in, json_len, nullptr, 0);
-    if (_token_len <= 0) { return; }
-    _size = _token_len + 1;
+    int32_t token_count = jsmn_parse(&this->_parser, json_in, json_len, nullptr, 0);
+    if (token_count <= 0) { return; }
+    _size = (uint32_t)token_count + 1;
   }
   allocate();
   jsmn_init(&this->_parser);
