@@ -55,12 +55,26 @@
 static struct {
   isp_awb_ctlr_t  handle;
   bool            enabled;
-  float           base_ccm[3][3];   // Base CCM matrix (before AWB correction)
-  float           gain_r, gain_b;   // Current WB correction gains
-  float           min_r_step;       // Minimum gain delta to trigger update
+
+  float           base_ccm[3][3];
+  float           gain_r, gain_b;
+  float           min_r_step;
   float           min_b_step;
-  uint32_t        min_counted;      // Minimum white patches before updating
-} isp_awb_state = { NULL, false, {{1,0,0},{0,1,0},{0,0,1}}, 1.0f, 1.0f, 0.031f, 0.031f, 2000 };
+  uint32_t        min_counted;
+
+  volatile bool   stats_ready;
+  volatile uint32_t stats_seq;
+  volatile uint32_t cb_count;
+  uint32_t        last_consumed_seq;
+  isp_awb_stat_result_t latest_stats;
+} isp_awb_state = {
+  NULL, false,
+  {{1,0,0},{0,1,0},{0,0,1}},
+  1.0f, 1.0f,
+  0.031f, 0.031f,
+  2000,
+  false, 0, 0, 0, {}
+};
 
 static struct {
   isp_ae_ctlr_t handle;
@@ -81,7 +95,6 @@ static struct {
 // Forward declarations
 
 void WcIspApplyCCM(isp_proc_handle_t handle, JsonParserObject &sensor);
-// static bool IRAM_ATTR WcIspAeOnStatisticsDone(isp_ae_ctlr_t ae_ctlr, const esp_isp_ae_env_detector_evt_data_t *edata, void *user_data);
 void WcIspApplyGamma(isp_proc_handle_t handle, JsonParserObject &sensor);
 void WcIspApplySharpen(isp_proc_handle_t handle, JsonParserObject &sensor);
 void WcIspApplyColor(isp_proc_handle_t handle, JsonParserObject &sensor);
@@ -92,6 +105,7 @@ void WcIspInitAE(isp_proc_handle_t handle, JsonParserObject &sensor, int width, 
 void WcIspStartAE(void);
 void WcIspAeProcess(void);
 void WcIspDeinitAE(void);
+void WcIspStartAWB(void);
 
 /*********************************************************************************************/
 
@@ -131,6 +145,20 @@ static bool IRAM_ATTR WcIspAeOnStatisticsDone(isp_ae_ctlr_t ae_ctlr, const esp_i
   isp_ae_state.stats_seq++;
   isp_ae_state.stats_ready = true;
   isp_ae_state.cb_count++;
+
+  return false;
+}
+
+static bool IRAM_ATTR WcIspAwbOnStatisticsDone(isp_awb_ctlr_t awb_ctlr, const esp_isp_awb_evt_data_t *edata, void *user_data) {
+  if (!edata) {
+    return false;
+  }
+
+  isp_awb_state.stats_seq++;
+  isp_awb_state.latest_stats = edata->awb_result;
+  isp_awb_state.stats_seq++;
+  isp_awb_state.stats_ready = true;
+  isp_awb_state.cb_count++;
 
   return false;
 }
@@ -1000,6 +1028,16 @@ void WcIspInitAWB(isp_proc_handle_t handle, JsonParserObject &sensor, int width,
     return;
   }
 
+  esp_isp_awb_cbs_t awb_cbs = {
+    .on_statistics_done = WcIspAwbOnStatisticsDone,
+  };
+
+  ret = esp_isp_awb_register_event_callbacks(ctlr, &awb_cbs, NULL);
+  if (!WcIspCheckRet("ISP AWB cb reg", ret)) {
+    esp_isp_del_awb_controller(ctlr);
+    return;
+  }
+
   ret = esp_isp_awb_controller_enable(ctlr);
   if (!WcIspCheckRet("ISP AWB enable", ret)) {
     esp_isp_del_awb_controller(ctlr);
@@ -1014,6 +1052,12 @@ void WcIspInitAWB(isp_proc_handle_t handle, JsonParserObject &sensor, int width,
   isp_awb_state.min_r_step = WcClampFloat(awb.getFloat("min_red_gain_step", 0.034f), 0.0f, 1.0f);
   isp_awb_state.min_b_step = WcClampFloat(awb.getFloat("min_blue_gain_step", 0.034f), 0.0f, 1.0f);
 
+  isp_awb_state.stats_ready = false;
+  isp_awb_state.stats_seq = 0;
+  isp_awb_state.cb_count = 0;
+  isp_awb_state.last_consumed_seq = 0;
+  memset(&isp_awb_state.latest_stats, 0, sizeof(isp_awb_state.latest_stats));
+
   AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: ISP AWB initialized"));
 }
 
@@ -1022,22 +1066,50 @@ void WcIspInitAWB(isp_proc_handle_t handle, JsonParserObject &sensor, int width,
 // AWB Processing Loop - called from xdrv_81 FUNC_EVERY_250_MSECOND (4Hz)
 // Grey-world algorithm: gain_r = avg_G/avg_R, gain_b = avg_G/avg_B
 // Applied as diagonal correction on base CCM
+void WcIspStartAWB(void) {
+  if (!isp_awb_state.enabled || !isp_awb_state.handle) {
+    AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: ISP AWB start skipped - not ready"));
+    return;
+  }
+
+  isp_awb_state.stats_ready = false;
+  isp_awb_state.stats_seq = 0;
+  isp_awb_state.cb_count = 0;
+  isp_awb_state.last_consumed_seq = 0;
+  memset(&isp_awb_state.latest_stats, 0, sizeof(isp_awb_state.latest_stats));
+
+  esp_err_t ret = esp_isp_awb_controller_start_continuous_statistics(isp_awb_state.handle);
+  if (ret != ESP_OK) {
+    AddLog(LOG_LEVEL_ERROR, PSTR("CAM: ISP AWB continuous start failed (0x%x)"), ret);
+    return;
+  }
+
+  AddLog(LOG_LEVEL_INFO, PSTR("CAM: ISP AWB continuous started AFTER stream start"));
+}
+
+
 void WcIspAwbProcess(void) {
   WcIspAeProcess();
 
   if (Wc.core.state != CAM_STREAMING) return;
   if (!isp_awb_state.enabled || !isp_awb_state.handle) return;
-  isp_proc_handle_t isp = Wc.core.isp_handle;
-  if (!isp) return;
 
-  isp_awb_stat_result_t stats;
-  memset(&stats, 0, sizeof(stats));
-
-  esp_err_t ret = esp_isp_awb_controller_get_oneshot_statistics(
-    isp_awb_state.handle, 100, &stats);
-  if (ret != ESP_OK) {
+  uint32_t seq1 = isp_awb_state.stats_seq;
+  if (seq1 & 1) {
     return;
   }
+
+  isp_awb_stat_result_t stats = isp_awb_state.latest_stats;
+
+  uint32_t seq2 = isp_awb_state.stats_seq;
+  if (seq1 != seq2 || (seq2 & 1)) {
+    return;
+  }
+
+  if (seq2 == isp_awb_state.last_consumed_seq) {
+    return;
+  }
+  isp_awb_state.last_consumed_seq = seq2;
 
   if (stats.white_patch_num < isp_awb_state.min_counted) {
     return;
@@ -1045,22 +1117,20 @@ void WcIspAwbProcess(void) {
 
   float avg_r = (float)stats.sum_r / (float)stats.white_patch_num;
   float avg_g = (float)stats.sum_g / (float)stats.white_patch_num;
-  if (avg_g < 8.0f) return; // too dark??
   float avg_b = (float)stats.sum_b / (float)stats.white_patch_num;
 
+  if (avg_g < 8.0f) return;
   if (avg_r < 1.0f) avg_r = 1.0f;
   if (avg_b < 1.0f) avg_b = 1.0f;
 
   float new_gain_r = avg_g / avg_r;
   float new_gain_b = avg_g / avg_b;
 
-  // Clamp gains to reasonable range
   if (new_gain_r < 0.5f) new_gain_r = 0.5f;
   if (new_gain_r > 2.0f) new_gain_r = 2.0f;
   if (new_gain_b < 0.5f) new_gain_b = 0.5f;
   if (new_gain_b > 2.0f) new_gain_b = 2.0f;
 
-  // Check if delta exceeds minimum step
   if (fabsf(new_gain_r - isp_awb_state.gain_r) < isp_awb_state.min_r_step &&
       fabsf(new_gain_b - isp_awb_state.gain_b) < isp_awb_state.min_b_step) {
     return;
@@ -1069,7 +1139,9 @@ void WcIspAwbProcess(void) {
   isp_awb_state.gain_r = new_gain_r;
   isp_awb_state.gain_b = new_gain_b;
 
-  // Apply: corrected_ccm = diag(gain_r, 1, gain_b) * base_ccm
+  isp_proc_handle_t isp = Wc.core.isp_handle;
+  if (!isp) return;
+
   esp_isp_ccm_config_t ccm_cfg;
   memset(&ccm_cfg, 0, sizeof(ccm_cfg));
   ccm_cfg.saturation = true;
@@ -1104,11 +1176,17 @@ void WcIspDeinitAWB(void) {
     return;
   }
 
+  esp_isp_awb_controller_stop_continuous_statistics(isp_awb_state.handle);
   esp_isp_awb_controller_disable(isp_awb_state.handle);
   esp_isp_del_awb_controller(isp_awb_state.handle);
   isp_awb_state.handle = NULL;
   isp_awb_state.gain_r = 1.0f;
   isp_awb_state.gain_b = 1.0f;
+  isp_awb_state.stats_ready = false;
+  isp_awb_state.stats_seq = 0;
+  isp_awb_state.cb_count = 0;
+  isp_awb_state.last_consumed_seq = 0;
+  memset(&isp_awb_state.latest_stats, 0, sizeof(isp_awb_state.latest_stats));
   AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: ISP AWB deinitialized"));
 }
 
