@@ -48,6 +48,7 @@
 #include "esp_cache.h"
 #include "driver/jpeg_encode.h"
 #include "esp_ldo_regulator.h"
+#include "hal/color_types.h"
 
 // H.264 encoder for RTP session (ESP32-P4 hardware)
 extern "C" {
@@ -114,8 +115,35 @@ struct CSI_Config {
   uint8_t flags;            // 27: Bitmask (Bit 0=V-Flip, Bit 1=H-Mirror)
 } __attribute__((packed));
 
-#define CSI_FLAG_VFLIP    (1 << 0)
-#define CSI_FLAG_HMIRROR  (1 << 1)
+#define CSI_FLAG_VFLIP        (1 << 0)
+#define CSI_FLAG_HMIRROR      (1 << 1)
+
+#define CSI_BAYER_SHIFT       2
+#define CSI_BAYER_MASK        (0x07 << CSI_BAYER_SHIFT)
+
+#define CSI_BAYER_AUTO        0
+#define CSI_BAYER_RGGB        1
+#define CSI_BAYER_GRBG        2
+#define CSI_BAYER_GBRG        3
+#define CSI_BAYER_BGGR        4
+
+static decltype(((esp_isp_processor_cfg_t *)0)->bayer_order) WcGetBayerOrder(const CSI_Config *cfg) {
+  uint8_t bayer = (cfg->flags & CSI_BAYER_MASK) >> CSI_BAYER_SHIFT;
+
+  switch (bayer) {
+    case CSI_BAYER_RGGB: return COLOR_RAW_ELEMENT_ORDER_RGGB;
+    case CSI_BAYER_GRBG: return COLOR_RAW_ELEMENT_ORDER_GRBG;
+    case CSI_BAYER_GBRG: return COLOR_RAW_ELEMENT_ORDER_GBRG;
+    case CSI_BAYER_BGGR: return COLOR_RAW_ELEMENT_ORDER_BGGR;
+    default:
+      if (!strcmp(cfg->name, "OV02C10")) {
+        return COLOR_RAW_ELEMENT_ORDER_GBRG;
+      }
+      return COLOR_RAW_ELEMENT_ORDER_RGGB;
+  }
+}
+
+
 
 // Runtime state - handles and buffers
 struct {
@@ -433,7 +461,9 @@ uint32_t WcInitPipeline() {
       .output_data_color_type = isp_output_format,
       .h_res = Wc.core.config.width,
       .v_res = Wc.core.config.height,
+      .bayer_order = WcGetBayerOrder(&Wc.core.config),
     };
+    AddLog(LOG_LEVEL_INFO, PSTR("CAM: Bayer order=%d (flags=0x%02X)"), (Wc.core.config.flags & CSI_BAYER_MASK) >> CSI_BAYER_SHIFT, Wc.core.config.flags);
     ret = esp_isp_new_processor(&isp_config, &Wc.core.isp_handle);
     if (ret != ESP_OK) {
       AddLog(LOG_LEVEL_ERROR, PSTR("CAM: ISP init failed (0x%x)"), ret);
