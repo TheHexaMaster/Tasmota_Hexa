@@ -1,7 +1,7 @@
 /*
   xdrv_81_0_esp32_webcam_CSI_isp.ino - ESP32-P4 CSI ISP Configuration
 
-  Copyright (C) 2025  Christian Baars and Theo Arends
+  Copyright (C) 2025  Christian Baars, Theo Arends and Martin Macák (HexaMaster)
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -54,6 +54,22 @@
 struct WcIspNormConfig {
   struct {
     bool present;
+    bool use_gamma_param;
+    bool has_y16;
+    float gamma_param;
+    float selected_luma;
+    float luma_min_step;
+    uint8_t y[16];
+
+    int count;
+    float table_luma[8];
+    bool table_has_y16[8];
+    float table_gamma_param[8];
+    uint8_t table_y[8][16];
+  } gamma;
+
+  struct {
+    bool present;
     int contrast_0_255;
     int saturation_0_255;
     int hue;
@@ -65,8 +81,36 @@ struct WcIspNormConfig {
     int target;
     int target_low;
     int target_high;
+
+    int low_threshold;
+    int low_regions;
+    int high_threshold;
+    int high_regions;
+
     bool weight_present;
     uint8_t weight[ISP_AE_BLOCK_X_NUM][ISP_AE_BLOCK_Y_NUM];
+
+    int mode;   // 0=none, 1=high_light_priority, 2=low_light_priority, 3=light_threshold_priority
+
+    struct {
+      int low_threshold;
+      int high_threshold;
+      int weight_offset;
+      int luma_offset;
+    } high_light_priority;
+
+    struct {
+      int low_threshold;
+      int high_threshold;
+      int weight_offset;
+      int luma_offset;
+    } low_light_priority;
+
+    int light_threshold_priority_count;
+    struct {
+      int luma_threshold;
+      int weight_offset;
+    } light_threshold_priority[8];
   } agc;
 
   struct {
@@ -81,6 +125,11 @@ struct WcIspNormConfig {
 
 static WcIspNormConfig isp_norm_cfg;
 
+#define WC_AGC_MODE_NONE                     0
+#define WC_AGC_MODE_HIGH_LIGHT_PRIORITY      1
+#define WC_AGC_MODE_LOW_LIGHT_PRIORITY       2
+#define WC_AGC_MODE_LIGHT_THRESHOLD_PRIORITY 3
+
 // AWB state - file-static, used by init and C processing loop
 static struct {
   isp_awb_ctlr_t  handle;
@@ -94,6 +143,10 @@ static struct {
 
   bool            low_luma_ccm_active;
   int             low_luma_hysteresis;
+  bool            runtime_ccm_valid;
+  bool            runtime_ccm_low_luma;
+  bool            runtime_gamma_valid;
+  float           runtime_gamma_luma;
 
   volatile bool   stats_ready;
   volatile uint32_t stats_seq;
@@ -106,7 +159,7 @@ static struct {
   1.0f, 1.0f,
   0.031f, 0.031f,
   2000,
-  false, 6,
+  false, 6, false, false, false, 0.0f,
   false, 0, 0, 0, {}
 };
 
@@ -140,10 +193,25 @@ void WcIspStartAE(void);
 void WcIspAeProcess(void);
 void WcIspDeinitAE(void);
 void WcIspStartAWB(void);
+static void WcIspApplyRuntimeCcm(isp_proc_handle_t isp);
 void WcIspResetNormConfig(void);
 void WcIspParseNormConfig(JsonParserObject &sensor);
 bool WcIspParseMatrix9(JsonParserToken mat_tok, float out[3][3]);
 bool WcIspParseWeight25(JsonParserToken weight_tok, uint8_t out[ISP_AE_BLOCK_X_NUM][ISP_AE_BLOCK_Y_NUM]);
+bool WcIspParseGammaY16(JsonParserToken y_tok, uint8_t out[16]);
+void WcIspBuildGammaYFromParam(float gamma_param, uint8_t out[16]);
+void WcIspSetDefaultGammaY(uint8_t out[16]);
+static void WcIspParseGammaTable(JsonParserObject &gamma_obj);
+static void WcIspSelectRuntimeGammaY(float luma, uint8_t out[16]);
+static void WcIspApplyRuntimeGamma(isp_proc_handle_t isp);
+static void WcIspInterpGammaY(const uint8_t y0[16], const uint8_t y1[16], float t, uint8_t out[16]);
+int WcIspParseAgcMode(JsonParserToken mode_tok);
+void WcIspBuildEffectiveAePolicy(const isp_ae_result_t *result,
+                                 uint8_t out_weight[ISP_AE_BLOCK_X_NUM][ISP_AE_BLOCK_Y_NUM],
+                                 int *out_target,
+                                 int *out_target_low,
+                                 int *out_target_high);
+int WcIspComputeAeStep(int luma, int target, int target_low, int target_high);
 
 /*********************************************************************************************/
 
@@ -173,8 +241,74 @@ static float WcClampFloat(float v, float lo, float hi) {
   return v;
 }
 
+int WcIspParseAgcMode(JsonParserToken mode_tok) {
+  if (!mode_tok) {
+    return WC_AGC_MODE_NONE;
+  }
+
+  const char *mode = mode_tok.getStr();
+  if (!mode) {
+    return WC_AGC_MODE_NONE;
+  }
+
+  if (!strcmp(mode, "high_light_priority")) {
+    return WC_AGC_MODE_HIGH_LIGHT_PRIORITY;
+  }
+  if (!strcmp(mode, "low_light_priority")) {
+    return WC_AGC_MODE_LOW_LIGHT_PRIORITY;
+  }
+  if (!strcmp(mode, "light_threshold_priority")) {
+    return WC_AGC_MODE_LIGHT_THRESHOLD_PRIORITY;
+  }
+
+  return WC_AGC_MODE_NONE;
+}
+
+int WcIspComputeAeStep(int luma, int target, int target_low, int target_high) {
+  int err = target - luma;
+
+  // Mimo bandu - agresívnejší zásah
+  if (luma < target_low) {
+    if (err > 32) return 3;
+    if (err > 16) return 2;
+    if (err > 4)  return 1;
+    return 0;
+  }
+
+  if (luma > target_high) {
+    if (err < -32) return -3;
+    if (err < -16) return -2;
+    if (err < -4)  return -1;
+    return 0;
+  }
+
+  // Vo vnútri bandu - ešte jemne centruj na target
+  // Toto je hlavná oprava proti "zamrznutiu" na 103-105
+  if (err > 18) return 2;
+  if (err > 8)  return 1;
+  if (err < -18) return -2;
+  if (err < -8)  return -1;
+
+  return 0;
+}
+
 void WcIspResetNormConfig(void) {
   memset(&isp_norm_cfg, 0, sizeof(isp_norm_cfg));
+
+  isp_norm_cfg.gamma.present = false;
+  isp_norm_cfg.gamma.use_gamma_param = false;
+  isp_norm_cfg.gamma.has_y16 = false;
+  isp_norm_cfg.gamma.gamma_param = 1.0f;
+  isp_norm_cfg.gamma.selected_luma = 50.0f;
+  isp_norm_cfg.gamma.luma_min_step = 16.0f;
+  WcIspSetDefaultGammaY(isp_norm_cfg.gamma.y);
+  isp_norm_cfg.gamma.count = 0;
+  for (int i = 0; i < 8; i++) {
+    isp_norm_cfg.gamma.table_luma[i] = 0.0f;
+    isp_norm_cfg.gamma.table_has_y16[i] = false;
+    isp_norm_cfg.gamma.table_gamma_param[i] = 1.0f;
+    WcIspSetDefaultGammaY(isp_norm_cfg.gamma.table_y[i]);
+  }
 
   isp_norm_cfg.color.contrast_0_255 = 255;
   isp_norm_cfg.color.saturation_0_255 = 255;
@@ -184,6 +318,27 @@ void WcIspResetNormConfig(void) {
   isp_norm_cfg.agc.target = 79;
   isp_norm_cfg.agc.target_low = 62;
   isp_norm_cfg.agc.target_high = 105;
+  isp_norm_cfg.agc.low_threshold = 14;
+  isp_norm_cfg.agc.low_regions = 5;
+  isp_norm_cfg.agc.high_threshold = 239;
+  isp_norm_cfg.agc.high_regions = 3;
+  isp_norm_cfg.agc.mode = WC_AGC_MODE_NONE;
+
+  isp_norm_cfg.agc.high_light_priority.low_threshold = 119;
+  isp_norm_cfg.agc.high_light_priority.high_threshold = 202;
+  isp_norm_cfg.agc.high_light_priority.weight_offset = 5;
+  isp_norm_cfg.agc.high_light_priority.luma_offset = -1;
+
+  isp_norm_cfg.agc.low_light_priority.low_threshold = 49;
+  isp_norm_cfg.agc.low_light_priority.high_threshold = 64;
+  isp_norm_cfg.agc.low_light_priority.weight_offset = 5;
+  isp_norm_cfg.agc.low_light_priority.luma_offset = 1;
+
+  isp_norm_cfg.agc.light_threshold_priority_count = 0;
+  for (int i = 0; i < 8; i++) {
+    isp_norm_cfg.agc.light_threshold_priority[i].luma_threshold = 0;
+    isp_norm_cfg.agc.light_threshold_priority[i].weight_offset = 0;
+  }
   for (int x = 0; x < ISP_AE_BLOCK_X_NUM; x++) {
     for (int y = 0; y < ISP_AE_BLOCK_Y_NUM; y++) {
       isp_norm_cfg.agc.weight[x][y] = 1;
@@ -233,6 +388,166 @@ bool WcIspParseWeight25(JsonParserToken weight_tok, uint8_t out[ISP_AE_BLOCK_X_N
   return idx == (ISP_AE_BLOCK_X_NUM * ISP_AE_BLOCK_Y_NUM);
 }
 
+void WcIspSetDefaultGammaY(uint8_t out[16]) {
+  for (int i = 0; i < 16; i++) {
+    out[i] = (uint8_t)((i * 255) / 15);
+  }
+}
+
+bool WcIspParseGammaY16(JsonParserToken y_tok, uint8_t out[16]) {
+  if (!y_tok || !y_tok.isArray()) {
+    return false;
+  }
+
+  JsonParserArray y_arr = y_tok.getArray();
+  int i = 0;
+  for (auto v : y_arr) {
+    if (i >= 16) break;
+    out[i] = WcClampU8(v.getInt(0), 0, 255);
+    i++;
+  }
+
+  return i == 16;
+}
+
+void WcIspBuildGammaYFromParam(float gamma_param, uint8_t out[16]) {
+  gamma_param = WcClampFloat(gamma_param, 0.05f, 5.0f);
+
+  for (int i = 0; i < 16; i++) {
+    float x = (float)((i * 255) / 15) / 255.0f;
+    float y = powf(x, gamma_param) * 255.0f;
+    int yi = (int)(y + 0.5f);
+    out[i] = WcClampU8(yi, 0, 255);
+  }
+
+  out[0] = 0;
+  out[15] = 255;
+}
+
+static void WcIspInterpGammaY(const uint8_t y0[16], const uint8_t y1[16], float t, uint8_t out[16]) {
+  t = WcClampFloat(t, 0.0f, 1.0f);
+  for (int i = 0; i < 16; i++) {
+    float v = (float)y0[i] + ((float)y1[i] - (float)y0[i]) * t;
+    out[i] = WcClampU8((int)(v + 0.5f), 0, 255);
+  }
+  out[0] = 0;
+  out[15] = 255;
+}
+
+static void WcIspParseGammaTable(JsonParserObject &gamma_obj) {
+  JsonParserToken table_tok = gamma_obj["table"];
+  if (!table_tok || !table_tok.isArray()) {
+    return;
+  }
+
+  JsonParserArray table = table_tok.getArray();
+  int idx = 0;
+
+  for (auto entry_tok : table) {
+    if (idx >= 8) break;
+    if (!entry_tok.isObject()) continue;
+
+    JsonParserObject entry = entry_tok.getObject();
+    isp_norm_cfg.gamma.table_luma[idx] = entry.getFloat("luma", 50.0f);
+
+    bool parsed_y = WcIspParseGammaY16(entry["y"], isp_norm_cfg.gamma.table_y[idx]);
+    bool has_gamma_param = (bool)entry["gamma_param"];
+
+    if (parsed_y) {
+      isp_norm_cfg.gamma.table_has_y16[idx] = true;
+    } else if (has_gamma_param) {
+      isp_norm_cfg.gamma.table_gamma_param[idx] = entry.getFloat("gamma_param", 1.0f);
+      WcIspBuildGammaYFromParam(isp_norm_cfg.gamma.table_gamma_param[idx], isp_norm_cfg.gamma.table_y[idx]);
+      isp_norm_cfg.gamma.table_has_y16[idx] = true;
+    }
+
+    idx++;
+  }
+
+  isp_norm_cfg.gamma.count = idx;
+}
+
+static void WcIspSelectRuntimeGammaY(float luma, uint8_t out[16]) {
+  if (isp_norm_cfg.gamma.count <= 0) {
+    memcpy(out, isp_norm_cfg.gamma.y, 16);
+    return;
+  }
+
+  if (isp_norm_cfg.gamma.count == 1) {
+    memcpy(out, isp_norm_cfg.gamma.table_y[0], 16);
+    return;
+  }
+
+  if (luma <= isp_norm_cfg.gamma.table_luma[0]) {
+    memcpy(out, isp_norm_cfg.gamma.table_y[0], 16);
+    return;
+  }
+
+  int last = isp_norm_cfg.gamma.count - 1;
+  if (luma >= isp_norm_cfg.gamma.table_luma[last]) {
+    memcpy(out, isp_norm_cfg.gamma.table_y[last], 16);
+    return;
+  }
+
+  for (int i = 0; i < last; i++) {
+    float l0 = isp_norm_cfg.gamma.table_luma[i];
+    float l1 = isp_norm_cfg.gamma.table_luma[i + 1];
+    if (luma >= l0 && luma <= l1) {
+      float span = l1 - l0;
+      float t = (span > 0.0f) ? ((luma - l0) / span) : 0.0f;
+      WcIspInterpGammaY(isp_norm_cfg.gamma.table_y[i], isp_norm_cfg.gamma.table_y[i + 1], t, out);
+      return;
+    }
+  }
+
+  memcpy(out, isp_norm_cfg.gamma.table_y[last], 16);
+}
+
+static void WcIspApplyRuntimeGamma(isp_proc_handle_t isp) {
+  if (!isp || !isp_norm_cfg.gamma.present || !isp_norm_cfg.gamma.has_y16) {
+    return;
+  }
+
+  float luma = (float)isp_ae_state.last_luma;
+
+  if (isp_awb_state.runtime_gamma_valid) {
+    float delta = luma - isp_awb_state.runtime_gamma_luma;
+    if (delta < 0.0f) delta = -delta;
+    if (delta < isp_norm_cfg.gamma.luma_min_step) {
+      return;
+    }
+  }
+
+  uint8_t y16[16];
+  WcIspSelectRuntimeGammaY(luma, y16);
+
+  for (int i = 0; i < 16; i++) {
+    Wc.core.isp_gamma_y[i] = y16[i];
+  }
+
+  isp_gamma_curve_points_t pts = {};
+  esp_isp_gamma_fill_curve_points(WcIspGammaInterp, &pts);
+
+  if (!WcIspCheckRet("ISP Gamma configure R", esp_isp_gamma_configure(isp, COLOR_COMPONENT_R, &pts))) {
+    return;
+  }
+  if (!WcIspCheckRet("ISP Gamma configure G", esp_isp_gamma_configure(isp, COLOR_COMPONENT_G, &pts))) {
+    return;
+  }
+  if (!WcIspCheckRet("ISP Gamma configure B", esp_isp_gamma_configure(isp, COLOR_COMPONENT_B, &pts))) {
+    return;
+  }
+
+  isp_awb_state.runtime_gamma_valid = true;
+  isp_awb_state.runtime_gamma_luma = luma;
+
+  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: Runtime Gamma update (luma=%d step=%.1f y1=%d y15=%d)"),
+         (int)luma,
+         isp_norm_cfg.gamma.luma_min_step,
+         (int)Wc.core.isp_gamma_y[1],
+         (int)Wc.core.isp_gamma_y[15]);
+}
+
 void WcIspParseNormConfig(JsonParserObject &sensor) {
   bool saturation_found = false;
   bool agc_weight_found = false;
@@ -249,6 +564,38 @@ void WcIspParseNormConfig(JsonParserObject &sensor) {
   if (aen_tok && aen_tok.isObject()) {
     JsonParserObject aen = aen_tok.getObject();
 
+    JsonParserToken gamma_tok = aen["gamma"];
+    if (gamma_tok && gamma_tok.isObject()) {
+      JsonParserObject gamma_obj = gamma_tok.getObject();
+
+      JsonParserToken use_gp_tok = gamma_obj["use_gamma_param"];
+      if (use_gp_tok) {
+        isp_norm_cfg.gamma.use_gamma_param = (use_gp_tok.getInt(0) != 0);
+      }
+
+      isp_norm_cfg.gamma.luma_min_step = gamma_obj.getFloat("luma_min_step", 16.0f);
+
+      WcIspParseGammaTable(gamma_obj);
+
+      if (isp_norm_cfg.gamma.count > 0) {
+        int best_idx = 0;
+        float best_dist = 999999.0f;
+
+        for (int i = 0; i < isp_norm_cfg.gamma.count; i++) {
+          float dist = isp_norm_cfg.gamma.table_luma[i] - 50.0f;
+          if (dist < 0.0f) dist = -dist;
+          if (dist < best_dist) {
+            best_dist = dist;
+            best_idx = i;
+          }
+        }
+
+        isp_norm_cfg.gamma.selected_luma = isp_norm_cfg.gamma.table_luma[best_idx];
+        memcpy(isp_norm_cfg.gamma.y, isp_norm_cfg.gamma.table_y[best_idx], 16);
+        isp_norm_cfg.gamma.has_y16 = isp_norm_cfg.gamma.table_has_y16[best_idx];
+        isp_norm_cfg.gamma.present = isp_norm_cfg.gamma.has_y16;
+      }
+    }
     JsonParserToken con_tok = aen["contrast"];
     if (con_tok && con_tok.isArray()) {
       JsonParserArray con_arr = con_tok.getArray();
@@ -320,6 +667,9 @@ void WcIspParseNormConfig(JsonParserObject &sensor) {
   JsonParserToken agc_tok = sensor["agc"];
   if (agc_tok && agc_tok.isObject()) {
     JsonParserObject agc = agc_tok.getObject();
+
+    isp_norm_cfg.agc.mode = WcIspParseAgcMode(agc["mode"]);
+
     JsonParserToken luma_adj_tok = agc["luma_adjust"];
     if (luma_adj_tok && luma_adj_tok.isObject()) {
       JsonParserObject luma_adj = luma_adj_tok.getObject();
@@ -328,12 +678,61 @@ void WcIspParseNormConfig(JsonParserObject &sensor) {
       isp_norm_cfg.agc.target_low = luma_adj.getInt("target_low", isp_norm_cfg.agc.target_low);
       isp_norm_cfg.agc.target_high = luma_adj.getInt("target_high", isp_norm_cfg.agc.target_high);
 
+      isp_norm_cfg.agc.low_threshold = luma_adj.getInt("low_threshold", isp_norm_cfg.agc.low_threshold);
+      isp_norm_cfg.agc.low_regions = luma_adj.getInt("low_regions", isp_norm_cfg.agc.low_regions);
+      isp_norm_cfg.agc.high_threshold = luma_adj.getInt("high_threshold", isp_norm_cfg.agc.high_threshold);
+      isp_norm_cfg.agc.high_regions = luma_adj.getInt("high_regions", isp_norm_cfg.agc.high_regions);
+
       if (WcIspParseWeight25(luma_adj["weight"], isp_norm_cfg.agc.weight)) {
         isp_norm_cfg.agc.weight_present = true;
         agc_weight_found = true;
       }
 
       isp_norm_cfg.agc.present = true;
+    }
+
+    JsonParserToken hlp_tok = agc["high_light_priority"];
+    if (hlp_tok && hlp_tok.isObject()) {
+      JsonParserObject hlp = hlp_tok.getObject();
+      isp_norm_cfg.agc.high_light_priority.low_threshold =
+        hlp.getInt("low_threshold", isp_norm_cfg.agc.high_light_priority.low_threshold);
+      isp_norm_cfg.agc.high_light_priority.high_threshold =
+        hlp.getInt("high_threshold", isp_norm_cfg.agc.high_light_priority.high_threshold);
+      isp_norm_cfg.agc.high_light_priority.weight_offset =
+        hlp.getInt("weight_offset", isp_norm_cfg.agc.high_light_priority.weight_offset);
+      isp_norm_cfg.agc.high_light_priority.luma_offset =
+        hlp.getInt("luma_offset", isp_norm_cfg.agc.high_light_priority.luma_offset);
+    }
+
+    JsonParserToken llp_tok = agc["low_light_priority"];
+    if (llp_tok && llp_tok.isObject()) {
+      JsonParserObject llp = llp_tok.getObject();
+      isp_norm_cfg.agc.low_light_priority.low_threshold =
+        llp.getInt("low_threshold", isp_norm_cfg.agc.low_light_priority.low_threshold);
+      isp_norm_cfg.agc.low_light_priority.high_threshold =
+        llp.getInt("high_threshold", isp_norm_cfg.agc.low_light_priority.high_threshold);
+      isp_norm_cfg.agc.low_light_priority.weight_offset =
+        llp.getInt("weight_offset", isp_norm_cfg.agc.low_light_priority.weight_offset);
+      isp_norm_cfg.agc.low_light_priority.luma_offset =
+        llp.getInt("luma_offset", isp_norm_cfg.agc.low_light_priority.luma_offset);
+    }
+
+    JsonParserToken ltp_tok = agc["light_threshold_priority"];
+    if (ltp_tok && ltp_tok.isArray()) {
+      JsonParserArray ltp_arr = ltp_tok.getArray();
+      int idx = 0;
+      for (auto entry_tok : ltp_arr) {
+        if (idx >= 8) break;
+        if (!entry_tok.isObject()) continue;
+
+        JsonParserObject entry = entry_tok.getObject();
+        isp_norm_cfg.agc.light_threshold_priority[idx].luma_threshold =
+          entry.getInt("luma_threshold", 0);
+        isp_norm_cfg.agc.light_threshold_priority[idx].weight_offset =
+          entry.getInt("weight_offset", 0);
+        idx++;
+      }
+      isp_norm_cfg.agc.light_threshold_priority_count = idx;
     }
   }
 
@@ -363,11 +762,125 @@ void WcIspParseNormConfig(JsonParserObject &sensor) {
     isp_norm_cfg.agc.target_high = isp_norm_cfg.agc.target_low;
   }
 
-  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: ISP norm cfg parsed (sat=%d agc_w=%d ccm=%d lowccm=%d)"),
+  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: ISP norm cfg parsed (gamma=%d gp=%d gtbl=%d sat=%d agc_w=%d agc_mode=%d ccm=%d lowccm=%d)"),
+         isp_norm_cfg.gamma.present ? 1 : 0,
+         isp_norm_cfg.gamma.use_gamma_param ? 1 : 0,
+         isp_norm_cfg.gamma.count,
          isp_norm_cfg.color.saturation_0_255,
          isp_norm_cfg.agc.weight_present ? 1 : 0,
+         isp_norm_cfg.agc.mode,
          isp_norm_cfg.ccm.present ? 1 : 0,
          isp_norm_cfg.ccm.low_luma_present ? 1 : 0);
+}
+
+
+void WcIspBuildEffectiveAePolicy(const isp_ae_result_t *result,
+                                 uint8_t out_weight[ISP_AE_BLOCK_X_NUM][ISP_AE_BLOCK_Y_NUM],
+                                 int *out_target,
+                                 int *out_target_low,
+                                 int *out_target_high) {
+  int low_count = 0;
+  int high_count = 0;
+
+  for (int x = 0; x < ISP_AE_BLOCK_X_NUM; x++) {
+    for (int y = 0; y < ISP_AE_BLOCK_Y_NUM; y++) {
+      out_weight[x][y] = isp_norm_cfg.agc.weight[x][y];
+
+      int lum = result->luminance[x][y];
+      if (lum < isp_norm_cfg.agc.low_threshold) {
+        low_count++;
+      }
+      if (lum > isp_norm_cfg.agc.high_threshold) {
+        high_count++;
+      }
+    }
+  }
+
+  if (low_count < isp_norm_cfg.agc.low_regions) {
+    for (int x = 0; x < ISP_AE_BLOCK_X_NUM; x++) {
+      for (int y = 0; y < ISP_AE_BLOCK_Y_NUM; y++) {
+        if (result->luminance[x][y] < isp_norm_cfg.agc.low_threshold) {
+          out_weight[x][y] = 0;
+        }
+      }
+    }
+  }
+
+  if (high_count < isp_norm_cfg.agc.high_regions) {
+    for (int x = 0; x < ISP_AE_BLOCK_X_NUM; x++) {
+      for (int y = 0; y < ISP_AE_BLOCK_Y_NUM; y++) {
+        if (result->luminance[x][y] > isp_norm_cfg.agc.high_threshold) {
+          out_weight[x][y] = 0;
+        }
+      }
+    }
+  }
+
+  int effective_target = isp_norm_cfg.agc.target;
+  int lower_span = isp_norm_cfg.agc.target - isp_norm_cfg.agc.target_low;
+  int upper_span = isp_norm_cfg.agc.target_high - isp_norm_cfg.agc.target;
+
+  if (isp_norm_cfg.agc.mode == WC_AGC_MODE_HIGH_LIGHT_PRIORITY) {
+    bool in_priority_range = false;
+    for (int x = 0; x < ISP_AE_BLOCK_X_NUM; x++) {
+      for (int y = 0; y < ISP_AE_BLOCK_Y_NUM; y++) {
+        int lum = result->luminance[x][y];
+        if (lum >= isp_norm_cfg.agc.high_light_priority.low_threshold &&
+            lum <= isp_norm_cfg.agc.high_light_priority.high_threshold) {
+          out_weight[x][y] = WcClampU8((int)out_weight[x][y] + isp_norm_cfg.agc.high_light_priority.weight_offset, 0, 255);
+          in_priority_range = true;
+        }
+      }
+    }
+    if (in_priority_range) {
+      effective_target += isp_norm_cfg.agc.high_light_priority.luma_offset;
+    }
+  } else if (isp_norm_cfg.agc.mode == WC_AGC_MODE_LOW_LIGHT_PRIORITY) {
+    bool in_priority_range = false;
+    for (int x = 0; x < ISP_AE_BLOCK_X_NUM; x++) {
+      for (int y = 0; y < ISP_AE_BLOCK_Y_NUM; y++) {
+        int lum = result->luminance[x][y];
+        if (lum >= isp_norm_cfg.agc.low_light_priority.low_threshold &&
+            lum <= isp_norm_cfg.agc.low_light_priority.high_threshold) {
+          out_weight[x][y] = WcClampU8((int)out_weight[x][y] + isp_norm_cfg.agc.low_light_priority.weight_offset, 0, 255);
+          in_priority_range = true;
+        }
+      }
+    }
+    if (in_priority_range) {
+      effective_target += isp_norm_cfg.agc.low_light_priority.luma_offset;
+    }
+  } else if (isp_norm_cfg.agc.mode == WC_AGC_MODE_LIGHT_THRESHOLD_PRIORITY) {
+    for (int x = 0; x < ISP_AE_BLOCK_X_NUM; x++) {
+      for (int y = 0; y < ISP_AE_BLOCK_Y_NUM; y++) {
+        int lum = result->luminance[x][y];
+        int add = 0;
+        for (int i = 0; i < isp_norm_cfg.agc.light_threshold_priority_count; i++) {
+          if (lum >= isp_norm_cfg.agc.light_threshold_priority[i].luma_threshold) {
+            add = isp_norm_cfg.agc.light_threshold_priority[i].weight_offset;
+          } else {
+            break;
+          }
+        }
+        out_weight[x][y] = WcClampU8((int)out_weight[x][y] + add, 0, 255);
+      }
+    }
+  }
+
+  effective_target = WcClampInt(effective_target, 1, 255);
+
+  int effective_target_low = effective_target - lower_span;
+  int effective_target_high = effective_target + upper_span;
+
+  effective_target_low = WcClampInt(effective_target_low, 1, 255);
+  effective_target_high = WcClampInt(effective_target_high, 1, 255);
+  if (effective_target_high < effective_target_low) {
+    effective_target_high = effective_target_low;
+  }
+
+  *out_target = effective_target;
+  *out_target_low = effective_target_low;
+  *out_target_high = effective_target_high;
 }
 
 static bool WcIspSelectRuntimeCcm(float out[3][3]) {
@@ -398,6 +911,36 @@ static bool WcIspSelectRuntimeCcm(float out[3][3]) {
   }
 
   return use_low;
+}
+
+static void WcIspApplyRuntimeCcm(isp_proc_handle_t isp) {
+  if (!isp) {
+    return;
+  }
+
+  float runtime_base[3][3];
+  bool using_low_luma = WcIspSelectRuntimeCcm(runtime_base);
+
+  esp_isp_ccm_config_t ccm_cfg;
+  memset(&ccm_cfg, 0, sizeof(ccm_cfg));
+  ccm_cfg.saturation = true;
+
+  for (int c = 0; c < 3; c++) {
+    ccm_cfg.matrix[0][c] = runtime_base[0][c] * isp_awb_state.gain_r;
+    ccm_cfg.matrix[1][c] = runtime_base[1][c];
+    ccm_cfg.matrix[2][c] = runtime_base[2][c] * isp_awb_state.gain_b;
+  }
+
+  WcIspCheckRet("ISP runtime CCM update", esp_isp_ccm_configure(isp, &ccm_cfg));
+
+  if (!isp_awb_state.runtime_ccm_valid || isp_awb_state.runtime_ccm_low_luma != using_low_luma) {
+    AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: CCM runtime switched -> %s (luma=%d threshold=%d)"),
+           using_low_luma ? "low_luma" : "base",
+           isp_ae_state.last_luma,
+           isp_norm_cfg.ccm.low_luma_threshold);
+    isp_awb_state.runtime_ccm_valid = true;
+    isp_awb_state.runtime_ccm_low_luma = using_low_luma;
+  }
 }
 
 static bool IRAM_ATTR WcIspAeOnStatisticsDone(isp_ae_ctlr_t ae_ctlr, const esp_isp_ae_env_detector_evt_data_t *edata, void *user_data) {
@@ -766,12 +1309,23 @@ void WcIspAeProcess(void) {
   }
   isp_ae_state.last_consumed_seq = seq2;
 
+  uint8_t effective_weight[ISP_AE_BLOCK_X_NUM][ISP_AE_BLOCK_Y_NUM];
+  int effective_target = isp_ae_state.target;
+  int effective_target_low = isp_ae_state.target_low;
+  int effective_target_high = isp_ae_state.target_high;
+
+  WcIspBuildEffectiveAePolicy(&result,
+                              effective_weight,
+                              &effective_target,
+                              &effective_target_low,
+                              &effective_target_high);
+
   uint32_t weighted_sum = 0;
   uint32_t weight_sum = 0;
 
   for (int x = 0; x < ISP_AE_BLOCK_X_NUM; x++) {
     for (int y = 0; y < ISP_AE_BLOCK_Y_NUM; y++) {
-      uint32_t w = isp_ae_state.weight[x][y];
+      uint32_t w = effective_weight[x][y];
       weighted_sum += (uint32_t)result.luminance[x][y] * w;
       weight_sum += w;
     }
@@ -783,45 +1337,47 @@ void WcIspAeProcess(void) {
 
   isp_ae_state.last_luma = weighted_sum / weight_sum;
 
-  AddLog(LOG_LEVEL_INFO, PSTR("CAM: AE cb=%u luma=%d target=%d band=%d..%d"),
+  AddLog(LOG_LEVEL_INFO, PSTR("CAM: AE cb=%u luma=%d target=%d band=%d..%d mode=%d"),
          isp_ae_state.cb_count,
          isp_ae_state.last_luma,
-         isp_ae_state.target,
-         isp_ae_state.target_low,
-         isp_ae_state.target_high);
-
-  if (isp_ae_state.last_luma >= isp_ae_state.target_low &&
-      isp_ae_state.last_luma <= isp_ae_state.target_high) {
-    return;
-  }
+         effective_target,
+         effective_target_low,
+         effective_target_high,
+         isp_norm_cfg.agc.mode);
 
   uint32_t now = millis();
-  if ((now - isp_ae_state.last_apply_ms) < 150) {
-    return;
-  }
 
-  int err = isp_ae_state.target - isp_ae_state.last_luma;
-  int step = 0;
-
-  if (err > 32) {
-    step = 3;
-  } else if (err > 16) {
-    step = 2;
-  } else if (err > 4) {
-    step = 1;
-  } else if (err < -32) {
-    step = -3;
-  } else if (err < -16) {
-    step = -2;
-  } else if (err < -4) {
-    step = -1;
-  }
+  int step = WcIspComputeAeStep(isp_ae_state.last_luma,
+                                effective_target,
+                                effective_target_low,
+                                effective_target_high);
 
   if (step == 0) {
     return;
   }
 
-  AddLog(LOG_LEVEL_INFO, PSTR("CAM: AE step=%d"), step);
+  bool inside_band = (isp_ae_state.last_luma >= effective_target_low &&
+                      isp_ae_state.last_luma <= effective_target_high);
+
+  uint32_t min_interval = inside_band ? 300 : 150;
+
+  if ((now - isp_ae_state.last_apply_ms) < min_interval) {
+    return;
+  }
+
+  // Bright recovery bias:
+  // ak sme nad targetom, tlač návrat dole o niečo agresívnejšie,
+  // aby sa obraz po odkrytí neustálil vysoko a zrnito.
+  if (isp_ae_state.last_luma > effective_target + 20 && step < 0) {
+    if (step > -3) {
+      step--;
+    }
+  }
+
+  AddLog(LOG_LEVEL_INFO, PSTR("CAM: AE step=%d err=%d inband=%d"),
+         step,
+         effective_target - isp_ae_state.last_luma,
+         inside_band ? 1 : 0);
 
   int32_t berry_result = callBerryEventDispatcher(PSTR("camera"), PSTR("ae"), step, nullptr, 0);
 
@@ -878,80 +1434,14 @@ uint32_t WcIspGammaInterp(uint32_t x) {
 // Apply Gamma Curve
 // JSON: {"aen": {"gamma": {"table": [{"luma": 50, "y": [0,...15 values...]}, ...]}}}
 void WcIspApplyGamma(isp_proc_handle_t handle, JsonParserObject &sensor) {
-  JsonParserToken aen_tok = sensor["aen"];
-  if (!aen_tok || !aen_tok.isObject()) {
+  (void)sensor;
+
+  if (!isp_norm_cfg.gamma.present || !isp_norm_cfg.gamma.has_y16) {
     return;
   }
 
-  JsonParserObject aen = aen_tok.getObject();
-  JsonParserToken gamma_tok = aen["gamma"];
-  if (!gamma_tok || !gamma_tok.isObject()) {
-    return;
-  }
-
-  JsonParserObject gamma_obj = gamma_tok.getObject();
-  JsonParserToken table_tok = gamma_obj["table"];
-  if (!table_tok || !table_tok.isArray()) {
-    return;
-  }
-
-  JsonParserArray table = table_tok.getArray();
-
-  // Find nearest luma to 50 (supports int/float luma values)
-  int best_idx = -1;
-  float best_dist = 999999.0f;
-  int idx = 0;
-
-  for (auto entry_tok : table) {
-    if (!entry_tok.isObject()) {
-      idx++;
-      continue;
-    }
-
-    JsonParserObject entry = entry_tok.getObject();
-    float luma = entry.getFloat("luma", 50.0f);
-    float dist = (luma >= 50.0f) ? (luma - 50.0f) : (50.0f - luma);
-
-    if (dist < best_dist) {
-      best_dist = dist;
-      best_idx = idx;
-    }
-    idx++;
-  }
-
-  if (best_idx < 0) {
-    return;
-  }
-
-  JsonParserToken best_tok = table[best_idx];
-  if (!best_tok.isObject()) {
-    return;
-  }
-
-  JsonParserObject best = best_tok.getObject();
-  JsonParserToken y_tok = best["y"];
-  if (!y_tok || !y_tok.isArray()) {
-    AddLog(LOG_LEVEL_INFO, PSTR("CAM: ISP Gamma skipped - missing y[16] table"));
-    return;
-  }
-
-  JsonParserArray y_arr = y_tok.getArray();
-
-  int i = 0;
-  for (auto v : y_arr) {
-    if (i >= 16) break;
-
-    int y = v.getInt(0);
-    if (y < 0) y = 0;
-    if (y > 255) y = 255;
-
-    Wc.core.isp_gamma_y[i] = (uint32_t)y;
-    i++;
-  }
-
-  if (i != 16) {
-    AddLog(LOG_LEVEL_INFO, PSTR("CAM: ISP Gamma skipped - expected 16 points, got %d"), i);
-    return;
+  for (int i = 0; i < 16; i++) {
+    Wc.core.isp_gamma_y[i] = isp_norm_cfg.gamma.y[i];
   }
 
   isp_gamma_curve_points_t pts = {};
@@ -970,9 +1460,12 @@ void WcIspApplyGamma(isp_proc_handle_t handle, JsonParserObject &sensor) {
     return;
   }
 
-  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: ISP Gamma applied"));
+  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: ISP Gamma applied (gp=%d luma=%d y1=%d y15=%d)"),
+         isp_norm_cfg.gamma.use_gamma_param ? 1 : 0,
+         (int)isp_norm_cfg.gamma.selected_luma,
+         (int)Wc.core.isp_gamma_y[1],
+         (int)Wc.core.isp_gamma_y[15]);
 }
-
 /*********************************************************************************************/
 
 // Apply Sharpen Filter
@@ -1234,6 +1727,10 @@ void WcIspInitAWB(isp_proc_handle_t handle, JsonParserObject &sensor, int width,
   isp_awb_state.gain_b = 1.0f;
   isp_awb_state.low_luma_ccm_active = false;
   isp_awb_state.low_luma_hysteresis = 6;
+  isp_awb_state.runtime_ccm_valid = false;
+  isp_awb_state.runtime_ccm_low_luma = false;
+  isp_awb_state.runtime_gamma_valid = false;
+  isp_awb_state.runtime_gamma_luma = 0.0f;
   isp_awb_state.min_counted = (uint32_t)WcClampInt(awb.getInt("min_counted", 2000), 1, 1000000);
   isp_awb_state.min_r_step = WcClampFloat(awb.getFloat("min_red_gain_step", 0.034f), 0.0f, 1.0f);
   isp_awb_state.min_b_step = WcClampFloat(awb.getFloat("min_blue_gain_step", 0.034f), 0.0f, 1.0f);
@@ -1280,6 +1777,14 @@ void WcIspAwbProcess(void) {
   if (Wc.core.state != CAM_STREAMING) return;
   if (!isp_awb_state.enabled || !isp_awb_state.handle) return;
 
+  isp_proc_handle_t isp = Wc.core.isp_handle;
+  if (!isp) return;
+
+  // CCM mode switch musí bežať vždy, aj keď AWB stats práve nie sú použiteľné
+  WcIspApplyRuntimeCcm(isp);
+
+  WcIspApplyRuntimeGamma(isp);
+
   uint32_t seq1 = isp_awb_state.stats_seq;
   if (seq1 & 1) {
     return;
@@ -1325,32 +1830,7 @@ void WcIspAwbProcess(void) {
   isp_awb_state.gain_r = new_gain_r;
   isp_awb_state.gain_b = new_gain_b;
 
-  isp_proc_handle_t isp = Wc.core.isp_handle;
-  if (!isp) return;
-
-  float runtime_base[3][3];
-  bool using_low_luma = WcIspSelectRuntimeCcm(runtime_base);
-
-  esp_isp_ccm_config_t ccm_cfg;
-  memset(&ccm_cfg, 0, sizeof(ccm_cfg));
-  ccm_cfg.saturation = true;
-
-  for (int c = 0; c < 3; c++) {
-    ccm_cfg.matrix[0][c] = runtime_base[0][c] * isp_awb_state.gain_r;
-    ccm_cfg.matrix[1][c] = runtime_base[1][c];
-    ccm_cfg.matrix[2][c] = runtime_base[2][c] * isp_awb_state.gain_b;
-  }
-
-  WcIspCheckRet("ISP AWB CCM update", esp_isp_ccm_configure(isp, &ccm_cfg));
-
-  static bool last_logged_low_luma = false;
-  if (using_low_luma != last_logged_low_luma) {
-    AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: CCM runtime switched -> %s (luma=%d threshold=%d)"),
-           using_low_luma ? "low_luma" : "base",
-           isp_ae_state.last_luma,
-           isp_norm_cfg.ccm.low_luma_threshold);
-    last_logged_low_luma = using_low_luma;
-  }
+  WcIspApplyRuntimeCcm(isp);
 }
 
 /*********************************************************************************************/
@@ -1381,6 +1861,10 @@ void WcIspDeinitAWB(void) {
   isp_awb_state.gain_r = 1.0f;
   isp_awb_state.gain_b = 1.0f;
   isp_awb_state.low_luma_ccm_active = false;
+  isp_awb_state.runtime_ccm_valid = false;
+  isp_awb_state.runtime_ccm_low_luma = false;
+  isp_awb_state.runtime_gamma_valid = false;
+  isp_awb_state.runtime_gamma_luma = 0.0f;
   isp_awb_state.stats_ready = false;
   isp_awb_state.stats_seq = 0;
   isp_awb_state.cb_count = 0;
