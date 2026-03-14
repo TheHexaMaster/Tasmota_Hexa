@@ -143,7 +143,7 @@ static decltype(((esp_isp_processor_cfg_t *)0)->bayer_order) WcGetBayerOrder(con
   }
 }
 
-
+void WcIspStartAE(void);
 
 // Runtime state - handles and buffers
 struct {
@@ -718,6 +718,9 @@ uint32_t WcStart(void) {
   delay(100);
 
   Wc.core.state = CAM_STREAMING;
+
+  // AE continuous kick musí prísť až teraz, keď už tečú frame-y
+  WcIspStartAE();
   
   AddLog(LOG_LEVEL_INFO, PSTR("CAM: Streaming active"));
   return 1;
@@ -825,6 +828,10 @@ void WcInit(void) {
   Wc.core.fail_esp_err = ESP_OK;
   Wc.jpeg.quality = 50;
   Wc.rtp.dest_port = 5004;
+
+  for (int i = 0; i < 16; i++) {
+    Wc.core.isp_gamma_y[i] = (i * 255) / 15;
+  }
   
   // C++ objects (rtp_dest_ip, rtp_udp, rtsp_client) have constructors - don't touch
   
@@ -919,16 +926,15 @@ bool Xdrv81(uint32_t function) {
       }
       break;
     case FUNC_EVERY_250_MSECOND:
-      if (Wc.core.state == CAM_STREAMING) {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 5, 0)
-        WcIspAwbProcess();
-#endif
-      }
+
       break;
     case FUNC_EVERY_SECOND:
       // Auto-start streaming once WiFi is available (only from INIT, not after FAILED)
       if (Wc.core.state == CAM_INIT && !TasmotaGlobal.global_state.network_down) {
         WcStart();
+      }
+      if (Wc.core.state == CAM_STREAMING) {
+        WcIspAwbProcess();
       }
       break;
     case FUNC_COMMAND:
