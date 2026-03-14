@@ -1,7 +1,7 @@
 /*
   xdrv_81_0_esp32_webcam_CSI_isp.ino - ESP32-P4 CSI ISP Configuration
 
-  Copyright (C) 2025  Christian Baars, Theo Arends and Martin Macák (HexaMaster)
+  Copyright (C) 2025  Christian Baars and Theo Arends
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -81,36 +81,8 @@ struct WcIspNormConfig {
     int target;
     int target_low;
     int target_high;
-
-    int low_threshold;
-    int low_regions;
-    int high_threshold;
-    int high_regions;
-
     bool weight_present;
     uint8_t weight[ISP_AE_BLOCK_X_NUM][ISP_AE_BLOCK_Y_NUM];
-
-    int mode;   // 0=none, 1=high_light_priority, 2=low_light_priority, 3=light_threshold_priority
-
-    struct {
-      int low_threshold;
-      int high_threshold;
-      int weight_offset;
-      int luma_offset;
-    } high_light_priority;
-
-    struct {
-      int low_threshold;
-      int high_threshold;
-      int weight_offset;
-      int luma_offset;
-    } low_light_priority;
-
-    int light_threshold_priority_count;
-    struct {
-      int luma_threshold;
-      int weight_offset;
-    } light_threshold_priority[8];
   } agc;
 
   struct {
@@ -124,11 +96,6 @@ struct WcIspNormConfig {
 };
 
 static WcIspNormConfig isp_norm_cfg;
-
-#define WC_AGC_MODE_NONE                     0
-#define WC_AGC_MODE_HIGH_LIGHT_PRIORITY      1
-#define WC_AGC_MODE_LOW_LIGHT_PRIORITY       2
-#define WC_AGC_MODE_LIGHT_THRESHOLD_PRIORITY 3
 
 // AWB state - file-static, used by init and C processing loop
 static struct {
@@ -205,13 +172,6 @@ static void WcIspParseGammaTable(JsonParserObject &gamma_obj);
 static void WcIspSelectRuntimeGammaY(float luma, uint8_t out[16]);
 static void WcIspApplyRuntimeGamma(isp_proc_handle_t isp);
 static void WcIspInterpGammaY(const uint8_t y0[16], const uint8_t y1[16], float t, uint8_t out[16]);
-int WcIspParseAgcMode(JsonParserToken mode_tok);
-void WcIspBuildEffectiveAePolicy(const isp_ae_result_t *result,
-                                 uint8_t out_weight[ISP_AE_BLOCK_X_NUM][ISP_AE_BLOCK_Y_NUM],
-                                 int *out_target,
-                                 int *out_target_low,
-                                 int *out_target_high);
-int WcIspComputeAeStep(int luma, int target, int target_low, int target_high);
 
 /*********************************************************************************************/
 
@@ -241,57 +201,6 @@ static float WcClampFloat(float v, float lo, float hi) {
   return v;
 }
 
-int WcIspParseAgcMode(JsonParserToken mode_tok) {
-  if (!mode_tok) {
-    return WC_AGC_MODE_NONE;
-  }
-
-  const char *mode = mode_tok.getStr();
-  if (!mode) {
-    return WC_AGC_MODE_NONE;
-  }
-
-  if (!strcmp(mode, "high_light_priority")) {
-    return WC_AGC_MODE_HIGH_LIGHT_PRIORITY;
-  }
-  if (!strcmp(mode, "low_light_priority")) {
-    return WC_AGC_MODE_LOW_LIGHT_PRIORITY;
-  }
-  if (!strcmp(mode, "light_threshold_priority")) {
-    return WC_AGC_MODE_LIGHT_THRESHOLD_PRIORITY;
-  }
-
-  return WC_AGC_MODE_NONE;
-}
-
-int WcIspComputeAeStep(int luma, int target, int target_low, int target_high) {
-  int err = target - luma;
-
-  // Mimo bandu - agresívnejší zásah
-  if (luma < target_low) {
-    if (err > 32) return 3;
-    if (err > 16) return 2;
-    if (err > 4)  return 1;
-    return 0;
-  }
-
-  if (luma > target_high) {
-    if (err < -32) return -3;
-    if (err < -16) return -2;
-    if (err < -4)  return -1;
-    return 0;
-  }
-
-  // Vo vnútri bandu - ešte jemne centruj na target
-  // Toto je hlavná oprava proti "zamrznutiu" na 103-105
-  if (err > 18) return 2;
-  if (err > 8)  return 1;
-  if (err < -18) return -2;
-  if (err < -8)  return -1;
-
-  return 0;
-}
-
 void WcIspResetNormConfig(void) {
   memset(&isp_norm_cfg, 0, sizeof(isp_norm_cfg));
 
@@ -318,27 +227,6 @@ void WcIspResetNormConfig(void) {
   isp_norm_cfg.agc.target = 79;
   isp_norm_cfg.agc.target_low = 62;
   isp_norm_cfg.agc.target_high = 105;
-  isp_norm_cfg.agc.low_threshold = 14;
-  isp_norm_cfg.agc.low_regions = 5;
-  isp_norm_cfg.agc.high_threshold = 239;
-  isp_norm_cfg.agc.high_regions = 3;
-  isp_norm_cfg.agc.mode = WC_AGC_MODE_NONE;
-
-  isp_norm_cfg.agc.high_light_priority.low_threshold = 119;
-  isp_norm_cfg.agc.high_light_priority.high_threshold = 202;
-  isp_norm_cfg.agc.high_light_priority.weight_offset = 5;
-  isp_norm_cfg.agc.high_light_priority.luma_offset = -1;
-
-  isp_norm_cfg.agc.low_light_priority.low_threshold = 49;
-  isp_norm_cfg.agc.low_light_priority.high_threshold = 64;
-  isp_norm_cfg.agc.low_light_priority.weight_offset = 5;
-  isp_norm_cfg.agc.low_light_priority.luma_offset = 1;
-
-  isp_norm_cfg.agc.light_threshold_priority_count = 0;
-  for (int i = 0; i < 8; i++) {
-    isp_norm_cfg.agc.light_threshold_priority[i].luma_threshold = 0;
-    isp_norm_cfg.agc.light_threshold_priority[i].weight_offset = 0;
-  }
   for (int x = 0; x < ISP_AE_BLOCK_X_NUM; x++) {
     for (int y = 0; y < ISP_AE_BLOCK_Y_NUM; y++) {
       isp_norm_cfg.agc.weight[x][y] = 1;
@@ -667,9 +555,6 @@ void WcIspParseNormConfig(JsonParserObject &sensor) {
   JsonParserToken agc_tok = sensor["agc"];
   if (agc_tok && agc_tok.isObject()) {
     JsonParserObject agc = agc_tok.getObject();
-
-    isp_norm_cfg.agc.mode = WcIspParseAgcMode(agc["mode"]);
-
     JsonParserToken luma_adj_tok = agc["luma_adjust"];
     if (luma_adj_tok && luma_adj_tok.isObject()) {
       JsonParserObject luma_adj = luma_adj_tok.getObject();
@@ -678,61 +563,12 @@ void WcIspParseNormConfig(JsonParserObject &sensor) {
       isp_norm_cfg.agc.target_low = luma_adj.getInt("target_low", isp_norm_cfg.agc.target_low);
       isp_norm_cfg.agc.target_high = luma_adj.getInt("target_high", isp_norm_cfg.agc.target_high);
 
-      isp_norm_cfg.agc.low_threshold = luma_adj.getInt("low_threshold", isp_norm_cfg.agc.low_threshold);
-      isp_norm_cfg.agc.low_regions = luma_adj.getInt("low_regions", isp_norm_cfg.agc.low_regions);
-      isp_norm_cfg.agc.high_threshold = luma_adj.getInt("high_threshold", isp_norm_cfg.agc.high_threshold);
-      isp_norm_cfg.agc.high_regions = luma_adj.getInt("high_regions", isp_norm_cfg.agc.high_regions);
-
       if (WcIspParseWeight25(luma_adj["weight"], isp_norm_cfg.agc.weight)) {
         isp_norm_cfg.agc.weight_present = true;
         agc_weight_found = true;
       }
 
       isp_norm_cfg.agc.present = true;
-    }
-
-    JsonParserToken hlp_tok = agc["high_light_priority"];
-    if (hlp_tok && hlp_tok.isObject()) {
-      JsonParserObject hlp = hlp_tok.getObject();
-      isp_norm_cfg.agc.high_light_priority.low_threshold =
-        hlp.getInt("low_threshold", isp_norm_cfg.agc.high_light_priority.low_threshold);
-      isp_norm_cfg.agc.high_light_priority.high_threshold =
-        hlp.getInt("high_threshold", isp_norm_cfg.agc.high_light_priority.high_threshold);
-      isp_norm_cfg.agc.high_light_priority.weight_offset =
-        hlp.getInt("weight_offset", isp_norm_cfg.agc.high_light_priority.weight_offset);
-      isp_norm_cfg.agc.high_light_priority.luma_offset =
-        hlp.getInt("luma_offset", isp_norm_cfg.agc.high_light_priority.luma_offset);
-    }
-
-    JsonParserToken llp_tok = agc["low_light_priority"];
-    if (llp_tok && llp_tok.isObject()) {
-      JsonParserObject llp = llp_tok.getObject();
-      isp_norm_cfg.agc.low_light_priority.low_threshold =
-        llp.getInt("low_threshold", isp_norm_cfg.agc.low_light_priority.low_threshold);
-      isp_norm_cfg.agc.low_light_priority.high_threshold =
-        llp.getInt("high_threshold", isp_norm_cfg.agc.low_light_priority.high_threshold);
-      isp_norm_cfg.agc.low_light_priority.weight_offset =
-        llp.getInt("weight_offset", isp_norm_cfg.agc.low_light_priority.weight_offset);
-      isp_norm_cfg.agc.low_light_priority.luma_offset =
-        llp.getInt("luma_offset", isp_norm_cfg.agc.low_light_priority.luma_offset);
-    }
-
-    JsonParserToken ltp_tok = agc["light_threshold_priority"];
-    if (ltp_tok && ltp_tok.isArray()) {
-      JsonParserArray ltp_arr = ltp_tok.getArray();
-      int idx = 0;
-      for (auto entry_tok : ltp_arr) {
-        if (idx >= 8) break;
-        if (!entry_tok.isObject()) continue;
-
-        JsonParserObject entry = entry_tok.getObject();
-        isp_norm_cfg.agc.light_threshold_priority[idx].luma_threshold =
-          entry.getInt("luma_threshold", 0);
-        isp_norm_cfg.agc.light_threshold_priority[idx].weight_offset =
-          entry.getInt("weight_offset", 0);
-        idx++;
-      }
-      isp_norm_cfg.agc.light_threshold_priority_count = idx;
     }
   }
 
@@ -762,125 +598,14 @@ void WcIspParseNormConfig(JsonParserObject &sensor) {
     isp_norm_cfg.agc.target_high = isp_norm_cfg.agc.target_low;
   }
 
-  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: ISP norm cfg parsed (gamma=%d gp=%d gtbl=%d sat=%d agc_w=%d agc_mode=%d ccm=%d lowccm=%d)"),
+  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: ISP norm cfg parsed (gamma=%d gp=%d gtbl=%d sat=%d agc_w=%d ccm=%d lowccm=%d)"),
          isp_norm_cfg.gamma.present ? 1 : 0,
          isp_norm_cfg.gamma.use_gamma_param ? 1 : 0,
          isp_norm_cfg.gamma.count,
          isp_norm_cfg.color.saturation_0_255,
          isp_norm_cfg.agc.weight_present ? 1 : 0,
-         isp_norm_cfg.agc.mode,
          isp_norm_cfg.ccm.present ? 1 : 0,
          isp_norm_cfg.ccm.low_luma_present ? 1 : 0);
-}
-
-
-void WcIspBuildEffectiveAePolicy(const isp_ae_result_t *result,
-                                 uint8_t out_weight[ISP_AE_BLOCK_X_NUM][ISP_AE_BLOCK_Y_NUM],
-                                 int *out_target,
-                                 int *out_target_low,
-                                 int *out_target_high) {
-  int low_count = 0;
-  int high_count = 0;
-
-  for (int x = 0; x < ISP_AE_BLOCK_X_NUM; x++) {
-    for (int y = 0; y < ISP_AE_BLOCK_Y_NUM; y++) {
-      out_weight[x][y] = isp_norm_cfg.agc.weight[x][y];
-
-      int lum = result->luminance[x][y];
-      if (lum < isp_norm_cfg.agc.low_threshold) {
-        low_count++;
-      }
-      if (lum > isp_norm_cfg.agc.high_threshold) {
-        high_count++;
-      }
-    }
-  }
-
-  if (low_count < isp_norm_cfg.agc.low_regions) {
-    for (int x = 0; x < ISP_AE_BLOCK_X_NUM; x++) {
-      for (int y = 0; y < ISP_AE_BLOCK_Y_NUM; y++) {
-        if (result->luminance[x][y] < isp_norm_cfg.agc.low_threshold) {
-          out_weight[x][y] = 0;
-        }
-      }
-    }
-  }
-
-  if (high_count < isp_norm_cfg.agc.high_regions) {
-    for (int x = 0; x < ISP_AE_BLOCK_X_NUM; x++) {
-      for (int y = 0; y < ISP_AE_BLOCK_Y_NUM; y++) {
-        if (result->luminance[x][y] > isp_norm_cfg.agc.high_threshold) {
-          out_weight[x][y] = 0;
-        }
-      }
-    }
-  }
-
-  int effective_target = isp_norm_cfg.agc.target;
-  int lower_span = isp_norm_cfg.agc.target - isp_norm_cfg.agc.target_low;
-  int upper_span = isp_norm_cfg.agc.target_high - isp_norm_cfg.agc.target;
-
-  if (isp_norm_cfg.agc.mode == WC_AGC_MODE_HIGH_LIGHT_PRIORITY) {
-    bool in_priority_range = false;
-    for (int x = 0; x < ISP_AE_BLOCK_X_NUM; x++) {
-      for (int y = 0; y < ISP_AE_BLOCK_Y_NUM; y++) {
-        int lum = result->luminance[x][y];
-        if (lum >= isp_norm_cfg.agc.high_light_priority.low_threshold &&
-            lum <= isp_norm_cfg.agc.high_light_priority.high_threshold) {
-          out_weight[x][y] = WcClampU8((int)out_weight[x][y] + isp_norm_cfg.agc.high_light_priority.weight_offset, 0, 255);
-          in_priority_range = true;
-        }
-      }
-    }
-    if (in_priority_range) {
-      effective_target += isp_norm_cfg.agc.high_light_priority.luma_offset;
-    }
-  } else if (isp_norm_cfg.agc.mode == WC_AGC_MODE_LOW_LIGHT_PRIORITY) {
-    bool in_priority_range = false;
-    for (int x = 0; x < ISP_AE_BLOCK_X_NUM; x++) {
-      for (int y = 0; y < ISP_AE_BLOCK_Y_NUM; y++) {
-        int lum = result->luminance[x][y];
-        if (lum >= isp_norm_cfg.agc.low_light_priority.low_threshold &&
-            lum <= isp_norm_cfg.agc.low_light_priority.high_threshold) {
-          out_weight[x][y] = WcClampU8((int)out_weight[x][y] + isp_norm_cfg.agc.low_light_priority.weight_offset, 0, 255);
-          in_priority_range = true;
-        }
-      }
-    }
-    if (in_priority_range) {
-      effective_target += isp_norm_cfg.agc.low_light_priority.luma_offset;
-    }
-  } else if (isp_norm_cfg.agc.mode == WC_AGC_MODE_LIGHT_THRESHOLD_PRIORITY) {
-    for (int x = 0; x < ISP_AE_BLOCK_X_NUM; x++) {
-      for (int y = 0; y < ISP_AE_BLOCK_Y_NUM; y++) {
-        int lum = result->luminance[x][y];
-        int add = 0;
-        for (int i = 0; i < isp_norm_cfg.agc.light_threshold_priority_count; i++) {
-          if (lum >= isp_norm_cfg.agc.light_threshold_priority[i].luma_threshold) {
-            add = isp_norm_cfg.agc.light_threshold_priority[i].weight_offset;
-          } else {
-            break;
-          }
-        }
-        out_weight[x][y] = WcClampU8((int)out_weight[x][y] + add, 0, 255);
-      }
-    }
-  }
-
-  effective_target = WcClampInt(effective_target, 1, 255);
-
-  int effective_target_low = effective_target - lower_span;
-  int effective_target_high = effective_target + upper_span;
-
-  effective_target_low = WcClampInt(effective_target_low, 1, 255);
-  effective_target_high = WcClampInt(effective_target_high, 1, 255);
-  if (effective_target_high < effective_target_low) {
-    effective_target_high = effective_target_low;
-  }
-
-  *out_target = effective_target;
-  *out_target_low = effective_target_low;
-  *out_target_high = effective_target_high;
 }
 
 static bool WcIspSelectRuntimeCcm(float out[3][3]) {
@@ -1309,23 +1034,12 @@ void WcIspAeProcess(void) {
   }
   isp_ae_state.last_consumed_seq = seq2;
 
-  uint8_t effective_weight[ISP_AE_BLOCK_X_NUM][ISP_AE_BLOCK_Y_NUM];
-  int effective_target = isp_ae_state.target;
-  int effective_target_low = isp_ae_state.target_low;
-  int effective_target_high = isp_ae_state.target_high;
-
-  WcIspBuildEffectiveAePolicy(&result,
-                              effective_weight,
-                              &effective_target,
-                              &effective_target_low,
-                              &effective_target_high);
-
   uint32_t weighted_sum = 0;
   uint32_t weight_sum = 0;
 
   for (int x = 0; x < ISP_AE_BLOCK_X_NUM; x++) {
     for (int y = 0; y < ISP_AE_BLOCK_Y_NUM; y++) {
-      uint32_t w = effective_weight[x][y];
+      uint32_t w = isp_ae_state.weight[x][y];
       weighted_sum += (uint32_t)result.luminance[x][y] * w;
       weight_sum += w;
     }
@@ -1337,47 +1051,45 @@ void WcIspAeProcess(void) {
 
   isp_ae_state.last_luma = weighted_sum / weight_sum;
 
-  AddLog(LOG_LEVEL_INFO, PSTR("CAM: AE cb=%u luma=%d target=%d band=%d..%d mode=%d"),
+  AddLog(LOG_LEVEL_INFO, PSTR("CAM: AE cb=%u luma=%d target=%d band=%d..%d"),
          isp_ae_state.cb_count,
          isp_ae_state.last_luma,
-         effective_target,
-         effective_target_low,
-         effective_target_high,
-         isp_norm_cfg.agc.mode);
+         isp_ae_state.target,
+         isp_ae_state.target_low,
+         isp_ae_state.target_high);
+
+  if (isp_ae_state.last_luma >= isp_ae_state.target_low &&
+      isp_ae_state.last_luma <= isp_ae_state.target_high) {
+    return;
+  }
 
   uint32_t now = millis();
+  if ((now - isp_ae_state.last_apply_ms) < 150) {
+    return;
+  }
 
-  int step = WcIspComputeAeStep(isp_ae_state.last_luma,
-                                effective_target,
-                                effective_target_low,
-                                effective_target_high);
+  int err = isp_ae_state.target - isp_ae_state.last_luma;
+  int step = 0;
+
+  if (err > 32) {
+    step = 3;
+  } else if (err > 16) {
+    step = 2;
+  } else if (err > 4) {
+    step = 1;
+  } else if (err < -32) {
+    step = -3;
+  } else if (err < -16) {
+    step = -2;
+  } else if (err < -4) {
+    step = -1;
+  }
 
   if (step == 0) {
     return;
   }
 
-  bool inside_band = (isp_ae_state.last_luma >= effective_target_low &&
-                      isp_ae_state.last_luma <= effective_target_high);
-
-  uint32_t min_interval = inside_band ? 300 : 150;
-
-  if ((now - isp_ae_state.last_apply_ms) < min_interval) {
-    return;
-  }
-
-  // Bright recovery bias:
-  // ak sme nad targetom, tlač návrat dole o niečo agresívnejšie,
-  // aby sa obraz po odkrytí neustálil vysoko a zrnito.
-  if (isp_ae_state.last_luma > effective_target + 20 && step < 0) {
-    if (step > -3) {
-      step--;
-    }
-  }
-
-  AddLog(LOG_LEVEL_INFO, PSTR("CAM: AE step=%d err=%d inband=%d"),
-         step,
-         effective_target - isp_ae_state.last_luma,
-         inside_band ? 1 : 0);
+  AddLog(LOG_LEVEL_INFO, PSTR("CAM: AE step=%d"), step);
 
   int32_t berry_result = callBerryEventDispatcher(PSTR("camera"), PSTR("ae"), step, nullptr, 0);
 

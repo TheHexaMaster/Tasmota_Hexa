@@ -136,9 +136,6 @@ static decltype(((esp_isp_processor_cfg_t *)0)->bayer_order) WcGetBayerOrder(con
     case CSI_BAYER_GBRG: return COLOR_RAW_ELEMENT_ORDER_GBRG;
     case CSI_BAYER_BGGR: return COLOR_RAW_ELEMENT_ORDER_BGGR;
     default:
-      if (!strcmp(cfg->name, "OV02C10")) {
-        return COLOR_RAW_ELEMENT_ORDER_GBRG;
-      }
       return COLOR_RAW_ELEMENT_ORDER_RGGB;
   }
 }
