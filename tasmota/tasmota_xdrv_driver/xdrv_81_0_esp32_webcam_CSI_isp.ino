@@ -54,18 +54,8 @@
 struct WcIspNormConfig {
   struct {
     bool present;
-    bool use_gamma_param;
-    bool has_y16;
     float gamma_param;
-    float selected_luma;
-    float luma_min_step;
     uint8_t y[16];
-
-    int count;
-    float table_luma[8];
-    bool table_has_y16[8];
-    float table_gamma_param[8];
-    uint8_t table_y[8][16];
   } gamma;
 
   struct {
@@ -108,13 +98,13 @@ static struct {
   float           min_b_step;
   uint32_t        min_counted;
 
+  float           last_applied_gain_r;
+  float           last_applied_gain_b;
+
   bool            low_luma_ccm_active;
   int             low_luma_hysteresis;
   bool            runtime_ccm_valid;
   bool            runtime_ccm_low_luma;
-  bool            runtime_gamma_valid;
-  float           runtime_gamma_luma;
-
   volatile bool   stats_ready;
   volatile uint32_t stats_seq;
   volatile uint32_t cb_count;
@@ -126,7 +116,8 @@ static struct {
   1.0f, 1.0f,
   0.031f, 0.031f,
   2000,
-  false, 6, false, false, false, 0.0f,
+  1.0f, 1.0f,
+  false, 6, false, false,
   false, 0, 0, 0, {}
 };
 
@@ -160,19 +151,13 @@ void WcIspStartAE(void);
 void WcIspAeProcess(void);
 void WcIspDeinitAE(void);
 void WcIspStartAWB(void);
-static void WcIspApplyRuntimeCcm(isp_proc_handle_t isp);
+static void WcIspApplyRuntimeCcm(void);
 void WcIspResetNormConfig(void);
 void WcIspParseNormConfig(JsonParserObject &sensor);
 bool WcIspParseMatrix9(JsonParserToken mat_tok, float out[3][3]);
 bool WcIspParseWeight25(JsonParserToken weight_tok, uint8_t out[ISP_AE_BLOCK_X_NUM][ISP_AE_BLOCK_Y_NUM]);
-bool WcIspParseGammaY16(JsonParserToken y_tok, uint8_t out[16]);
 void WcIspBuildGammaYFromParam(float gamma_param, uint8_t out[16]);
 void WcIspSetDefaultGammaY(uint8_t out[16]);
-static void WcIspParseGammaTable(JsonParserObject &gamma_obj);
-static void WcIspSelectRuntimeGammaY(float luma, uint8_t out[16]);
-static void WcIspApplyRuntimeGamma(isp_proc_handle_t isp);
-static void WcIspInterpGammaY(const uint8_t y0[16], const uint8_t y1[16], float t, uint8_t out[16]);
-
 /*********************************************************************************************/
 
 static bool WcIspCheckRet(const char *tag, esp_err_t ret) {
@@ -205,19 +190,8 @@ void WcIspResetNormConfig(void) {
   memset(&isp_norm_cfg, 0, sizeof(isp_norm_cfg));
 
   isp_norm_cfg.gamma.present = false;
-  isp_norm_cfg.gamma.use_gamma_param = false;
-  isp_norm_cfg.gamma.has_y16 = false;
   isp_norm_cfg.gamma.gamma_param = 1.0f;
-  isp_norm_cfg.gamma.selected_luma = 50.0f;
-  isp_norm_cfg.gamma.luma_min_step = 16.0f;
   WcIspSetDefaultGammaY(isp_norm_cfg.gamma.y);
-  isp_norm_cfg.gamma.count = 0;
-  for (int i = 0; i < 8; i++) {
-    isp_norm_cfg.gamma.table_luma[i] = 0.0f;
-    isp_norm_cfg.gamma.table_has_y16[i] = false;
-    isp_norm_cfg.gamma.table_gamma_param[i] = 1.0f;
-    WcIspSetDefaultGammaY(isp_norm_cfg.gamma.table_y[i]);
-  }
 
   isp_norm_cfg.color.contrast_0_255 = 255;
   isp_norm_cfg.color.saturation_0_255 = 255;
@@ -282,21 +256,6 @@ void WcIspSetDefaultGammaY(uint8_t out[16]) {
   }
 }
 
-bool WcIspParseGammaY16(JsonParserToken y_tok, uint8_t out[16]) {
-  if (!y_tok || !y_tok.isArray()) {
-    return false;
-  }
-
-  JsonParserArray y_arr = y_tok.getArray();
-  int i = 0;
-  for (auto v : y_arr) {
-    if (i >= 16) break;
-    out[i] = WcClampU8(v.getInt(0), 0, 255);
-    i++;
-  }
-
-  return i == 16;
-}
 
 void WcIspBuildGammaYFromParam(float gamma_param, uint8_t out[16]) {
   gamma_param = WcClampFloat(gamma_param, 0.05f, 5.0f);
@@ -312,129 +271,6 @@ void WcIspBuildGammaYFromParam(float gamma_param, uint8_t out[16]) {
   out[15] = 255;
 }
 
-static void WcIspInterpGammaY(const uint8_t y0[16], const uint8_t y1[16], float t, uint8_t out[16]) {
-  t = WcClampFloat(t, 0.0f, 1.0f);
-  for (int i = 0; i < 16; i++) {
-    float v = (float)y0[i] + ((float)y1[i] - (float)y0[i]) * t;
-    out[i] = WcClampU8((int)(v + 0.5f), 0, 255);
-  }
-  out[0] = 0;
-  out[15] = 255;
-}
-
-static void WcIspParseGammaTable(JsonParserObject &gamma_obj) {
-  JsonParserToken table_tok = gamma_obj["table"];
-  if (!table_tok || !table_tok.isArray()) {
-    return;
-  }
-
-  JsonParserArray table = table_tok.getArray();
-  int idx = 0;
-
-  for (auto entry_tok : table) {
-    if (idx >= 8) break;
-    if (!entry_tok.isObject()) continue;
-
-    JsonParserObject entry = entry_tok.getObject();
-    isp_norm_cfg.gamma.table_luma[idx] = entry.getFloat("luma", 50.0f);
-
-    bool parsed_y = WcIspParseGammaY16(entry["y"], isp_norm_cfg.gamma.table_y[idx]);
-    bool has_gamma_param = (bool)entry["gamma_param"];
-
-    if (parsed_y) {
-      isp_norm_cfg.gamma.table_has_y16[idx] = true;
-    } else if (has_gamma_param) {
-      isp_norm_cfg.gamma.table_gamma_param[idx] = entry.getFloat("gamma_param", 1.0f);
-      WcIspBuildGammaYFromParam(isp_norm_cfg.gamma.table_gamma_param[idx], isp_norm_cfg.gamma.table_y[idx]);
-      isp_norm_cfg.gamma.table_has_y16[idx] = true;
-    }
-
-    idx++;
-  }
-
-  isp_norm_cfg.gamma.count = idx;
-}
-
-static void WcIspSelectRuntimeGammaY(float luma, uint8_t out[16]) {
-  if (isp_norm_cfg.gamma.count <= 0) {
-    memcpy(out, isp_norm_cfg.gamma.y, 16);
-    return;
-  }
-
-  if (isp_norm_cfg.gamma.count == 1) {
-    memcpy(out, isp_norm_cfg.gamma.table_y[0], 16);
-    return;
-  }
-
-  if (luma <= isp_norm_cfg.gamma.table_luma[0]) {
-    memcpy(out, isp_norm_cfg.gamma.table_y[0], 16);
-    return;
-  }
-
-  int last = isp_norm_cfg.gamma.count - 1;
-  if (luma >= isp_norm_cfg.gamma.table_luma[last]) {
-    memcpy(out, isp_norm_cfg.gamma.table_y[last], 16);
-    return;
-  }
-
-  for (int i = 0; i < last; i++) {
-    float l0 = isp_norm_cfg.gamma.table_luma[i];
-    float l1 = isp_norm_cfg.gamma.table_luma[i + 1];
-    if (luma >= l0 && luma <= l1) {
-      float span = l1 - l0;
-      float t = (span > 0.0f) ? ((luma - l0) / span) : 0.0f;
-      WcIspInterpGammaY(isp_norm_cfg.gamma.table_y[i], isp_norm_cfg.gamma.table_y[i + 1], t, out);
-      return;
-    }
-  }
-
-  memcpy(out, isp_norm_cfg.gamma.table_y[last], 16);
-}
-
-static void WcIspApplyRuntimeGamma(isp_proc_handle_t isp) {
-  if (!isp || !isp_norm_cfg.gamma.present || !isp_norm_cfg.gamma.has_y16) {
-    return;
-  }
-
-  float luma = (float)isp_ae_state.last_luma;
-
-  if (isp_awb_state.runtime_gamma_valid) {
-    float delta = luma - isp_awb_state.runtime_gamma_luma;
-    if (delta < 0.0f) delta = -delta;
-    if (delta < isp_norm_cfg.gamma.luma_min_step) {
-      return;
-    }
-  }
-
-  uint8_t y16[16];
-  WcIspSelectRuntimeGammaY(luma, y16);
-
-  for (int i = 0; i < 16; i++) {
-    Wc.core.isp_gamma_y[i] = y16[i];
-  }
-
-  isp_gamma_curve_points_t pts = {};
-  esp_isp_gamma_fill_curve_points(WcIspGammaInterp, &pts);
-
-  if (!WcIspCheckRet("ISP Gamma configure R", esp_isp_gamma_configure(isp, COLOR_COMPONENT_R, &pts))) {
-    return;
-  }
-  if (!WcIspCheckRet("ISP Gamma configure G", esp_isp_gamma_configure(isp, COLOR_COMPONENT_G, &pts))) {
-    return;
-  }
-  if (!WcIspCheckRet("ISP Gamma configure B", esp_isp_gamma_configure(isp, COLOR_COMPONENT_B, &pts))) {
-    return;
-  }
-
-  isp_awb_state.runtime_gamma_valid = true;
-  isp_awb_state.runtime_gamma_luma = luma;
-
-  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: Runtime Gamma update (luma=%d step=%.1f y1=%d y15=%d)"),
-         (int)luma,
-         isp_norm_cfg.gamma.luma_min_step,
-         (int)Wc.core.isp_gamma_y[1],
-         (int)Wc.core.isp_gamma_y[15]);
-}
 
 void WcIspParseNormConfig(JsonParserObject &sensor) {
   bool saturation_found = false;
@@ -456,34 +292,14 @@ void WcIspParseNormConfig(JsonParserObject &sensor) {
     if (gamma_tok && gamma_tok.isObject()) {
       JsonParserObject gamma_obj = gamma_tok.getObject();
 
-      JsonParserToken use_gp_tok = gamma_obj["use_gamma_param"];
-      if (use_gp_tok) {
-        isp_norm_cfg.gamma.use_gamma_param = (use_gp_tok.getInt(0) != 0);
-      }
-
-      isp_norm_cfg.gamma.luma_min_step = gamma_obj.getFloat("luma_min_step", 16.0f);
-
-      WcIspParseGammaTable(gamma_obj);
-
-      if (isp_norm_cfg.gamma.count > 0) {
-        int best_idx = 0;
-        float best_dist = 999999.0f;
-
-        for (int i = 0; i < isp_norm_cfg.gamma.count; i++) {
-          float dist = isp_norm_cfg.gamma.table_luma[i] - 50.0f;
-          if (dist < 0.0f) dist = -dist;
-          if (dist < best_dist) {
-            best_dist = dist;
-            best_idx = i;
-          }
-        }
-
-        isp_norm_cfg.gamma.selected_luma = isp_norm_cfg.gamma.table_luma[best_idx];
-        memcpy(isp_norm_cfg.gamma.y, isp_norm_cfg.gamma.table_y[best_idx], 16);
-        isp_norm_cfg.gamma.has_y16 = isp_norm_cfg.gamma.table_has_y16[best_idx];
-        isp_norm_cfg.gamma.present = isp_norm_cfg.gamma.has_y16;
+      JsonParserToken gp_tok = gamma_obj["gamma_param"];
+      if (gp_tok) {
+        isp_norm_cfg.gamma.gamma_param = gamma_obj.getFloat("gamma_param", 1.0f);
+        WcIspBuildGammaYFromParam(isp_norm_cfg.gamma.gamma_param, isp_norm_cfg.gamma.y);
+        isp_norm_cfg.gamma.present = true;
       }
     }
+
     JsonParserToken con_tok = aen["contrast"];
     if (con_tok && con_tok.isArray()) {
       JsonParserArray con_arr = con_tok.getArray();
@@ -598,10 +414,8 @@ void WcIspParseNormConfig(JsonParserObject &sensor) {
     isp_norm_cfg.agc.target_high = isp_norm_cfg.agc.target_low;
   }
 
-  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: ISP norm cfg parsed (gamma=%d gp=%d gtbl=%d sat=%d agc_w=%d ccm=%d lowccm=%d)"),
+  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: ISP norm cfg parsed (gamma=%d sat=%d agc_w=%d ccm=%d lowccm=%d)"),
          isp_norm_cfg.gamma.present ? 1 : 0,
-         isp_norm_cfg.gamma.use_gamma_param ? 1 : 0,
-         isp_norm_cfg.gamma.count,
          isp_norm_cfg.color.saturation_0_255,
          isp_norm_cfg.agc.weight_present ? 1 : 0,
          isp_norm_cfg.ccm.present ? 1 : 0,
@@ -638,34 +452,64 @@ static bool WcIspSelectRuntimeCcm(float out[3][3]) {
   return use_low;
 }
 
-static void WcIspApplyRuntimeCcm(isp_proc_handle_t isp) {
-  if (!isp) {
-    return;
-  }
+static void WcIspApplyRuntimeCcm() {
+  isp_proc_handle_t isp = Wc.core.isp_handle;
+  if (!isp) return;
+  if (!isp_norm_cfg.ccm.present) return;
 
   float runtime_base[3][3];
   bool using_low_luma = WcIspSelectRuntimeCcm(runtime_base);
+
+  bool mode_changed = (!isp_awb_state.runtime_ccm_valid ||
+                       isp_awb_state.runtime_ccm_low_luma != using_low_luma);
+
+  // Pri prepnutí base <-> low_luma nenechaj staré gainy nalepiť sa na novú bázu
+  if (mode_changed && isp_awb_state.runtime_ccm_valid) {
+    isp_awb_state.gain_r = 1.0f;
+    isp_awb_state.gain_b = 1.0f;
+  }
+
+  bool gain_changed =
+      (!isp_awb_state.runtime_ccm_valid) ||
+      (fabsf(isp_awb_state.gain_r - isp_awb_state.last_applied_gain_r) >= 0.001f) ||
+      (fabsf(isp_awb_state.gain_b - isp_awb_state.last_applied_gain_b) >= 0.001f);
+
+  if (!mode_changed && !gain_changed) {
+    return;
+  }
 
   esp_isp_ccm_config_t ccm_cfg;
   memset(&ccm_cfg, 0, sizeof(ccm_cfg));
   ccm_cfg.saturation = true;
 
+  // Toto je POST-CCM trim model -> škálujú sa RIADKY, nie stĺpce
   for (int c = 0; c < 3; c++) {
     ccm_cfg.matrix[0][c] = runtime_base[0][c] * isp_awb_state.gain_r;
     ccm_cfg.matrix[1][c] = runtime_base[1][c];
     ccm_cfg.matrix[2][c] = runtime_base[2][c] * isp_awb_state.gain_b;
   }
 
-  WcIspCheckRet("ISP runtime CCM update", esp_isp_ccm_configure(isp, &ccm_cfg));
+  if (!WcIspCheckRet("ISP runtime CCM update", esp_isp_ccm_configure(isp, &ccm_cfg))) {
+    return;
+  }
 
-  if (!isp_awb_state.runtime_ccm_valid || isp_awb_state.runtime_ccm_low_luma != using_low_luma) {
+  if (mode_changed) {
     AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: CCM runtime switched -> %s (luma=%d threshold=%d)"),
            using_low_luma ? "low_luma" : "base",
            isp_ae_state.last_luma,
            isp_norm_cfg.ccm.low_luma_threshold);
-    isp_awb_state.runtime_ccm_valid = true;
-    isp_awb_state.runtime_ccm_low_luma = using_low_luma;
   }
+
+  if (gain_changed) {
+    AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: CCM runtime gains R=%.3f B=%.3f"),
+           isp_awb_state.gain_r,
+           isp_awb_state.gain_b);
+  }
+
+  isp_awb_state.runtime_ccm_valid = true;
+  isp_awb_state.runtime_ccm_low_luma = using_low_luma;
+  isp_awb_state.last_applied_gain_r = isp_awb_state.gain_r;
+  isp_awb_state.last_applied_gain_b = isp_awb_state.gain_b;
 }
 
 static bool IRAM_ATTR WcIspAeOnStatisticsDone(isp_ae_ctlr_t ae_ctlr, const esp_isp_ae_env_detector_evt_data_t *edata, void *user_data) {
@@ -762,11 +606,11 @@ bool WcIspApplyConfig(isp_proc_handle_t handle, const char* sensor_name, int wid
   WcIspResetNormConfig();
   WcIspParseNormConfig(sensor);
   WcIspApplyDemosaic(handle, sensor);
-  WcIspApplyCCM(handle, sensor);
   WcIspApplyGamma(handle, sensor);
   WcIspApplySharpen(handle, sensor);
   WcIspApplyColor(handle, sensor);
   WcIspApplyBF(handle, sensor);
+  WcIspApplyCCM(handle, sensor);
   WcIspInitAWB(handle, sensor, width, height);
   WcIspInitAE(handle, sensor, width, height);
   
@@ -1007,9 +851,7 @@ void WcIspInitAE(isp_proc_handle_t handle, JsonParserObject &sensor, int width, 
 }
 
 void WcIspAeProcess(void) {
-  if (Wc.core.state != CAM_STREAMING) {
-    return;
-  }
+
   if (!isp_ae_state.enabled || !isp_ae_state.handle) {
     return;
   }
@@ -1144,11 +986,10 @@ uint32_t WcIspGammaInterp(uint32_t x) {
 }
 
 // Apply Gamma Curve
-// JSON: {"aen": {"gamma": {"table": [{"luma": 50, "y": [0,...15 values...]}, ...]}}}
 void WcIspApplyGamma(isp_proc_handle_t handle, JsonParserObject &sensor) {
   (void)sensor;
 
-  if (!isp_norm_cfg.gamma.present || !isp_norm_cfg.gamma.has_y16) {
+  if (!isp_norm_cfg.gamma.present) {
     return;
   }
 
@@ -1172,9 +1013,8 @@ void WcIspApplyGamma(isp_proc_handle_t handle, JsonParserObject &sensor) {
     return;
   }
 
-  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: ISP Gamma applied (gp=%d luma=%d y1=%d y15=%d)"),
-         isp_norm_cfg.gamma.use_gamma_param ? 1 : 0,
-         (int)isp_norm_cfg.gamma.selected_luma,
+  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: ISP Gamma applied (gamma=%.3f y1=%d y15=%d)"),
+         isp_norm_cfg.gamma.gamma_param,
          (int)Wc.core.isp_gamma_y[1],
          (int)Wc.core.isp_gamma_y[15]);
 }
@@ -1437,12 +1277,12 @@ void WcIspInitAWB(isp_proc_handle_t handle, JsonParserObject &sensor, int width,
   isp_awb_state.enabled = true;
   isp_awb_state.gain_r = 1.0f;
   isp_awb_state.gain_b = 1.0f;
+  isp_awb_state.last_applied_gain_r = 1.0f;
+  isp_awb_state.last_applied_gain_b = 1.0f;
   isp_awb_state.low_luma_ccm_active = false;
   isp_awb_state.low_luma_hysteresis = 6;
   isp_awb_state.runtime_ccm_valid = false;
   isp_awb_state.runtime_ccm_low_luma = false;
-  isp_awb_state.runtime_gamma_valid = false;
-  isp_awb_state.runtime_gamma_luma = 0.0f;
   isp_awb_state.min_counted = (uint32_t)WcClampInt(awb.getInt("min_counted", 2000), 1, 1000000);
   isp_awb_state.min_r_step = WcClampFloat(awb.getFloat("min_red_gain_step", 0.034f), 0.0f, 1.0f);
   isp_awb_state.min_b_step = WcClampFloat(awb.getFloat("min_blue_gain_step", 0.034f), 0.0f, 1.0f);
@@ -1484,18 +1324,7 @@ void WcIspStartAWB(void) {
 
 
 void WcIspAwbProcess(void) {
-  WcIspAeProcess();
-
-  if (Wc.core.state != CAM_STREAMING) return;
   if (!isp_awb_state.enabled || !isp_awb_state.handle) return;
-
-  isp_proc_handle_t isp = Wc.core.isp_handle;
-  if (!isp) return;
-
-  // CCM mode switch musí bežať vždy, aj keď AWB stats práve nie sú použiteľné
-  WcIspApplyRuntimeCcm(isp);
-
-  WcIspApplyRuntimeGamma(isp);
 
   uint32_t seq1 = isp_awb_state.stats_seq;
   if (seq1 & 1) {
@@ -1526,13 +1355,26 @@ void WcIspAwbProcess(void) {
   if (avg_r < 1.0f) avg_r = 1.0f;
   if (avg_b < 1.0f) avg_b = 1.0f;
 
-  float new_gain_r = avg_g / avg_r;
-  float new_gain_b = avg_g / avg_b;
+  // AFTER_CCM => avg_g/avg_r a avg_g/avg_b sú REZIDUÁLNE faktory,
+  // nie nové absolútne gainy.
+  float residual_r = avg_g / avg_r;
+  float residual_b = avg_g / avg_b;
 
-  if (new_gain_r < 0.5f) new_gain_r = 0.5f;
-  if (new_gain_r > 2.0f) new_gain_r = 2.0f;
-  if (new_gain_b < 0.5f) new_gain_b = 0.5f;
-  if (new_gain_b > 2.0f) new_gain_b = 2.0f;
+  // bezpečnostné orezanie reziduálnej korekcie na jeden krok
+  residual_r = WcClampFloat(residual_r, 0.75f, 1.33f);
+  residual_b = WcClampFloat(residual_b, 0.75f, 1.33f);
+
+  float target_gain_r = isp_awb_state.gain_r * residual_r;
+  float target_gain_b = isp_awb_state.gain_b * residual_b;
+
+  target_gain_r = WcClampFloat(target_gain_r, 0.5f, 2.0f);
+  target_gain_b = WcClampFloat(target_gain_b, 0.5f, 2.0f);
+
+  // tlmenie, aby to neskákalo
+  const float alpha = 0.35f;
+
+  float new_gain_r = isp_awb_state.gain_r + (target_gain_r - isp_awb_state.gain_r) * alpha;
+  float new_gain_b = isp_awb_state.gain_b + (target_gain_b - isp_awb_state.gain_b) * alpha;
 
   if (fabsf(new_gain_r - isp_awb_state.gain_r) < isp_awb_state.min_r_step &&
       fabsf(new_gain_b - isp_awb_state.gain_b) < isp_awb_state.min_b_step) {
@@ -1542,9 +1384,23 @@ void WcIspAwbProcess(void) {
   isp_awb_state.gain_r = new_gain_r;
   isp_awb_state.gain_b = new_gain_b;
 
-  WcIspApplyRuntimeCcm(isp);
+  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: AWB residual R=%.3f B=%.3f -> gain R=%.3f B=%.3f"),
+         residual_r, residual_b,
+         isp_awb_state.gain_r, isp_awb_state.gain_b);
 }
 
+
+void WcIspAutoProcess(void) {
+
+  if (Wc.core.state != CAM_STREAMING) {
+    return;
+  }
+
+  WcIspAeProcess();
+  WcIspAwbProcess();
+  WcIspApplyRuntimeCcm();
+
+  }
 /*********************************************************************************************/
 
 // Deinitialize AWB - called when streaming stops
@@ -1572,11 +1428,11 @@ void WcIspDeinitAWB(void) {
   isp_awb_state.handle = NULL;
   isp_awb_state.gain_r = 1.0f;
   isp_awb_state.gain_b = 1.0f;
+  isp_awb_state.last_applied_gain_r = 1.0f;
+  isp_awb_state.last_applied_gain_b = 1.0f;
   isp_awb_state.low_luma_ccm_active = false;
   isp_awb_state.runtime_ccm_valid = false;
   isp_awb_state.runtime_ccm_low_luma = false;
-  isp_awb_state.runtime_gamma_valid = false;
-  isp_awb_state.runtime_gamma_luma = 0.0f;
   isp_awb_state.stats_ready = false;
   isp_awb_state.stats_seq = 0;
   isp_awb_state.cb_count = 0;

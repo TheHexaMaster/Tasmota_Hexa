@@ -927,7 +927,7 @@ bool Xdrv81(uint32_t function) {
       break;
     case FUNC_EVERY_250_MSECOND:
       if (Wc.core.state == CAM_STREAMING) {
-        WcIspAwbProcess();
+        WcIspAutoProcess();
       }
       break;
     case FUNC_EVERY_SECOND:
