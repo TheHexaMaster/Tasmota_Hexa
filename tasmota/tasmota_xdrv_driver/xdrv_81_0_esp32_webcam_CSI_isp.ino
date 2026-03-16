@@ -3,6 +3,8 @@
 
   Copyright (C) 2025  Christian Baars and Theo Arends
 
+  Runtime AE & CCM Implementation by Martin Macák - HexaMaster
+
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
@@ -78,10 +80,6 @@ struct WcIspNormConfig {
   struct {
     bool present;
     float table[3][3];
-
-    bool low_luma_present;
-    int low_luma_threshold;
-    float low_luma_matrix[3][3];
   } ccm;
 
   struct {
@@ -112,10 +110,7 @@ static struct {
   float           last_applied_gain_r;
   float           last_applied_gain_b;
 
-  bool            low_luma_ccm_active;
-  int             low_luma_hysteresis;
   bool            runtime_ccm_valid;
-  bool            runtime_ccm_low_luma;
   volatile bool   stats_ready;
   volatile uint32_t stats_seq;
   volatile uint32_t cb_count;
@@ -128,7 +123,7 @@ static struct {
   0.031f, 0.031f,
   2000,
   1.0f, 1.0f,
-  false, 6, false, false,
+  false,
   false, 0, 0, 0, {}
 };
 
@@ -177,6 +172,7 @@ void WcIspAeProcess(void);
 void WcIspDeinitAE(void);
 void WcIspStartAWB(void);
 static void WcIspApplyRuntimeCcm(void);
+
 void WcIspResetNormConfig(void);
 void WcIspParseNormConfig(JsonParserObject &sensor);
 bool WcIspParseMatrix9(JsonParserToken mat_tok, float out[3][3]);
@@ -246,9 +242,7 @@ void WcIspResetNormConfig(void) {
   isp_norm_cfg.ccm.table[1][1] = 1.0f;
   isp_norm_cfg.ccm.table[2][2] = 1.0f;
 
-  isp_norm_cfg.ccm.low_luma_matrix[0][0] = 1.0f;
-  isp_norm_cfg.ccm.low_luma_matrix[1][1] = 1.0f;
-  isp_norm_cfg.ccm.low_luma_matrix[2][2] = 1.0f;
+
 }
 
 bool WcIspParseMatrix9(JsonParserToken mat_tok, float out[3][3]) {
@@ -440,16 +434,6 @@ void WcIspParseNormConfig(JsonParserObject &sensor) {
           }
         }
       }
-
-      JsonParserToken low_luma_tok = ccm_obj["low_luma"];
-      if (low_luma_tok && low_luma_tok.isObject()) {
-        JsonParserObject low_luma = low_luma_tok.getObject();
-        int threshold = low_luma.getInt("threshold", -1);
-        if (threshold >= 0 && WcIspParseMatrix9(low_luma["matrix"], isp_norm_cfg.ccm.low_luma_matrix)) {
-          isp_norm_cfg.ccm.low_luma_present = true;
-          isp_norm_cfg.ccm.low_luma_threshold = threshold;
-        }
-      }
     }
   }
 
@@ -499,43 +483,12 @@ void WcIspParseNormConfig(JsonParserObject &sensor) {
     isp_norm_cfg.agc.target_high = isp_norm_cfg.agc.target_low;
   }
 
-  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: ISP norm cfg parsed (gamma=%d sat=%d agc_w=%d ccm=%d lowccm=%d bf=%d)"),
+  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: ISP norm cfg parsed (gamma=%d sat=%d agc_w=%d ccm=%d bf=%d)"),
          isp_norm_cfg.gamma.present ? 1 : 0,
          isp_norm_cfg.color.saturation_0_255,
          isp_norm_cfg.agc.weight_present ? 1 : 0,
          isp_norm_cfg.ccm.present ? 1 : 0,
-         isp_norm_cfg.ccm.low_luma_present ? 1 : 0,
          isp_norm_cfg.bf.count);
-}
-
-static bool WcIspSelectRuntimeCcm(float out[3][3]) {
-  bool use_low = false;
-
-  if (isp_norm_cfg.ccm.low_luma_present) {
-    int threshold_on = isp_norm_cfg.ccm.low_luma_threshold;
-    int threshold_off = isp_norm_cfg.ccm.low_luma_threshold + isp_awb_state.low_luma_hysteresis;
-
-    if (!isp_awb_state.low_luma_ccm_active) {
-      if (isp_ae_state.last_luma > 0 && isp_ae_state.last_luma < threshold_on) {
-        isp_awb_state.low_luma_ccm_active = true;
-      }
-    } else {
-      if (isp_ae_state.last_luma >= threshold_off) {
-        isp_awb_state.low_luma_ccm_active = false;
-      }
-    }
-
-    use_low = isp_awb_state.low_luma_ccm_active;
-  }
-
-  for (int r = 0; r < 3; r++) {
-    for (int c = 0; c < 3; c++) {
-      out[r][c] = use_low ? isp_norm_cfg.ccm.low_luma_matrix[r][c]
-                          : isp_norm_cfg.ccm.table[r][c];
-    }
-  }
-
-  return use_low;
 }
 
 static void WcIspApplyRuntimeCcm() {
@@ -543,24 +496,12 @@ static void WcIspApplyRuntimeCcm() {
   if (!isp) return;
   if (!isp_norm_cfg.ccm.present) return;
 
-  float runtime_base[3][3];
-  bool using_low_luma = WcIspSelectRuntimeCcm(runtime_base);
-
-  bool mode_changed = (!isp_awb_state.runtime_ccm_valid ||
-                       isp_awb_state.runtime_ccm_low_luma != using_low_luma);
-
-  // Pri prepnutí base <-> low_luma nenechaj staré gainy nalepiť sa na novú bázu
-  if (mode_changed && isp_awb_state.runtime_ccm_valid) {
-    isp_awb_state.gain_r = 1.0f;
-    isp_awb_state.gain_b = 1.0f;
-  }
-
   bool gain_changed =
       (!isp_awb_state.runtime_ccm_valid) ||
       (fabsf(isp_awb_state.gain_r - isp_awb_state.last_applied_gain_r) >= 0.001f) ||
       (fabsf(isp_awb_state.gain_b - isp_awb_state.last_applied_gain_b) >= 0.001f);
 
-  if (!mode_changed && !gain_changed) {
+  if (!gain_changed) {
     return;
   }
 
@@ -568,32 +509,22 @@ static void WcIspApplyRuntimeCcm() {
   memset(&ccm_cfg, 0, sizeof(ccm_cfg));
   ccm_cfg.saturation = true;
 
-  // Toto je POST-CCM trim model -> škálujú sa RIADKY, nie stĺpce
+  // base CCM + AWB trim
   for (int c = 0; c < 3; c++) {
-    ccm_cfg.matrix[0][c] = runtime_base[0][c] * isp_awb_state.gain_r;
-    ccm_cfg.matrix[1][c] = runtime_base[1][c];
-    ccm_cfg.matrix[2][c] = runtime_base[2][c] * isp_awb_state.gain_b;
+    ccm_cfg.matrix[0][c] = isp_norm_cfg.ccm.table[0][c] * isp_awb_state.gain_r;
+    ccm_cfg.matrix[1][c] = isp_norm_cfg.ccm.table[1][c];
+    ccm_cfg.matrix[2][c] = isp_norm_cfg.ccm.table[2][c] * isp_awb_state.gain_b;
   }
 
   if (!WcIspCheckRet("ISP runtime CCM update", esp_isp_ccm_configure(isp, &ccm_cfg))) {
     return;
   }
 
-  if (mode_changed) {
-    AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: CCM runtime switched -> %s (luma=%d threshold=%d)"),
-           using_low_luma ? "low_luma" : "base",
-           isp_ae_state.last_luma,
-           isp_norm_cfg.ccm.low_luma_threshold);
-  }
-
-  if (gain_changed) {
-    AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: CCM runtime gains R=%.3f B=%.3f"),
-           isp_awb_state.gain_r,
-           isp_awb_state.gain_b);
-  }
+  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: CCM runtime gains R=%.3f B=%.3f"),
+         isp_awb_state.gain_r,
+         isp_awb_state.gain_b);
 
   isp_awb_state.runtime_ccm_valid = true;
-  isp_awb_state.runtime_ccm_low_luma = using_low_luma;
   isp_awb_state.last_applied_gain_r = isp_awb_state.gain_r;
   isp_awb_state.last_applied_gain_b = isp_awb_state.gain_b;
 }
@@ -769,9 +700,7 @@ void WcIspApplyCCM(isp_proc_handle_t handle, JsonParserObject &sensor) {
     return;
   }
 
-  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: ISP CCM applied (low-luma cached=%d threshold=%d)"),
-         isp_norm_cfg.ccm.low_luma_present ? 1 : 0,
-         isp_norm_cfg.ccm.low_luma_threshold);
+    AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: ISP CCM profile matrix applied"));
 }
 
 /*********************************************************************************************/
@@ -1045,7 +974,6 @@ void WcIspInitAE(isp_proc_handle_t handle, JsonParserObject &sensor, int width, 
   memset(&ae_cfg, 0, sizeof(ae_cfg));
   ae_cfg.sample_point = ISP_AE_SAMPLE_POINT_AFTER_DEMOSAIC;
 
-  // DÔLEŽITÉ: AE musí mať reálne sampling window, nie nulové
   ae_cfg.window.top_left.x = 0;
   ae_cfg.window.top_left.y = 0;
   ae_cfg.window.btm_right.x = width;
@@ -1077,9 +1005,7 @@ void WcIspInitAE(isp_proc_handle_t handle, JsonParserObject &sensor, int width, 
     return;
   }
 
-  // POZOR:
-  // Continuous AE tu EŠTE nespúšťaj.
-  // Iba controller priprav a skutočný start urob až po stream_on.
+  // AE only after stream on
 
   isp_ae_state.handle = ctlr;
   isp_ae_state.enabled = true;
@@ -1502,10 +1428,7 @@ void WcIspInitAWB(isp_proc_handle_t handle, JsonParserObject &sensor, int width,
   isp_awb_state.gain_b = 1.0f;
   isp_awb_state.last_applied_gain_r = 1.0f;
   isp_awb_state.last_applied_gain_b = 1.0f;
-  isp_awb_state.low_luma_ccm_active = false;
-  isp_awb_state.low_luma_hysteresis = 6;
   isp_awb_state.runtime_ccm_valid = false;
-  isp_awb_state.runtime_ccm_low_luma = false;
   isp_awb_state.min_counted = (uint32_t)WcClampInt(awb.getInt("min_counted", 2000), 1, 1000000);
   isp_awb_state.min_r_step = WcClampFloat(awb.getFloat("min_red_gain_step", 0.034f), 0.0f, 1.0f);
   isp_awb_state.min_b_step = WcClampFloat(awb.getFloat("min_blue_gain_step", 0.034f), 0.0f, 1.0f);
@@ -1578,12 +1501,12 @@ void WcIspAwbProcess(void) {
   if (avg_r < 1.0f) avg_r = 1.0f;
   if (avg_b < 1.0f) avg_b = 1.0f;
 
-  // AFTER_CCM => avg_g/avg_r a avg_g/avg_b sú REZIDUÁLNE faktory,
-  // nie nové absolútne gainy.
+  // AFTER_CCM => avg_g/avg_r a avg_g/avg_b residuals, not absolute gains
+
   float residual_r = avg_g / avg_r;
   float residual_b = avg_g / avg_b;
 
-  // bezpečnostné orezanie reziduálnej korekcie na jeden krok
+  // limit step correction
   residual_r = WcClampFloat(residual_r, 0.75f, 1.33f);
   residual_b = WcClampFloat(residual_b, 0.75f, 1.33f);
 
@@ -1593,7 +1516,6 @@ void WcIspAwbProcess(void) {
   target_gain_r = WcClampFloat(target_gain_r, 0.5f, 2.0f);
   target_gain_b = WcClampFloat(target_gain_b, 0.5f, 2.0f);
 
-  // tlmenie, aby to neskákalo
   const float alpha = 0.35f;
 
   float new_gain_r = isp_awb_state.gain_r + (target_gain_r - isp_awb_state.gain_r) * alpha;
@@ -1652,9 +1574,7 @@ void WcIspDeinitAWB(void) {
   isp_awb_state.gain_b = 1.0f;
   isp_awb_state.last_applied_gain_r = 1.0f;
   isp_awb_state.last_applied_gain_b = 1.0f;
-  isp_awb_state.low_luma_ccm_active = false;
   isp_awb_state.runtime_ccm_valid = false;
-  isp_awb_state.runtime_ccm_low_luma = false;
   isp_awb_state.stats_ready = false;
   isp_awb_state.stats_seq = 0;
   isp_awb_state.cb_count = 0;

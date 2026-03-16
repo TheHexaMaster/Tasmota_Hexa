@@ -2,6 +2,8 @@
   xdrv_81_0_esp32_webcam_CSI_core.ino - ESP32-P4 CSI webcam support for Tasmota
 
   Copyright (C) 2025  Christian Baars and Theo Arends
+  
+  Runtime AE & CCM Implementation by Martin Macák - HexaMaster
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -512,7 +514,9 @@ uint32_t WcInitPipeline() {
 // De-initialize only the resolution-dependent hardware
 void WcDeinitPipeline() {
   // 0. AWB must go before ISP processor
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 5, 0)
   WcIspDeinitAWB();
+#endif
   
   // 1. Delete Encoder
   if (Wc.h264.handle) {
@@ -718,6 +722,13 @@ uint32_t WcSetup(bool reset_config) {
   return 1;
 }
 
+static void WcStartRuntimeControllers(void) {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 5, 0)
+  WcIspStartAE();
+  WcIspStartAWB();
+#endif
+}
+
 uint32_t WcStart(void) {
   AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: WcStart called - state=%d"), Wc.core.state);
   
@@ -761,13 +772,11 @@ uint32_t WcStart(void) {
   Wc.core.state = CAM_STREAMING;
 
   // Continuous ISP stats spúšťaj až po reálnom stream_on
-  WcIspStartAE();
-  WcIspStartAWB();
+  WcStartRuntimeControllers();
   
   AddLog(LOG_LEVEL_INFO, PSTR("CAM: Streaming active"));
   return 1;
 }
-
 
 uint32_t WcStop(void) {
   if (Wc.core.state == CAM_IDLE || Wc.core.state == CAM_STOPPING) {
@@ -969,7 +978,9 @@ bool Xdrv81(uint32_t function) {
       break;
     case FUNC_EVERY_250_MSECOND:
       if (Wc.core.state == CAM_STREAMING) {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 5, 0)
         WcIspAutoProcess();
+#endif
       }
       break;
     case FUNC_EVERY_SECOND:
