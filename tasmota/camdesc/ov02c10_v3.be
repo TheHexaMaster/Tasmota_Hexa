@@ -537,7 +537,7 @@ class OV02C10 : CSI_Sensor
       if idx != 0
         import introspect
         var p = introspect.toptr(idx)
-        var b = bytes(p, 28)
+        var b = bytes(p, 40)
 
         res_idx = b[26]
 
@@ -581,7 +581,7 @@ class OV02C10 : CSI_Sensor
       if idx != 0
         import introspect
         var p = introspect.toptr(idx)
-        var b = bytes(p, 28)
+        var b = bytes(p, 40)
 
         # CSI_Config backfill
         b.set(0, self.width, 2)         # width
@@ -599,6 +599,13 @@ class OV02C10 : CSI_Sensor
         b[25] = 0
         b[26] = res_idx                 # res_index
         b[27] = self.CSI_FLAGS          # explicit Bayer GBRG, no flips
+        # AE seed for C++ runtime BF selection
+        b.set(28, 0xAE51, 2)            # magic
+        b.set(30, 1, 2)                 # version
+        b.set(32, self.vts, 2)
+        b.set(34, self.exposure_lines, 2)
+        b.set(36, self.analog_gain, 2)
+        b.set(38, self.digital_gain, 2)
       end
 
       self.is_streaming = false

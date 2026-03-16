@@ -115,6 +115,20 @@ struct CSI_Config {
   uint8_t flags;            // 27: Bitmask (Bit 0=V-Flip, Bit 1=H-Mirror)
 } __attribute__((packed));
 
+struct CSI_AE_Seed {
+  uint16_t magic;           // 0xAE51
+  uint16_t version;         // 1
+  uint16_t vts;
+  uint16_t exposure_lines;
+  uint16_t analog_gain;
+  uint16_t digital_gain;
+} __attribute__((packed));
+
+struct CSI_InitExchange {
+  CSI_Config  cfg;          // pôvodných 28 bajtov
+  CSI_AE_Seed ae;           // +12 bajtov
+} __attribute__((packed));
+
 #define CSI_FLAG_VFLIP        (1 << 0)
 #define CSI_FLAG_HMIRROR      (1 << 1)
 
@@ -266,6 +280,7 @@ struct {
 bool WcIspApplyConfig(isp_proc_handle_t handle, const char* sensor_name, int width, int height);
 void WcIspStartAE(void);
 void WcIspStartAWB(void);
+void WcIspMirrorAeSeed(uint16_t vts, uint16_t exposure_lines, uint16_t analog_gain, uint16_t digital_gain);
 #endif
 
 #define BOUNDARY "e8b8c539-047d-4777-a985-fbba6edff11e"
@@ -568,19 +583,46 @@ uint32_t WcSetup(bool reset_config) {
     Wc.core.config.fps = 1; // Default to 1 to avoid div-by-zero later
   }
 
-  // 2. Call Berry to initialize sensor (zero-copy: pass struct address as idx)
+  // 2. Call Berry to initialize sensor (zero-copy exchange buffer: config + AE seed)
   AddLog(LOG_LEVEL_INFO, PSTR("CAM: ===== CALLING BERRY INIT ====="));
-  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: Config buffer addr=0x%08X size=%d bytes"), (uint32_t)&Wc.core.config, sizeof(CSI_Config));
-  
-  uint32_t config_addr = (uint32_t)&Wc.core.config;
+
+  CSI_InitExchange initx;
+  memset(&initx, 0, sizeof(initx));
+
+  // preload current requested config into first 28 bytes
+  memcpy(&initx.cfg, &Wc.core.config, sizeof(CSI_Config));
+
+  AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: Config buffer addr=0x%08X size=%d bytes"),
+        (uint32_t)&initx, sizeof(CSI_InitExchange));
+
+  uint32_t config_addr = (uint32_t)&initx;
   int32_t result = callBerryEventDispatcher(PSTR("camera"), PSTR("init"), config_addr, nullptr, 0);
-  
+
   AddLog(LOG_LEVEL_INFO, PSTR("CAM: ===== BERRY INIT RESULT=%d ====="), result);
-  
+
   if (result == 0) {
     AddLog(LOG_LEVEL_ERROR, PSTR("CAM: Berry init failed or no driver loaded"));
     WcSetFailed(CAM_FAIL_BERRY_INIT);
     return 0;
+  }
+
+  // copy back the first 28 bytes as final CSI config
+  memcpy(&Wc.core.config, &initx.cfg, sizeof(CSI_Config));
+
+  // optional AE seed returned by Berry
+  if (initx.ae.magic == 0xAE51 && initx.ae.version == 1) {
+    WcIspMirrorAeSeed(initx.ae.vts,
+                      initx.ae.exposure_lines,
+                      initx.ae.analog_gain,
+                      initx.ae.digital_gain);
+
+    AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: AE seed loaded VTS=%u EXP=%u AGAIN=0x%X DGAIN=0x%X"),
+          initx.ae.vts,
+          initx.ae.exposure_lines,
+          initx.ae.analog_gain,
+          initx.ae.digital_gain);
+  } else {
+    AddLog(LOG_LEVEL_DEBUG, PSTR("CAM: AE seed missing or invalid"));
   }
   
   // Log raw bytes for debugging
